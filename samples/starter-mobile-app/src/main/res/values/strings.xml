@@ -119,6 +119,7 @@
   <string name="wear_spo2">산소포화도</string>
   <string name="wear_sweat_loss">땀 손실</string>
   <string name="wear_heart_rate">심박수</string>
+  <string name="wear_user_profile">사용자 프로필</string>
   <string name="wear_blood_pressure">혈압</string>
 
   <string name="device_stat_mobile_wear_connection">연결된 워치 정보</string>

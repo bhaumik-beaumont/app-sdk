@@ -20,6 +20,7 @@ import researchstack.domain.model.priv.PrivDataType
 import researchstack.domain.usecase.TrackDataUseCase
 import researchstack.domain.usecase.TrackMeasureTimeUseCase
 import researchstack.domain.usecase.UserProfileUseCase
+import researchstack.domain.usecase.SendUserProfileUseCase
 import researchstack.presentation.main.screen.HomeScreenItem
 import researchstack.presentation.main.screen.getItemPrefKey
 import researchstack.presentation.measurement.screen.AskProfilePage
@@ -34,6 +35,7 @@ class BiaMeasureViewModel @Inject constructor(
     private val trackMeasureTimeUseCase: TrackMeasureTimeUseCase,
     private val trackDataUseCase: TrackDataUseCase,
     private val userProfileUseCase: UserProfileUseCase,
+    private val sendUserProfileUseCase: SendUserProfileUseCase,
 ) : AndroidViewModel(application) {
 
     private val _measureState = MutableLiveData<MeasureState>(None)
@@ -199,6 +201,7 @@ class BiaMeasureViewModel @Inject constructor(
         profile?.let {
             viewModelScope.launch(Dispatchers.IO) {
                 userProfileUseCase(it)
+                sendUserProfileUseCase(it)
             }
         }
     }
