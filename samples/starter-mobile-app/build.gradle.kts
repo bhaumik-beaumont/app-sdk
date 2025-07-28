@@ -29,7 +29,7 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.mgb.beaumont.glp1activitytracking"
+        applicationId = "com.mgb.beaumont"
         minSdk = 28
         targetSdk = 34
         versionCode = Versions.APP_VERSION_CODE * 2 - 1

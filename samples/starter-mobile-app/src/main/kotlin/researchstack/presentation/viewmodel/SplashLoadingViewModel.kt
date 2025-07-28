@@ -40,8 +40,8 @@ class SplashLoadingViewModel @Inject constructor(
 
     fun setStartMainPage() {
         viewModelScope.launch {
-            startMainPage.value = if (getJoinedStudiesUseCase().first().isEmpty()) 0
-            else 1
+            startMainPage.value = if (getJoinedStudiesUseCase().first().isEmpty()) 1
+            else 0
         }
     }
 }

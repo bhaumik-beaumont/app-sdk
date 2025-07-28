@@ -57,7 +57,6 @@ import researchstack.presentation.PermissionChecker
 import researchstack.presentation.component.ComplianceSummaryCard
 import researchstack.presentation.initiate.route.Route
 import researchstack.presentation.screen.notification.NotificationViewModel
-import researchstack.presentation.util.ignoreBatteryOptimization
 import researchstack.presentation.viewmodel.HealthConnectPermissionViewModel
 
 @Composable
@@ -70,13 +69,6 @@ fun DashboardScreen(healthConnectPermissionViewModel: HealthConnectPermissionVie
     val navController = LocalNavController.current
     val notificationViewModel: NotificationViewModel = hiltViewModel()
     val hasUnread by notificationViewModel.hasUnread.collectAsState()
-
-    LaunchedEffect(key1 = "pm") {
-        ignoreBatteryOptimization(context)
-    }
-    val permissions = mutableListOf<String>()
-    if (VERSION.SDK_INT >= VERSION_CODES.TIRAMISU) permissions.add(Manifest.permission.POST_NOTIFICATIONS)
-    PermissionChecker(permissions = permissions) {}
 
     val permissionsLauncher =
         rememberLauncherForActivityResult(healthConnectPermissionViewModel.permissionsLauncher) {
