@@ -1,4 +1,4 @@
-rootProject.name = "ResearchStack"
+rootProject.name = "MGHBicep"
 include(":backend-integration:interface")
 include(":backend-integration:researchstack-adapter")
 include(":common")

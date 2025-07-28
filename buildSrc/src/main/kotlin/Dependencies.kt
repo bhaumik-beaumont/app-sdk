@@ -1,8 +1,8 @@
 import org.gradle.api.artifacts.dsl.DependencyHandler
 
 object Versions {
-    const val APP_VERSION_NAME = "1.0.11"
-    const val APP_VERSION_CODE = 15
+    const val APP_VERSION_NAME = "1.0.2.1"
+    const val APP_VERSION_CODE = 1
 
     const val KOTLIN = "1.9.23"
 
@@ -90,7 +90,7 @@ object Versions {
     const val ACCOMPANIST_PAGER = "0.34.0"
     const val SIGNATURE_PAD = "0.1.2"
     const val ROOT_COVERAGE = "1.8.0"
-    const val GOOGLE_HEALTH_CONNECT = "1.0.0-alpha11"
+    const val GOOGLE_HEALTH_CONNECT = "1.1.0-rc02"
     const val COMMONS_MATH = "3.3"
 }
 

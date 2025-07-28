@@ -24,22 +24,28 @@
   <uses-permission android:name="android.permission.health.READ_BLOOD_PRESSURE"/>
   <uses-permission android:name="android.permission.health.READ_BLOOD_GLUCOSE"/>
   <uses-permission android:name="android.permission.health.READ_SLEEP"/>
-  <uses-permission android:name="android.permission.health.READ_OXYGEN_SATURATION"/>
+    <uses-permission android:name="android.permission.health.READ_EXERCISE"/>
+    <uses-permission android:name="android.permission.health.READ_DISTANCE"/>
+    <uses-permission android:name="android.permission.health.READ_OXYGEN_SATURATION"/>
+    <uses-permission android:name="android.permission.health.READ_EXERCISE_ROUTES" />
+    <uses-permission android:name="android.permission.health.READ_EXERCISE_SESSION" />
+    <uses-permission android:name="android.permission.health.READ_TOTAL_CALORIES_BURNED"/>
+    <uses-permission android:name="android.permission.health.READ_SPEED"/>
+    <uses-permission android:name="android.permission.health.READ_TOTAL_CALORIES_BURNED"/>
+
 
   <uses-permission
     android:name="android.permission.PACKAGE_USAGE_STATS"
     tools:ignore="ProtectedPermissions" />
 
-  <queries>
-    <package android:name="com.sec.android.app.shealth" />
-    <package android:name="com.google.android.apps.healthdata" />
-  </queries>
+
 
   <application
     android:name=".presentation.initiate.ResearchApplication"
     android:allowBackup="false"
     android:enableOnBackInvokedCallback="true"
     android:fullBackupOnly="true"
+      android:usesCleartextTraffic="true"
     android:icon="@mipmap/ic_launcher"
     android:label="@string/app_name"
     android:roundIcon="@mipmap/ic_launcher_round"
@@ -69,8 +75,17 @@
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />
         <category android:name="android.intent.category.LAUNCHER" />
-        <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
       </intent-filter>
+
+        <intent-filter>
+            <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
+        </intent-filter>
+
+        <!-- Permission handling for Android 14 -->
+        <intent-filter>
+            <action android:name="android.intent.action.VIEW_PERMISSION_USAGE"/>
+            <category android:name="android.intent.category.HEALTH_PERMISSIONS"/>
+        </intent-filter>
     </activity>
 
     <receiver
@@ -84,7 +99,7 @@
       </intent-filter>
     </receiver>
 
-    <receiver android:name="researchstack.starter.util.AlarmReceiver"/>
+    <receiver android:name="researchstack.util.AlarmReceiver"/>
 
     <service
       android:foregroundServiceType="health"
@@ -110,7 +125,7 @@
     </service>
 
     <service
-      android:name="researchstack.starter.presentation.service.ipc.HealthResearchBoundService"
+      android:name="researchstack.presentation.service.ipc.HealthResearchBoundService"
       android:enabled="true"
       android:exported="true"
       android:process=":bound_service" />
@@ -127,5 +142,14 @@
         tools:node="remove" />
     </provider>
   </application>
+
+    <queries>
+        <package android:name="com.sec.android.app.shealth" />
+        <package android:name="com.google.android.apps.healthdata" />
+
+        <intent>
+            <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
+        </intent>
+    </queries>
 
 </manifest>

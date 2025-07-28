@@ -25,6 +25,7 @@ import researchstack.domain.model.Study
 import researchstack.domain.model.events.DeviceStatDataType
 import researchstack.domain.model.priv.PrivDataType
 import researchstack.domain.model.sensor.TrackerDataType
+import researchstack.domain.model.shealth.SHealthDataType
 import researchstack.domain.usecase.shareagreement.ShareAgreementUseCase
 import researchstack.domain.usecase.study.StudyJoinUseCase
 import researchstack.domain.usecase.wearable.PassiveDataStatusUseCase
@@ -86,6 +87,7 @@ constructor(
             val shareAgreements =
                 createShareAgreements(
                     studyId,
+                    SHealthDataTypes,
                     trackerDataTypes,
                     privDataTypes,
                     deviceStatDataTypes,
@@ -139,6 +141,7 @@ constructor(
 
     private fun createShareAgreements(
         studyId: String,
+        sHealthDataTypes: List<SHealthDataType>,
         trackerDataTypes: List<TrackerDataType>,
         privDataTypes: List<PrivDataType>,
         deviceStatDataTypes: List<DeviceStatDataType>,
@@ -147,6 +150,7 @@ constructor(
             mutableListOf<ShareAgreement>().apply {
                 for (
                 dataType in listOf(
+                    sHealthDataTypes,
                     trackerDataTypes,
                     privDataTypes,
                     deviceStatDataTypes,

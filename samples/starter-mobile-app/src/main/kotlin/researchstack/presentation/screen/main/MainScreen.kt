@@ -32,7 +32,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
 import researchstack.R
 import researchstack.presentation.PermissionChecker
-import researchstack.presentation.screen.insight.InsightScreen
 import researchstack.presentation.screen.log.LogScreen
 import researchstack.presentation.screen.study.StudyListScreen
 import researchstack.presentation.screen.task.TaskListScreen
@@ -41,9 +40,9 @@ import researchstack.presentation.util.ignoreBatteryOptimization
 import researchstack.presentation.viewmodel.UISettingViewModel
 
 enum class BottomPager(@StringRes val titleId: Int, val imageVectorId: Int) {
+    Data(R.string.home_data, R.drawable.home_data),
     StudyList(R.string.home_study_list, R.drawable.home_study_list),
     TaskList(R.string.home_task_list, R.drawable.home_task_list),
-    Data(R.string.home_data, R.drawable.home_data),
     Log(R.string.log_page, R.drawable.ic_walk)
 }
 
@@ -54,13 +53,7 @@ fun MainScreen(
     hiddenPageViewModel: UISettingViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
-    val permissions = mutableListOf(
-        Manifest.permission.READ_CALL_LOG,
-        Manifest.permission.RECORD_AUDIO,
-        // NOTE: Not Supported Yet
-        // Manifest.permission.ACCESS_COARSE_LOCATION,
-        // Manifest.permission.ACCESS_FINE_LOCATION
-    )
+    val permissions = mutableListOf<String>()
     if (VERSION.SDK_INT >= VERSION_CODES.TIRAMISU) permissions.add(Manifest.permission.POST_NOTIFICATIONS)
     PermissionChecker(permissions = permissions) {}
     LaunchedEffect(key1 = "pm") {
@@ -104,7 +97,7 @@ fun MainScreen(
 
                 BottomPager.StudyList.ordinal -> StudyListScreen()
 
-                BottomPager.Data.ordinal -> InsightScreen(currentPager = pagerState.currentPage)
+                BottomPager.Data.ordinal -> DashboardScreen()
 
                 BottomPager.Log.ordinal -> LogScreen()
             }

@@ -10,12 +10,15 @@ import researchstack.presentation.screen.insight.SettingScreen
 import researchstack.presentation.screen.insight.StudyPermissionSettingScreen
 import researchstack.presentation.screen.insight.StudyStatusScreen
 import researchstack.presentation.screen.main.MainScreen
+import researchstack.presentation.screen.notification.NotificationScreen
 import researchstack.presentation.screen.study.EligibilityFailScreen
 import researchstack.presentation.screen.study.StudyCodeInputScreen
 import researchstack.presentation.screen.study.StudyEligibilityScreen
 import researchstack.presentation.screen.study.StudyInformationScreen
 import researchstack.presentation.screen.study.StudyInformedConsentScreen
 import researchstack.presentation.screen.task.TaskScreen
+import researchstack.presentation.screen.welcome.AppIntroScreen
+import researchstack.presentation.screen.welcome.LoginScreen
 import researchstack.presentation.screen.welcome.WelcomeScreen
 
 private val mainRouteName = "${Route.Main.name}/{page}"
@@ -25,6 +28,15 @@ fun Router(navController: NavHostController, startRoute: Route, askedPage: Int) 
     val startDestination = startRoute.name
 
     NavHost(navController = navController, startDestination = startDestination) {
+        composable(Route.Intro.name) {
+            AppIntroScreen()
+        }
+        composable(Route.Login.name) {
+            LoginScreen()
+        }
+        composable(Route.Notifications.name) {
+            NotificationScreen()
+        }
         composable(Route.Welcome.name) {
             WelcomeScreen()
         }

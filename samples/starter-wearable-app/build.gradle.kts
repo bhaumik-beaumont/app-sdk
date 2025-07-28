@@ -18,10 +18,10 @@ fun getPropertyOrDefault(key: String, defaultValue: String): String {
 
 android {
     namespace = "researchstack"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
-        applicationId = getRootProperty("APPLICATION_ID", "researchstack.starter")
+        applicationId = "com.mgb.beaumont.glp1activitytracking"
         minSdk = 30
         targetSdk = 34
         versionCode = Versions.APP_VERSION_CODE * 2

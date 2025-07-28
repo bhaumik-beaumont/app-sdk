@@ -1,38 +1,25 @@
 package researchstack.data.repository.healthConnect
 
 import android.util.Log
-import androidx.health.connect.client.records.BloodGlucoseRecord
-import androidx.health.connect.client.records.BloodPressureRecord
-import androidx.health.connect.client.records.HeartRateRecord
-import androidx.health.connect.client.records.OxygenSaturationRecord
-import androidx.health.connect.client.records.SleepSessionRecord
-import androidx.health.connect.client.records.StepsRecord
+import androidx.health.connect.client.records.ExerciseSessionRecord
 import kotlinx.coroutines.flow.first
+import researchstack.backend.integration.GrpcHealthDataSynchronizer
 import researchstack.data.datasource.healthConnect.HealthConnectDataSource
-import researchstack.data.datasource.healthConnect.getColumnHeader
-import researchstack.data.datasource.healthConnect.processBloodGlucoseData
-import researchstack.data.datasource.healthConnect.processBloodPressureData
-import researchstack.data.datasource.healthConnect.processHeartRateData
-import researchstack.data.datasource.healthConnect.processOxygenSaturationData
-import researchstack.data.datasource.healthConnect.processSleepData
-import researchstack.data.datasource.healthConnect.processStepsData
+import researchstack.data.datasource.healthConnect.processExerciseData
 import researchstack.data.datasource.local.room.dao.ShareAgreementDao
 import researchstack.data.datasource.local.room.dao.StudyDao
 import researchstack.domain.model.Study
-import researchstack.domain.model.healthConnect.HealthConnectDataType
-import researchstack.domain.model.healthConnect.HealthConnectDataType.BLOOD_GLUCOSE
-import researchstack.domain.model.healthConnect.HealthConnectDataType.BLOOD_PRESSURE
-import researchstack.domain.model.healthConnect.HealthConnectDataType.HEART_RATE
-import researchstack.domain.model.healthConnect.HealthConnectDataType.OXYGEN_SATURATION
-import researchstack.domain.model.healthConnect.HealthConnectDataType.SLEEP_SESSION
-import researchstack.domain.model.healthConnect.HealthConnectDataType.STEPS
+import researchstack.domain.model.TimestampMapData
+import researchstack.domain.model.healthConnect.Exercise
+import researchstack.domain.model.log.DataSyncLog
+import researchstack.domain.model.shealth.HealthDataModel
+import researchstack.domain.model.shealth.SHealthDataType
 import researchstack.domain.repository.ShareAgreementRepository
 import researchstack.domain.repository.StudyRepository
 import researchstack.domain.repository.healthConnect.HealthConnectDataSyncRepository
 import researchstack.domain.usecase.file.UploadFileUseCase
-import researchstack.util.getDayEndTime
-import java.io.ByteArrayInputStream
-import java.nio.charset.StandardCharsets
+import researchstack.domain.usecase.log.AppLogger
+import researchstack.domain.usecase.profile.GetProfileUseCase
 import javax.inject.Inject
 
 class HealthConnectDataSyncRepositoryImpl @Inject constructor(
@@ -41,98 +28,125 @@ class HealthConnectDataSyncRepositoryImpl @Inject constructor(
     private val studyRepository: StudyRepository,
     private val shareAgreementRepository: ShareAgreementRepository,
     private val uploadFileUseCase: UploadFileUseCase,
+    private val getProfileUseCase: GetProfileUseCase,
     private val studyDao: StudyDao,
+    private val grpcHealthDataSynchronizer: GrpcHealthDataSynchronizer<HealthDataModel>
 ) : HealthConnectDataSyncRepository {
     override suspend fun syncHealthData() {
-        getRequiredHealthDataTypes().forEach { dataType ->
-            val result: HashMap<Long, StringBuilder>? = when (dataType) {
-                STEPS -> processStepsData(
-                    healthConnectDataSource.getData(StepsRecord::class)
-                        .filterIsInstance<StepsRecord>()
-                )
+        getProfileUseCase().onSuccess { profile ->
+            getRequiredHealthDataTypes().forEach { dataType ->
+                val result: List<TimestampMapData>? = when (dataType) {
+                    SHealthDataType.EXERCISE -> {
 
-                BLOOD_GLUCOSE -> processBloodGlucoseData(
-                    healthConnectDataSource.getData(
-                        BloodGlucoseRecord::class
-                    ).filterIsInstance<BloodGlucoseRecord>()
-                )
+                        val exerciseRecords = healthConnectDataSource.getData(
+                            ExerciseSessionRecord::class
+                        ).filterIsInstance<ExerciseSessionRecord>()
+                        val items = mutableListOf<Exercise>()
+                        exerciseRecords.forEach { record ->
+                            val sessionData = healthConnectDataSource.getAggregateData(record.metadata.id)
+                            val exercise = processExerciseData(record, sessionData)
+                            items.add(exercise)
+                        }
+                        items
+                    }
 
-                HEART_RATE -> processHeartRateData(
-                    healthConnectDataSource.getData(
-                        HeartRateRecord::class
-                    ).filterIsInstance<HeartRateRecord>()
-                )
-
-                OXYGEN_SATURATION -> processOxygenSaturationData(
-                    healthConnectDataSource.getData(
-                        OxygenSaturationRecord::class
-                    ).filterIsInstance<OxygenSaturationRecord>()
-                )
-
-                BLOOD_PRESSURE -> processBloodPressureData(
-                    healthConnectDataSource.getData(
-                        BloodPressureRecord::class
-                    ).filterIsInstance<BloodPressureRecord>()
-                )
-
-                SLEEP_SESSION -> processSleepData(
-                    healthConnectDataSource.getData(
-                        SleepSessionRecord::class
-                    ).filterIsInstance<SleepSessionRecord>()
-                )
-
-                else -> null
-            }
-            result?.let {
-                if (it.isNotEmpty()) uploadDataToServer(dataType, it)
-                else Log.e(TAG, "syncHealthConnectData: $dataType list is Empty")
+                    else -> null
+                }
+                result?.let {
+                    uploadDataToServer(dataType, it)
+                }
             }
         }
+
+//        getRequiredHealthDataTypes().forEach { dataType ->
+//            val result: List<TimestampMapData>? = when (dataType) {
+//                SHealthDataType.STEPS -> processStepsData(
+//                    healthConnectDataSource.getData(StepsRecord::class)
+//                        .filterIsInstance<StepsRecord>()
+//                )
+//
+//                SHealthDataType.BLOOD_GLUCOSE -> processBloodGlucoseData(
+//                    healthConnectDataSource.getData(
+//                        BloodGlucoseRecord::class
+//                    ).filterIsInstance<BloodGlucoseRecord>()
+//                )
+//
+//                SHealthDataType.HEART_RATE -> processHeartRateData(
+//                    healthConnectDataSource.getData(
+//                        HeartRateRecord::class
+//                    ).filterIsInstance<HeartRateRecord>()
+//                )
+//
+//                SHealthDataType.OXYGEN_SATURATION -> processOxygenSaturationData(
+//                    healthConnectDataSource.getData(
+//                        OxygenSaturationRecord::class
+//                    ).filterIsInstance<OxygenSaturationRecord>()
+//                )
+//
+//                SHealthDataType.BLOOD_PRESSURE -> processBloodPressureData(
+//                    healthConnectDataSource.getData(
+//                        BloodPressureRecord::class
+//                    ).filterIsInstance<BloodPressureRecord>()
+//                )
+//
+//                SHealthDataType.SLEEP_SESSION -> processSleepData(
+//                    healthConnectDataSource.getData(
+//                        SleepSessionRecord::class
+//                    ).filterIsInstance<SleepSessionRecord>()
+//                )
+//                SHealthDataType.EXERCISE -> {
+//
+//                    val exerciseRecords =  healthConnectDataSource.getData(
+//                        ExerciseSessionRecord::class
+//                    ).filterIsInstance<ExerciseSessionRecord>()
+//                    val items = mutableListOf<Exercise>()
+//                    exerciseRecords.forEach { record ->
+//                        val sessionData = healthConnectDataSource.getAggregateData(record.metadata.id)
+//                        val exercise = processExerciseData(record,sessionData)
+//                        items.add(exercise)
+//                    }
+//                    items
+//                }
+//                else -> null
+//            }
+
+
     }
 
     private suspend fun uploadDataToServer(
-        dataType: HealthConnectDataType,
-        dataMap: HashMap<Long, StringBuilder>
+        dataType: SHealthDataType,
+        result: List<TimestampMapData>
     ) {
-        dataMap.forEach { (dayStartTime, data) ->
-            data.insert(0, getColumnHeader(dataType))
-            val dayEndTime = getDayEndTime(dayStartTime)
-            val inputStream =
-                ByteArrayInputStream(data.toString().toByteArray(StandardCharsets.UTF_8))
-            studyRepository.getActiveStudies().first().filter {
-                shareAgreementRepository.getApprovalShareAgreementWithStudyAndDataType(
-                    it.id,
-                    dataType.name
-                )
-            }.forEach { study ->
-                val filePath = getFilePath(
-                    study,
-                    dayStartTime,
-                    dayEndTime,
-                    dataType.name,
-                    "HealthConnect"
-                )
-                uploadFileUseCase(study.id, filePath, inputStream)
-                    .onSuccess {
-                        Log.i(
-                            TAG,
-                            "The file upload containing Health Connect data to S3 was successful, file name: $filePath "
-                        )
-                    }.onFailure { e ->
-                        Log.e(
-                            TAG,
-                            "The file upload containing Health Connect data to S3 failed, file name: $filePath, Error: ${e.message}"
-                        )
-                    }.getOrThrow()
-            }
+        val healthDataModel = toHealthDataModel(dataType, result)
+        studyRepository.getActiveStudies().first().filter {
+            shareAgreementRepository.getApprovalShareAgreementWithStudyAndDataType(
+                it.id,
+                dataType.name
+            )
+        }.forEach { study ->
+            grpcHealthDataSynchronizer.syncHealthData(
+                listOf(study.id),
+                healthDataModel
+            ).onSuccess {
+                Log.i(TAG, "success to upload data: $dataType")
+                AppLogger.saveLog(DataSyncLog("sync $dataType ${result.size}"))
+            }.onFailure {
+                Log.e(TAG, "fail to upload data to server")
+                Log.e(TAG, it.stackTraceToString())
+                AppLogger.saveLog(DataSyncLog("FAIL: sync data $dataType ${it.stackTraceToString()}"))
+            }.getOrThrow()
         }
     }
 
-    private suspend fun getRequiredHealthDataTypes(): Set<HealthConnectDataType> =
+    private fun <T : TimestampMapData> toHealthDataModel(dataType: SHealthDataType, data: List<T>): HealthDataModel {
+        return HealthDataModel(dataType, data.map { it.toDataMap() })
+    }
+
+    private suspend fun getRequiredHealthDataTypes(): Set<SHealthDataType> =
         studyDao.getActiveStudies().first().flatMap { (id) ->
             shareAgreementDao.getAgreedShareAgreement(id).first().map {
-                runCatching { HealthConnectDataType.valueOf(it.dataType) }.getOrNull()
-            }.filterIsInstance<HealthConnectDataType>()
+                runCatching { SHealthDataType.valueOf(it.dataType) }.getOrNull()
+            }.filterIsInstance<SHealthDataType>()
         }.toSet()
 
     companion object {

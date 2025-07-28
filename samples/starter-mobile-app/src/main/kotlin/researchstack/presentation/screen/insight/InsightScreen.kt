@@ -1,5 +1,6 @@
 package researchstack.presentation.screen.insight
 
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.Image
@@ -240,8 +241,6 @@ fun InsightContent(
     healthConnectPermissionViewModel: HealthConnectPermissionViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
-    val healthConnectPermissionLauncher =
-        rememberLauncherForActivityResult(healthConnectPermissionViewModel.requestPermissionActivityContract()) {}
     LaunchedEffect(null) {
         studyListViewModel.getMyStudy()
     }
@@ -252,6 +251,11 @@ fun InsightContent(
         Toast.makeText(context, "All permissions are already enabled", Toast.LENGTH_SHORT).show()
         healthConnectPermissionViewModel.onToastShown()
     }
+
+    val permissionsLauncher =
+        rememberLauncherForActivityResult(healthConnectPermissionViewModel.permissionsLauncher) {
+            healthConnectPermissionViewModel.initialLoad()
+        }
 
     Column(
         modifier = modifier
@@ -265,9 +269,7 @@ fun InsightContent(
             backgroundColor = AppTheme.colors.dataVisualization2.copy(@Suppress("MagicNumber") 0.8f),
             borderColor = AppTheme.colors.dataVisualization2,
         ) {
-            healthConnectPermissionViewModel.requestPermission(
-                healthConnectPermissionLauncher
-            )
+            permissionsLauncher.launch(healthConnectPermissionViewModel.permissions)
         }
         Spacer(modifier = Modifier.height(20.dp))
         MyStudyList(

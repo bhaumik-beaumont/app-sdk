@@ -31,7 +31,7 @@ class SplashLoadingViewModel @Inject constructor(
     fun setStartRouteDestination() {
         viewModelScope.launch {
             val startRoute = if (checkSignInUseCase().getOrDefault(false)) Route.Main
-            else Route.Welcome
+            else Route.Intro
 
             _routeDestination.postValue(startRoute)
             _isReady.postValue(true)

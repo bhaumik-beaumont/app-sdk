@@ -8,11 +8,16 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import researchstack.R
 import researchstack.auth.domain.model.Authentication
+import researchstack.auth.domain.model.BasicAuthentication
 import researchstack.auth.domain.model.OidcAuthentication
 import researchstack.auth.domain.repository.AuthRepository
 import researchstack.auth.domain.usecase.CheckSignInUseCase
@@ -23,6 +28,8 @@ import researchstack.domain.exception.AlreadyExistedUserException
 import researchstack.domain.model.UserProfileModel
 import researchstack.domain.usecase.ReLoginUseCase
 import researchstack.domain.usecase.profile.RegisterProfileUseCase
+import researchstack.domain.validator.EmailValidator
+import researchstack.domain.validator.PasswordValidator
 import researchstack.presentation.worker.FetchStudyWorker
 import researchstack.presentation.worker.WorkerRegistrar.registerAllPeriodicWorkers
 import java.time.LocalDate
@@ -36,6 +43,21 @@ private val anonymousUser = UserProfileModel(
     phoneNumber = "",
     address = ""
 )
+
+/** UI state for the login screen. */
+data class LoginUiState(
+    val email: String = "",
+    val password: String = "",
+    val emailError: String? = null,
+    val passwordError: String? = null
+)
+
+/** Events that the [LoginViewModel] can react to. */
+sealed class LoginEvent {
+    data class EmailChanged(val value: String) : LoginEvent()
+    data class PasswordChanged(val value: String) : LoginEvent()
+    object Submit : LoginEvent()
+}
 
 @HiltViewModel
 class WelcomeViewModel @Inject constructor(
@@ -64,6 +86,51 @@ class WelcomeViewModel @Inject constructor(
     private val _hasAccount = MutableStateFlow<Boolean?>(null)
     val hasAccount: StateFlow<Boolean?> = _hasAccount
 
+    private val _uiState = MutableStateFlow(LoginUiState())
+    val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
+
+    private val _events = MutableSharedFlow<String>()
+    val events = _events.asSharedFlow()
+
+
+    /** Handles user [event]. */
+    fun onEvent(event: LoginEvent) {
+        when (event) {
+            is LoginEvent.EmailChanged -> _uiState.update {
+                it.copy(
+                    email = event.value,
+                    emailError = null
+                )
+            }
+
+            is LoginEvent.PasswordChanged -> _uiState.update {
+                it.copy(
+                    password = event.value,
+                    passwordError = null
+                )
+            }
+
+            LoginEvent.Submit -> validateAndLogin()
+        }
+    }
+
+    private fun validateAndLogin() {
+        val emailResult = EmailValidator.validate(_uiState.value.email)
+        val passwordResult = PasswordValidator.validate(_uiState.value.password)
+
+        _uiState.update {
+            it.copy(
+                emailError = emailResult.errorMessage,
+                passwordError = passwordResult.errorMessage
+            )
+        }
+
+        val firstError = emailResult.errorMessage ?: passwordResult.errorMessage
+        if (firstError == null) {
+            registerUser(BasicAuthentication(_uiState.value.email, _uiState.value.password))
+        }
+    }
+
     private fun handleSamsungAccountFailure(ex: Throwable) {
         if (ex == AlreadyExistedUserException) {
             // NOTE the re-login process is not supported yet
@@ -90,7 +157,7 @@ class WelcomeViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             signInUseCase(auth)
                 .mapCatching {
-                    registerProfileUseCase(anonymousUser).getOrThrow()
+                    registerProfileUseCase(anonymousUser)
                 }.onSuccess {
                     _registerState.value = Success
                     fetchStudy()
@@ -112,21 +179,5 @@ class WelcomeViewModel @Inject constructor(
                 OneTimeWorkRequestBuilder<FetchStudyWorker>()
                     .build()
             )
-    }
-
-    fun checkAccountExists() {
-        viewModelScope.launch(Dispatchers.IO) {
-            _hasAccount.value = getAccountUseCase().isSuccess
-        }
-    }
-
-    fun signIn() {
-        viewModelScope.launch(Dispatchers.IO) {
-            if (checkSignInUseCase().getOrNull() == true) {
-                _registerState.value = Success
-            } else {
-                _registerState.value = Fail("Fail to login: maybe network issue")
-            }
-        }
     }
 }

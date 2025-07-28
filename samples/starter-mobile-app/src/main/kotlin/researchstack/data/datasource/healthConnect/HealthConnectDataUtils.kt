@@ -1,19 +1,18 @@
 package researchstack.data.datasource.healthConnect
 
+import android.annotation.SuppressLint
 import androidx.health.connect.client.records.BloodGlucoseRecord
 import androidx.health.connect.client.records.BloodPressureRecord
+import androidx.health.connect.client.records.ExerciseSessionRecord
+import androidx.health.connect.client.records.ExerciseSessionRecord.Companion.EXERCISE_TYPE_INT_TO_STRING_MAP
 import androidx.health.connect.client.records.HeartRateRecord
 import androidx.health.connect.client.records.OxygenSaturationRecord
 import androidx.health.connect.client.records.SleepSessionRecord
 import androidx.health.connect.client.records.StepsRecord
-import researchstack.domain.model.healthConnect.HealthConnectDataType
-import researchstack.domain.model.healthConnect.HealthConnectDataType.BLOOD_GLUCOSE
-import researchstack.domain.model.healthConnect.HealthConnectDataType.BLOOD_PRESSURE
-import researchstack.domain.model.healthConnect.HealthConnectDataType.EXERCISE
-import researchstack.domain.model.healthConnect.HealthConnectDataType.HEART_RATE
-import researchstack.domain.model.healthConnect.HealthConnectDataType.OXYGEN_SATURATION
-import researchstack.domain.model.healthConnect.HealthConnectDataType.SLEEP_SESSION
-import researchstack.domain.model.healthConnect.HealthConnectDataType.STEPS
+import researchstack.domain.model.UserProfile
+import researchstack.domain.model.healthConnect. Exercise
+import researchstack.domain.model.shealth.SHealthDataType
+import researchstack.util.getCurrentTimeOffset
 import researchstack.util.toEpochMilli
 import java.time.Instant
 import java.time.LocalDateTime
@@ -135,6 +134,33 @@ fun processSleepData(dataList: List<SleepSessionRecord>): HashMap<Long, StringBu
     return sleepDataMap
 }
 
+@SuppressLint("RestrictedApi")
+fun processExerciseData(
+    record: ExerciseSessionRecord,
+    sessionData: ExerciseSessionData
+): Exercise {
+
+    val name = EXERCISE_TYPE_INT_TO_STRING_MAP[record.exerciseType]
+    val exercise = Exercise(
+        id = record.metadata.id,
+        timestamp = record.startTime.toEpochMilli(),
+        startTime = record.startTime.toEpochMilli(),
+        endTime = record.endTime.toEpochMilli(),
+        exerciseType = record.exerciseType.toLong(),
+        exerciseName = name ?: "",
+        calorie = (sessionData.totalEnergyBurned?.inCalories ?: 0.0).toInt()/1000*1.0,
+        duration = sessionData.totalActiveTime?.toMillis() ?: 0,
+        timeOffset = getCurrentTimeOffset(),
+        meanHeartRate = sessionData.avgHeartRate?.toDouble() ?: 0.00,
+        maxHeartRate = sessionData.maxHeartRate?.toDouble() ?: 0.00,
+        minHeartRate = sessionData.minHeartRate?.toDouble() ?: 0.00,
+        distance = sessionData.totalDistance?.inMeters ?: 0.00,
+        maxSpeed = sessionData.maxSpeed ?: 0.00,
+        meanSpeed = sessionData.meanSpeed ?: 0.00,
+    )
+    return exercise
+}
+
 fun getLocalDateStartTime(time: Instant): Long {
     val localDateTime = LocalDateTime.ofInstant(time, ZoneId.systemDefault())
     return localDateTime.toLocalDate().atStartOfDay().toEpochMilli()
@@ -187,23 +213,28 @@ fun getMeasurementLocation(measurementLocation: Int): String {
 }
 
 // TODO:: remove hardcoded string declare these string in separate constant file
-fun getColumnHeader(dataType: HealthConnectDataType): String {
+fun getColumnHeader(dataType: SHealthDataType): String {
     return when (dataType) {
-        STEPS -> "start_time|end_time|time_offset|count\n"
-        SLEEP_SESSION ->
+        SHealthDataType.STEPS -> "start_time|end_time|time_offset|count\n"
+        SHealthDataType.SLEEP_SESSION ->
             "start_time|end_time|update_time|sleep_duration|data_source|datauuid|time_offset\n"
 
-        BLOOD_GLUCOSE ->
+        SHealthDataType.BLOOD_GLUCOSE ->
             "time|update_time|glucose_level|measurement_type|meal_type|data_source|datauuid|time_offset\n"
 
-        BLOOD_PRESSURE ->
+        SHealthDataType.BLOOD_PRESSURE ->
             "time|update_time|systolic|diastolic|body_position|measurement_location|data_source|datauuid|time_offset\n"
 
-        EXERCISE -> TODO()
-        HEART_RATE ->
+        SHealthDataType.EXERCISE ->
+            "start_time|end_time|update_time|exercise_type|title|duration|calories|data_source|datauuid|time_offset\n"
+
+        SHealthDataType.HEART_RATE ->
             "start_time|end_time|update_time|heart_rate|min_heart_rate|max_heart_rate|data_source|datauuid|time_offset\n"
 
-        OXYGEN_SATURATION ->
+        SHealthDataType.OXYGEN_SATURATION ->
             "time|oxygen_saturation|data_source|datauuid|time_offset\n"
+
+        else ->
+            ""
     }
 }

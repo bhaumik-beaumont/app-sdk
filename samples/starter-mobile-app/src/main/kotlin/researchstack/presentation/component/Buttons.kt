@@ -1,15 +1,19 @@
 package researchstack.presentation.component
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
+import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import researchstack.presentation.theme.AppTheme
 import researchstack.presentation.theme.LocalTypography
@@ -22,6 +26,7 @@ fun AppTextButton(
     backgroundColor: Color = AppTheme.colors.primary,
     borderColor: Color = AppTheme.colors.primary,
     enabled: Boolean = true,
+    icon: ImageVector? = null,
     onClick: () -> Unit,
 ) {
     Button(
@@ -43,6 +48,10 @@ fun AppTextButton(
             color = textColor,
             style = LocalTypography.current.title2
         )
+        if (icon != null) {
+            Spacer(Modifier.width(8.dp))
+            Icon(icon, contentDescription = null)
+        }
     }
 }
 

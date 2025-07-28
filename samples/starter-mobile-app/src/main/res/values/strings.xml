@@ -149,4 +149,41 @@
   <string name="in_clinic">병원 방문</string>
 
   <string name="permission_require_toast">연구를 위해 권한을 허용해주세요</string>
+
+    <string name="phone_usage_request">Request to allow phone usage data</string>
+    <string name="phone_usage_request_message">
+    This study collects data on users\' phone usage. Please click the button below to grant permission to the Health Research app.
+  </string>
+    <string name="phone_usage_request_button">Go to allow permission</string>
+
+    <string name="welcome_title">💪 Welcome to the\nMGH-BICEP Dashboard</string>
+    <string name="welcome_desc">Monitor participant progress, study compliance, and weekly activity all in one place.</string>
+    <string name="get_started">Get Started</string>
+    <string name="map_marker">Map Marker</string>
+
+    <string name="home">Home</string>
+    <string name="bank">Bank</string>
+    <string name="bell">Bell</string>
+    <string name="almost_there">Almost there! You\'re just shy of your 150-minute weekly exercise goal. Keep going!</string>
+    <string name="compliance_summary">Compliance Summary</string>
+    <string name="activity">Activity</string>
+    <string name="resistance">Resistance</string>
+    <string name="bia">BIA</string>
+    <string name="sessions">4 Sessions</string>
+    <string name="lbs">120 Lbs</string>
+
+    <string name="weekly">Weekly</string>
+    <string name="adherence">Adherence</string>
+    <string name="this_week">This Week</string>
+    <string name="device_sync">Device Sync</string>
+    <string name="last_synced">Last synced 3 hrs. ago</string>
+    <string name="close">Close</string>
+    <string name="sync">Sync</string>
+    <string name="sync_now">Sync Now</string>
+    <string name="activity_tab">Activity</string>
+    <string name="notifications">Notifications</string>
+    <string name="mark_as_read">Mark as read</string>
+    <string name="enable_notifications">Enable notifications</string>
+    <string name="enable_dark_mode">Enable dark mode</string>
+
 </resources>

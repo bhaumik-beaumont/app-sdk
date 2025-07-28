@@ -7,14 +7,17 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import researchstack.backend.integration.GrpcHealthDataSynchronizer
 import researchstack.data.datasource.healthConnect.HealthConnectDataSource
 import researchstack.data.datasource.local.room.dao.ShareAgreementDao
 import researchstack.data.datasource.local.room.dao.StudyDao
 import researchstack.data.repository.healthConnect.HealthConnectDataSyncRepositoryImpl
+import researchstack.domain.model.shealth.HealthDataModel
 import researchstack.domain.repository.ShareAgreementRepository
 import researchstack.domain.repository.StudyRepository
 import researchstack.domain.repository.healthConnect.HealthConnectDataSyncRepository
 import researchstack.domain.usecase.file.UploadFileUseCase
+import researchstack.domain.usecase.profile.GetProfileUseCase
 import javax.inject.Singleton
 
 @Module
@@ -33,9 +36,11 @@ class HealthConnectProvider {
         studyRepository: StudyRepository,
         shareAgreementRepository: ShareAgreementRepository,
         uploadFileUseCase: UploadFileUseCase,
-        studyDao: StudyDao
+        getProfileUseCase: GetProfileUseCase,
+        studyDao: StudyDao,
+        grpcHealthDataSynchronizer: GrpcHealthDataSynchronizer<HealthDataModel>
     ): HealthConnectDataSyncRepository = HealthConnectDataSyncRepositoryImpl(
         healthConnectDataSource, shareAgreementDao, studyRepository,
-        shareAgreementRepository, uploadFileUseCase, studyDao
+        shareAgreementRepository, uploadFileUseCase, getProfileUseCase,studyDao,grpcHealthDataSynchronizer
     )
 }

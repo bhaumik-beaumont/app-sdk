@@ -11,7 +11,10 @@ enum class Route {
     StudyPermissionSetting,
     StudyStatus,
     Settings,
-    Task
+    Task,
+    Login,
+    Intro,
+    Notifications,
 }
 
 enum class MainPage {

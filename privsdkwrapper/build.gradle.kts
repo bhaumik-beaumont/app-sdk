@@ -9,7 +9,7 @@ plugins {
 
 android {
     namespace = "researchstack.privsdkwrapper"
-    compileSdk = 34
+    compileSdk = 36
 
     buildFeatures {
         buildConfig = true

@@ -26,10 +26,10 @@ fun getRootProperty(key: String, defaultValue: String): String {
 
 android {
     namespace = "researchstack"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
-        applicationId = getRootProperty("APPLICATION_ID", "researchstack.starter")
+        applicationId = "com.mgb.beaumont.glp1activitytracking"
         minSdk = 28
         targetSdk = 34
         versionCode = Versions.APP_VERSION_CODE * 2 - 1
@@ -141,6 +141,7 @@ dependencies {
     implementation(AppDependencies.COIL_COMPOSE)
     implementation(AppDependencies.SIGNATURE)
     implementation("org.burnoutcrew.composereorderable:reorderable:0.9.6")
+    implementation("androidx.compose.material3:material3:1.3.2")
 
     // Room
     implementation(AppDependencies.roomLibs)
