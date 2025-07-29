@@ -16,6 +16,7 @@ import researchstack.domain.model.priv.PpgRed
 import researchstack.domain.model.priv.PrivDataType
 import researchstack.domain.model.priv.SpO2
 import researchstack.domain.model.priv.SweatLoss
+import researchstack.domain.model.UserProfile
 
 class PrivDataTypeTest {
 
@@ -32,6 +33,7 @@ class PrivDataTypeTest {
             SpO2::class,
             SweatLoss::class,
             HeartRate::class,
+            UserProfile::class,
         )
         val expectedPrivDataTypes = listOf(
             PrivDataType.WEAR_ACCELEROMETER,
@@ -43,6 +45,7 @@ class PrivDataTypeTest {
             PrivDataType.WEAR_SPO2,
             PrivDataType.WEAR_SWEAT_LOSS,
             PrivDataType.WEAR_HEART_RATE,
+            PrivDataType.WEAR_USER_PROFILE,
         )
         val actualPrivDataTypes = models.map { PrivDataType.fromModel(it) }
         assertEquals(expectedPrivDataTypes, actualPrivDataTypes)

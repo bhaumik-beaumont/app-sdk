@@ -17,6 +17,7 @@ import researchstack.data.local.room.dao.PpgIrDao
 import researchstack.data.local.room.dao.PpgRedDao
 import researchstack.data.local.room.dao.SpO2Dao
 import researchstack.data.local.room.dao.SweatLossDao
+import researchstack.data.local.room.dao.UserProfileDao
 import researchstack.data.local.room.entity.PassiveDataStatusEntity
 import researchstack.domain.model.priv.Accelerometer
 import researchstack.domain.model.priv.Bia
@@ -27,9 +28,10 @@ import researchstack.domain.model.priv.PpgIr
 import researchstack.domain.model.priv.PpgRed
 import researchstack.domain.model.priv.SpO2
 import researchstack.domain.model.priv.SweatLoss
+import researchstack.domain.model.UserProfile
 
 @Database(
-    version = 2,
+    version = 3,
     exportSchema = false,
 
     entities = [
@@ -43,6 +45,7 @@ import researchstack.domain.model.priv.SweatLoss
         SweatLoss::class,
         HeartRate::class,
         PassiveDataStatusEntity::class,
+        UserProfile::class,
     ],
 )
 @TypeConverters(
@@ -62,6 +65,7 @@ abstract class WearableAppDataBase : RoomDatabase() {
     abstract fun sweatLossDao(): SweatLossDao
     abstract fun heartRateDao(): HeartRateDao
     abstract fun passiveDataStatusDao(): PassiveDataStatusDao
+    abstract fun userProfileDao(): UserProfileDao
 
     companion object {
         @Volatile

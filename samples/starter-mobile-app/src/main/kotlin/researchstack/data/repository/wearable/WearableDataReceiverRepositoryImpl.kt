@@ -38,6 +38,7 @@ import researchstack.domain.model.priv.PpgRed
 import researchstack.domain.model.priv.PrivDataType
 import researchstack.domain.model.priv.SpO2
 import researchstack.domain.model.priv.SweatLoss
+import researchstack.domain.model.UserProfile
 import researchstack.domain.model.shealth.HealthDataModel
 import researchstack.domain.repository.ShareAgreementRepository
 import researchstack.domain.repository.StudyRepository
@@ -103,6 +104,7 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
             PrivDataType.WEAR_SPO2 -> saveData<SpO2>(jsonObject, wearableAppDataBase.spO2Dao())
             PrivDataType.WEAR_SWEAT_LOSS -> saveData<SweatLoss>(jsonObject, wearableAppDataBase.sweatLossDao())
             PrivDataType.WEAR_HEART_RATE -> saveData<HeartRate>(jsonObject, wearableAppDataBase.heartRateDao())
+            PrivDataType.WEAR_USER_PROFILE -> saveData<UserProfile>(jsonObject, wearableAppDataBase.userProfileDao())
         }
     }
 
@@ -136,6 +138,11 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
             PrivDataType.WEAR_HEART_RATE -> saveData<HeartRate>(
                 readCsv<HeartRate>(csvInputStream),
                 wearableAppDataBase.heartRateDao()
+            )
+
+            PrivDataType.WEAR_USER_PROFILE -> saveData<UserProfile>(
+                readCsv<UserProfile>(csvInputStream),
+                wearableAppDataBase.userProfileDao()
             )
         }
     }
@@ -211,6 +218,7 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
             PrivDataType.WEAR_SPO2 -> readCsv<SpO2>(csvInputStream)
             PrivDataType.WEAR_SWEAT_LOSS -> readCsv<SweatLoss>(csvInputStream)
             PrivDataType.WEAR_HEART_RATE -> readCsv<HeartRate>(csvInputStream)
+            PrivDataType.WEAR_USER_PROFILE -> readCsv<UserProfile>(csvInputStream)
         }
 
         grpcHealthDataSynchronizer.syncHealthData(
@@ -254,6 +262,7 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
             PrivDataType.WEAR_SPO2 -> wearableAppDataBase.spO2Dao()
             PrivDataType.WEAR_SWEAT_LOSS -> wearableAppDataBase.sweatLossDao()
             PrivDataType.WEAR_HEART_RATE -> wearableAppDataBase.heartRateDao()
+            PrivDataType.WEAR_USER_PROFILE -> wearableAppDataBase.userProfileDao()
         }
 
     private suspend fun <T : TimestampMapData> syncRoomToServer(
