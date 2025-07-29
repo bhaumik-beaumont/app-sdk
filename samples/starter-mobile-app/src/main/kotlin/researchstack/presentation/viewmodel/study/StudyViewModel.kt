@@ -18,6 +18,7 @@ import researchstack.data.datasource.local.pref.SyncTimePref.SyncTimePrefKey.CAL
 import researchstack.data.datasource.local.pref.SyncTimePref.SyncTimePrefKey.PLACE_EVENT_SYNC
 import researchstack.data.datasource.local.pref.SyncTimePref.SyncTimePrefKey.PRESENCE_EVENT_SYNC
 import researchstack.data.datasource.local.pref.SyncTimePref.SyncTimePrefKey.USAGE_STATS_SAVE
+import researchstack.data.datasource.local.pref.EnrollmentDatePref
 import researchstack.data.datasource.local.pref.dataStore
 import researchstack.domain.exception.AlreadyJoinedStudy
 import researchstack.domain.model.ShareAgreement
@@ -34,6 +35,7 @@ import researchstack.presentation.service.TrackerDataForegroundService
 import researchstack.presentation.worker.FetchStudyTasksWorker
 import researchstack.presentation.worker.FetchStudyTasksWorker.Companion.STUDY_ID_KEY
 import java.time.Instant
+import java.time.LocalDate
 import javax.inject.Inject
 
 @HiltViewModel
@@ -81,6 +83,8 @@ constructor(
         studyId: String,
     ) {
         setSyncTimestamp()
+        EnrollmentDatePref(getApplication<Application>().applicationContext.dataStore)
+            .saveEnrollmentDate(studyId, LocalDate.now().toString())
         fetchStudyTasksWithWorker(studyId)
 
         studyShardViewModel.participationRequirement.value?.apply {
