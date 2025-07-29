@@ -32,6 +32,8 @@ data class Exercise(
     val status: Int = 0,
     val meanSpeed: Double = 0.0,
     val maxSpeed: Double = 0.0,
+    @SerializedName("week_number")
+    val weekNumber: Int = 0,
     override val timeOffset: Int = getCurrentTimeOffset(),
 ) : TimestampMapData {
     override fun toDataMap(): Map<String, Any> =
@@ -51,6 +53,7 @@ data class Exercise(
             "max_speed" to maxSpeed,
             "mean_speed" to meanSpeed,
             "status" to status,
+            "week_number" to weekNumber,
             "time_offset" to timeOffset,
         )
 }

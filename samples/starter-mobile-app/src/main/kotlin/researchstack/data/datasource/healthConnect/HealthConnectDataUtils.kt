@@ -10,11 +10,13 @@ import androidx.health.connect.client.records.OxygenSaturationRecord
 import androidx.health.connect.client.records.SleepSessionRecord
 import androidx.health.connect.client.records.StepsRecord
 import researchstack.domain.model.UserProfile
-import researchstack.domain.model.healthConnect. Exercise
+import researchstack.domain.model.healthConnect.Exercise
+import researchstack.data.datasource.local.pref.EnrollmentDatePref
 import researchstack.domain.model.shealth.SHealthDataType
 import researchstack.util.getCurrentTimeOffset
 import researchstack.util.toEpochMilli
 import java.time.Instant
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 
@@ -135,12 +137,23 @@ fun processSleepData(dataList: List<SleepSessionRecord>): HashMap<Long, StringBu
 }
 
 @SuppressLint("RestrictedApi")
-fun processExerciseData(
+suspend fun processExerciseData(
     record: ExerciseSessionRecord,
-    sessionData: ExerciseSessionData
+    sessionData: ExerciseSessionData,
+    studyId: String,
+    enrollmentDatePref: EnrollmentDatePref
 ): Exercise {
 
     val name = EXERCISE_TYPE_INT_TO_STRING_MAP[record.exerciseType]
+    val enrollmentDateStr = enrollmentDatePref.getEnrollmentDate(studyId)
+    val weekNumber = enrollmentDateStr?.let { dateString ->
+        val enrollmentMillis = LocalDate.parse(dateString)
+            .atStartOfDay(ZoneId.systemDefault())
+            .toInstant()
+            .toEpochMilli()
+        (((record.startTime.toEpochMilli() - enrollmentMillis) / (7 * 24 * 60 * 60 * 1000L)) + 1).toInt()
+    } ?: 0
+
     val exercise = Exercise(
         id = record.metadata.id,
         timestamp = record.startTime.toEpochMilli(),
@@ -151,6 +164,7 @@ fun processExerciseData(
         calorie = (sessionData.totalEnergyBurned?.inCalories ?: 0.0).toInt()/1000*1.0,
         duration = sessionData.totalActiveTime?.toMillis() ?: 0,
         timeOffset = getCurrentTimeOffset(),
+        weekNumber = weekNumber,
         meanHeartRate = sessionData.avgHeartRate?.toDouble() ?: 0.00,
         maxHeartRate = sessionData.maxHeartRate?.toDouble() ?: 0.00,
         minHeartRate = sessionData.minHeartRate?.toDouble() ?: 0.00,
