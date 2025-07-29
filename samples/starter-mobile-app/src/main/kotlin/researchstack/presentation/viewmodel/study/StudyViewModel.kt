@@ -28,6 +28,7 @@ import researchstack.domain.model.priv.PrivDataType
 import researchstack.domain.model.sensor.TrackerDataType
 import researchstack.domain.model.shealth.SHealthDataType
 import researchstack.domain.usecase.shareagreement.ShareAgreementUseCase
+import researchstack.domain.usecase.study.FetchJoinedStudiesUseCase
 import researchstack.domain.usecase.study.StudyJoinUseCase
 import researchstack.domain.usecase.wearable.PassiveDataStatusUseCase
 import researchstack.domain.usecase.wearable.WearablePassiveDataStatusSenderUseCase
@@ -45,6 +46,7 @@ constructor(
     application: Application,
     private val studyShardViewModel: SharedStudyJoinViewModel,
     private val studyJoinUseCase: StudyJoinUseCase,
+    private val fetchJoinedStudiesUseCase: FetchJoinedStudiesUseCase,
     private val shareAgreementUseCase: ShareAgreementUseCase,
     private val passiveDataStatusUseCase: PassiveDataStatusUseCase,
     private val wearablePassiveDataStatusUseCase: WearablePassiveDataStatusSenderUseCase,
@@ -68,6 +70,7 @@ constructor(
             }.onFailure { ex ->
                 val message =
                     if (ex is AlreadyJoinedStudy) {
+                        fetchJoinedStudiesUseCase()
                         onJoinStudy(studyId)
                         getApplication<Application>().applicationContext.getString(R.string.already_joined_study)
                     } else {
