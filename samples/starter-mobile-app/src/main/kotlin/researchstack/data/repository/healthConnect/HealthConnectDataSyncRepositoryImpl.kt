@@ -8,6 +8,7 @@ import researchstack.data.datasource.healthConnect.HealthConnectDataSource
 import researchstack.data.datasource.healthConnect.processExerciseData
 import researchstack.data.datasource.local.room.dao.ShareAgreementDao
 import researchstack.data.datasource.local.room.dao.StudyDao
+import researchstack.data.datasource.local.room.dao.ExerciseDao
 import researchstack.domain.model.Study
 import researchstack.domain.model.TimestampMapData
 import researchstack.domain.model.healthConnect.Exercise
@@ -33,6 +34,7 @@ class HealthConnectDataSyncRepositoryImpl @Inject constructor(
     private val uploadFileUseCase: UploadFileUseCase,
     private val getProfileUseCase: GetProfileUseCase,
     private val studyDao: StudyDao,
+    private val exerciseDao: ExerciseDao,
     private val enrollmentDatePref: EnrollmentDatePref,
     private val grpcHealthDataSynchronizer: GrpcHealthDataSynchronizer<HealthDataModel>
 ) : HealthConnectDataSyncRepository {
@@ -65,6 +67,7 @@ class HealthConnectDataSyncRepositoryImpl @Inject constructor(
                                 items.add(exercise)
                             }
                         }
+                        exerciseDao.insertAll(*items.toTypedArray())
                         items
                     }
 

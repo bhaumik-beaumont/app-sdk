@@ -17,6 +17,7 @@ import researchstack.data.datasource.local.room.dao.ShareAgreementDao
 import researchstack.data.datasource.local.room.dao.SpeedDao
 import researchstack.data.datasource.local.room.dao.StudyDao
 import researchstack.data.datasource.local.room.dao.TaskDao
+import researchstack.data.datasource.local.room.dao.ExerciseDao
 import researchstack.data.local.room.WearableAppDataBase
 import researchstack.data.local.room.dao.PassiveDataStatusDao
 import javax.inject.Singleton
@@ -60,6 +61,11 @@ object DaoProvider {
     @Provides
     fun provideSpeedDao(@ApplicationContext context: Context): SpeedDao =
         ResearchAppDatabase.getDatabase(context).speedDao()
+
+    @Singleton
+    @Provides
+    fun provideExerciseDao(@ApplicationContext context: Context): ExerciseDao =
+        ResearchAppDatabase.getDatabase(context).exerciseDao()
 
     @Singleton
     @Provides
