@@ -27,6 +27,10 @@ class DashboardViewModel @Inject constructor(
     private val exerciseDao: ExerciseDao,
 ) : AndroidViewModel(application) {
 
+    companion object {
+        const val ACTIVITY_GOAL_MINUTES = 150
+    }
+
     private val enrollmentDatePref = EnrollmentDatePref(application.dataStore)
 
     private val _exercises = MutableStateFlow<List<Exercise>>(emptyList())
@@ -34,6 +38,9 @@ class DashboardViewModel @Inject constructor(
 
     private val _totalDurationMinutes = MutableStateFlow(0L)
     val totalDurationMinutes: StateFlow<Long> = _totalDurationMinutes
+
+    private val _activityProgressPercent = MutableStateFlow(0)
+    val activityProgressPercent: StateFlow<Int> = _activityProgressPercent
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -46,7 +53,10 @@ class DashboardViewModel @Inject constructor(
                     exerciseDao.getExercisesFrom(startMillis).collect { list ->
                         _exercises.value = list
                         val totalMillis = list.sumOf { it.endTime - it.startTime }
-                        _totalDurationMinutes.value = TimeUnit.MILLISECONDS.toMinutes(totalMillis)
+                        val minutes = TimeUnit.MILLISECONDS.toMinutes(totalMillis)
+                        _totalDurationMinutes.value = minutes
+                        val progress = ((minutes * 100f) / ACTIVITY_GOAL_MINUTES).coerceAtMost(100f)
+                        _activityProgressPercent.value = progress.toInt()
                     }
                 }
             }

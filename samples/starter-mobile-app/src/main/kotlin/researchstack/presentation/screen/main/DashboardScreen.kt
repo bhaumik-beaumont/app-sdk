@@ -75,6 +75,7 @@ fun DashboardScreen(
     val hasUnread by notificationViewModel.hasUnread.collectAsState()
     val exercises by dashboardViewModel.exercises.collectAsState()
     val totalDuration by dashboardViewModel.totalDurationMinutes.collectAsState()
+    val activityProgressPercent by dashboardViewModel.activityProgressPercent.collectAsState()
 
     val activityDurationDisplay = remember(totalDuration) {
         val hours = totalDuration / 60
@@ -246,22 +247,22 @@ fun DashboardScreen(
                             ) {
                                 ProgressBarItem(
                                     stringResource(id = R.string.activity),
-                                    0.85f,
+                                    activityProgressPercent,
                                     Color(0xFF00A86B)
                                 )
                                 ProgressBarItem(
                                     stringResource(id = R.string.resistance),
-                                    0.60f,
+                                    60,
                                     Color(0xFFFFD700)
                                 )
                                 ProgressBarItem(
                                     stringResource(id = R.string.weight),
-                                    0.30f,
+                                    30,
                                     Color(0xFFFF6347)
                                 )
                                 ProgressBarItem(
                                     stringResource(id = R.string.bia),
-                                    0.70f,
+                                    70,
                                     Color(0xFFFFA500)
                                 )
                                 Text(
@@ -367,9 +368,16 @@ fun TabButton(label: String, selected: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-fun ProgressBarItem(label: String, progress: Float, color: Color) {
+fun ProgressBarItem(label: String, progressPercent: Int, color: Color) {
+    val progressFraction = (progressPercent.coerceIn(0, 100)) / 100f
     Column {
-        Text(label, color = Color.White, fontSize = 15.sp)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(label, color = Color.White, fontSize = 15.sp)
+            Text("${progressPercent}%", color = Color.White, fontSize = 15.sp)
+        }
         Spacer(Modifier.height(6.dp))
         Box(
             Modifier
@@ -380,7 +388,7 @@ fun ProgressBarItem(label: String, progress: Float, color: Color) {
             Box(
                 Modifier
                     .fillMaxHeight()
-                    .fillMaxWidth(progress)
+                    .fillMaxWidth(progressFraction)
                     .background(color, RoundedCornerShape(50))
             )
         }
