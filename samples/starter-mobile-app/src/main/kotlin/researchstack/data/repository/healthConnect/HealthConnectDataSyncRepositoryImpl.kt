@@ -21,6 +21,8 @@ import researchstack.domain.usecase.file.UploadFileUseCase
 import researchstack.domain.usecase.log.AppLogger
 import researchstack.domain.usecase.profile.GetProfileUseCase
 import researchstack.data.datasource.local.pref.EnrollmentDatePref
+import java.time.LocalDate
+import java.time.ZoneId
 import javax.inject.Inject
 
 class HealthConnectDataSyncRepositoryImpl @Inject constructor(
@@ -43,12 +45,25 @@ class HealthConnectDataSyncRepositoryImpl @Inject constructor(
                         val exerciseRecords = healthConnectDataSource.getData(
                             ExerciseSessionRecord::class
                         ).filterIsInstance<ExerciseSessionRecord>()
+
+                        val studyId = studyRepository.getActiveStudies().first().firstOrNull()?.id ?: ""
+                        val enrollmentMillis = enrollmentDatePref.getEnrollmentDate(studyId)?.let { dateString ->
+                            LocalDate.parse(dateString)
+                                .atStartOfDay(ZoneId.systemDefault())
+                                .toInstant()
+                                .toEpochMilli()
+                        }
+
                         val items = mutableListOf<Exercise>()
                         exerciseRecords.forEach { record ->
-                            val sessionData = healthConnectDataSource.getAggregateData(record.metadata.id)
-                            val studyId = studyRepository.getActiveStudies().first().firstOrNull()?.id ?: ""
-                            val exercise = processExerciseData(record, sessionData, studyId, enrollmentDatePref)
-                            items.add(exercise)
+                            val recordStartTime = record.startTime.toEpochMilli()
+                            if (enrollmentMillis != null && recordStartTime < enrollmentMillis) {
+                                Log.d(TAG, "Ignore exercise ${'$'}{record.metadata.id} before enrollment date")
+                            } else {
+                                val sessionData = healthConnectDataSource.getAggregateData(record.metadata.id)
+                                val exercise = processExerciseData(record, sessionData, studyId, enrollmentDatePref)
+                                items.add(exercise)
+                            }
                         }
                         items
                     }
