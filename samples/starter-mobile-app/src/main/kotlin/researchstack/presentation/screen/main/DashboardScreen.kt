@@ -1,8 +1,5 @@
 package researchstack.presentation.screen.main
 
-import android.Manifest
-import android.os.Build.VERSION
-import android.os.Build.VERSION_CODES
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -36,7 +33,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -53,7 +49,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import researchstack.R
 import researchstack.presentation.LocalNavController
-import researchstack.presentation.PermissionChecker
 import researchstack.presentation.component.ComplianceSummaryCard
 import researchstack.presentation.initiate.route.Route
 import researchstack.presentation.screen.notification.NotificationViewModel
@@ -206,7 +201,7 @@ fun DashboardScreen(
                                 ComplianceSummaryCard(
                                     color = Color(0xFFAB369F),
                                     title = stringResource(id = R.string.bia),
-                                    stats = "70%",
+                                    stats = "0%",
                                     modifier = Modifier.weight(1f)
                                 )
                             }
@@ -252,23 +247,18 @@ fun DashboardScreen(
                                 )
                                 ProgressBarItem(
                                     stringResource(id = R.string.resistance),
-                                    60,
+                                    0,
                                     Color(0xFFFFD700)
                                 )
                                 ProgressBarItem(
                                     stringResource(id = R.string.weight),
-                                    30,
+                                    0,
                                     Color(0xFFFF6347)
                                 )
                                 ProgressBarItem(
                                     stringResource(id = R.string.bia),
-                                    70,
+                                    0,
                                     Color(0xFFFFA500)
-                                )
-                                Text(
-                                    "Exercises this week: ${exercises.size}",
-                                    color = Color.White,
-                                    modifier = Modifier.padding(top = 8.dp)
                                 )
                             }
                         }

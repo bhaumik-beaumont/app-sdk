@@ -170,8 +170,8 @@
     <string name="activity">Activity</string>
     <string name="resistance">Resistance</string>
     <string name="bia">BIA</string>
-    <string name="sessions">4 Sessions</string>
-    <string name="lbs">120 Lbs</string>
+    <string name="sessions">0 Sessions</string>
+    <string name="lbs">0 Lbs</string>
 
     <string name="weekly">Weekly</string>
     <string name="adherence">Adherence</string>

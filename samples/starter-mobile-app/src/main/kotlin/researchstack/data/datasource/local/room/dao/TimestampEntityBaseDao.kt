@@ -7,6 +7,7 @@ import androidx.room.RawQuery
 import androidx.sqlite.db.SimpleSQLiteQuery
 import androidx.sqlite.db.SupportSQLiteQuery
 import researchstack.domain.model.Timestamp
+import researchstack.domain.model.healthConnect.Exercise
 import researchstack.domain.model.sensor.Accelerometer
 import researchstack.domain.model.sensor.Light
 
@@ -24,6 +25,7 @@ abstract class TimestampEntityBaseDao<T : Timestamp>(
         [
             Light::class,
             Accelerometer::class,
+            Exercise::class,
         ]
     )
     protected abstract fun getGreaterThan(query: SupportSQLiteQuery): PagingSource<Int, T>
