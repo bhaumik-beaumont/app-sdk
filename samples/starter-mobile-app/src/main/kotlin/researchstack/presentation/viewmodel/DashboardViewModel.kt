@@ -7,6 +7,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import researchstack.data.datasource.local.pref.EnrollmentDatePref
@@ -31,6 +32,9 @@ class DashboardViewModel @Inject constructor(
     private val _exercises = MutableStateFlow<List<Exercise>>(emptyList())
     val exercises: StateFlow<List<Exercise>> = _exercises
 
+    private val _totalDurationMinutes = MutableStateFlow(0L)
+    val totalDurationMinutes: StateFlow<Long> = _totalDurationMinutes
+
     init {
         viewModelScope.launch(Dispatchers.IO) {
             val studyId = studyRepository.getActiveStudies().firstOrNull()?.firstOrNull()?.id
@@ -39,7 +43,11 @@ class DashboardViewModel @Inject constructor(
                 enrollmentDate?.let { dateString ->
                     val weekStart = calculateCurrentWeekStart(LocalDate.parse(dateString))
                     val startMillis = weekStart.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
-                    exerciseDao.getExercisesFrom(startMillis).collect { _exercises.value = it }
+                    exerciseDao.getExercisesFrom(startMillis).collect { list ->
+                        _exercises.value = list
+                        val totalMillis = list.sumOf { it.endTime - it.startTime }
+                        _totalDurationMinutes.value = TimeUnit.MILLISECONDS.toMinutes(totalMillis)
+                    }
                 }
             }
         }

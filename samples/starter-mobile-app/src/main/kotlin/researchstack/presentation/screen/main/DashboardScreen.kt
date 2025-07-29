@@ -74,6 +74,13 @@ fun DashboardScreen(
     val notificationViewModel: NotificationViewModel = hiltViewModel()
     val hasUnread by notificationViewModel.hasUnread.collectAsState()
     val exercises by dashboardViewModel.exercises.collectAsState()
+    val totalDuration by dashboardViewModel.totalDurationMinutes.collectAsState()
+
+    val activityDurationDisplay = remember(totalDuration) {
+        val hours = totalDuration / 60
+        val minutes = totalDuration % 60
+        if (hours > 0) "${hours}h ${minutes}m" else "${minutes}m"
+    }
 
     val permissionsLauncher =
         rememberLauncherForActivityResult(healthConnectPermissionViewModel.permissionsLauncher) {
@@ -174,7 +181,7 @@ fun DashboardScreen(
                                 ComplianceSummaryCard(
                                     color = Color(0xFF2B9179),
                                     title = stringResource(id = R.string.activity),
-                                    stats = "47",
+                                    stats = activityDurationDisplay,
                                     modifier = Modifier.weight(1f)
                                 )
                                 ComplianceSummaryCard(
