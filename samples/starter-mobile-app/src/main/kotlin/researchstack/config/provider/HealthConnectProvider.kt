@@ -18,6 +18,8 @@ import researchstack.domain.repository.StudyRepository
 import researchstack.domain.repository.healthConnect.HealthConnectDataSyncRepository
 import researchstack.domain.usecase.file.UploadFileUseCase
 import researchstack.domain.usecase.profile.GetProfileUseCase
+import researchstack.data.datasource.local.pref.EnrollmentDatePref
+import researchstack.data.datasource.local.pref.dataStore
 import javax.inject.Singleton
 
 @Module
@@ -31,6 +33,7 @@ class HealthConnectProvider {
     @Singleton
     @Provides
     fun provideHealthConnectDataSyncRepository(
+        @ApplicationContext context: Context,
         healthConnectDataSource: HealthConnectDataSource,
         shareAgreementDao: ShareAgreementDao,
         studyRepository: StudyRepository,
@@ -40,7 +43,14 @@ class HealthConnectProvider {
         studyDao: StudyDao,
         grpcHealthDataSynchronizer: GrpcHealthDataSynchronizer<HealthDataModel>
     ): HealthConnectDataSyncRepository = HealthConnectDataSyncRepositoryImpl(
-        healthConnectDataSource, shareAgreementDao, studyRepository,
-        shareAgreementRepository, uploadFileUseCase, getProfileUseCase,studyDao,grpcHealthDataSynchronizer
+        healthConnectDataSource,
+        shareAgreementDao,
+        studyRepository,
+        shareAgreementRepository,
+        uploadFileUseCase,
+        getProfileUseCase,
+        studyDao,
+        EnrollmentDatePref(context.dataStore),
+        grpcHealthDataSynchronizer
     )
 }

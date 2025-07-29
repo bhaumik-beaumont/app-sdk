@@ -20,6 +20,7 @@ import researchstack.domain.repository.healthConnect.HealthConnectDataSyncReposi
 import researchstack.domain.usecase.file.UploadFileUseCase
 import researchstack.domain.usecase.log.AppLogger
 import researchstack.domain.usecase.profile.GetProfileUseCase
+import researchstack.data.datasource.local.pref.EnrollmentDatePref
 import javax.inject.Inject
 
 class HealthConnectDataSyncRepositoryImpl @Inject constructor(
@@ -30,6 +31,7 @@ class HealthConnectDataSyncRepositoryImpl @Inject constructor(
     private val uploadFileUseCase: UploadFileUseCase,
     private val getProfileUseCase: GetProfileUseCase,
     private val studyDao: StudyDao,
+    private val enrollmentDatePref: EnrollmentDatePref,
     private val grpcHealthDataSynchronizer: GrpcHealthDataSynchronizer<HealthDataModel>
 ) : HealthConnectDataSyncRepository {
     override suspend fun syncHealthData() {
@@ -44,7 +46,8 @@ class HealthConnectDataSyncRepositoryImpl @Inject constructor(
                         val items = mutableListOf<Exercise>()
                         exerciseRecords.forEach { record ->
                             val sessionData = healthConnectDataSource.getAggregateData(record.metadata.id)
-                            val exercise = processExerciseData(record, sessionData)
+                            val studyId = studyRepository.getActiveStudies().first().firstOrNull()?.id ?: ""
+                            val exercise = processExerciseData(record, sessionData, studyId, enrollmentDatePref)
                             items.add(exercise)
                         }
                         items
