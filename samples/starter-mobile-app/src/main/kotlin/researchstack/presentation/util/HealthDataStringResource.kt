@@ -41,6 +41,7 @@ private fun PrivDataType.toStringResourceId(): Int =
         PrivDataType.WEAR_SPO2 -> string.wear_spo2
         PrivDataType.WEAR_SWEAT_LOSS -> string.wear_sweat_loss
         PrivDataType.WEAR_HEART_RATE -> string.wear_heart_rate
+        PrivDataType.WEAR_USER_PROFILE -> string.wear_user_profile
     }
 
 private fun DeviceStatDataType.toStringResourceId(): Int =

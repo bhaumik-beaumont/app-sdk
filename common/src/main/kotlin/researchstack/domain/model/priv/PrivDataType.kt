@@ -1,5 +1,6 @@
 package researchstack.domain.model.priv
 
+import researchstack.domain.model.UserProfile
 import researchstack.domain.model.shealth.HealthTypeEnum
 import kotlin.reflect.KClass
 
@@ -13,6 +14,7 @@ enum class PrivDataType(val messagePath: String, val isPassive: Boolean = false)
     WEAR_SPO2("/spo2_data"),
     WEAR_SWEAT_LOSS("/sweat_loss_data"),
     WEAR_HEART_RATE("/heart_rate_data", true),
+    WEAR_USER_PROFILE("/user_profile"),
     ;
 
     companion object {
@@ -26,6 +28,7 @@ enum class PrivDataType(val messagePath: String, val isPassive: Boolean = false)
             SpO2::class -> WEAR_SPO2
             SweatLoss::class -> WEAR_SWEAT_LOSS
             HeartRate::class -> WEAR_HEART_RATE
+            UserProfile::class -> WEAR_USER_PROFILE
             else -> throw IllegalArgumentException("${model::class.simpleName} is not PrivDataType")
         }
     }

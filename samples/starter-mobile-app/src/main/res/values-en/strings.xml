@@ -115,6 +115,7 @@
   <string name="wear_spo2">SpO2</string>
   <string name="wear_sweat_loss">Sweat Loss</string>
   <string name="wear_heart_rate">Heart Rate</string>
+  <string name="wear_user_profile">User Profile</string>
   <string name="wear_blood_pressure">Blood Pressure</string>
 
   <string name="device_stat_mobile_wear_connection">device name</string>
