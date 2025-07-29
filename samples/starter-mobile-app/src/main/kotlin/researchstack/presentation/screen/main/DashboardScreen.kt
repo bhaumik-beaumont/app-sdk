@@ -58,9 +58,13 @@ import researchstack.presentation.component.ComplianceSummaryCard
 import researchstack.presentation.initiate.route.Route
 import researchstack.presentation.screen.notification.NotificationViewModel
 import researchstack.presentation.viewmodel.HealthConnectPermissionViewModel
+import researchstack.presentation.viewmodel.DashboardViewModel
 
 @Composable
-fun DashboardScreen(healthConnectPermissionViewModel: HealthConnectPermissionViewModel = hiltViewModel()) {
+fun DashboardScreen(
+    healthConnectPermissionViewModel: HealthConnectPermissionViewModel = hiltViewModel(),
+    dashboardViewModel: DashboardViewModel = hiltViewModel()
+) {
     val context = LocalContext.current
     val weeklyTab = stringResource(id = R.string.weekly)
     var activeTab by remember { mutableStateOf(weeklyTab) }
@@ -69,6 +73,7 @@ fun DashboardScreen(healthConnectPermissionViewModel: HealthConnectPermissionVie
     val navController = LocalNavController.current
     val notificationViewModel: NotificationViewModel = hiltViewModel()
     val hasUnread by notificationViewModel.hasUnread.collectAsState()
+    val exercises by dashboardViewModel.exercises.collectAsState()
 
     val permissionsLauncher =
         rememberLauncherForActivityResult(healthConnectPermissionViewModel.permissionsLauncher) {
@@ -251,6 +256,11 @@ fun DashboardScreen(healthConnectPermissionViewModel: HealthConnectPermissionVie
                                     stringResource(id = R.string.bia),
                                     0.70f,
                                     Color(0xFFFFA500)
+                                )
+                                Text(
+                                    "Exercises this week: ${exercises.size}",
+                                    color = Color.White,
+                                    modifier = Modifier.padding(top = 8.dp)
                                 )
                             }
                         }
