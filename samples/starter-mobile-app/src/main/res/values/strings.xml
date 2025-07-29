@@ -1,5 +1,5 @@
 <resources>
-  <string name="app_name" translatable="false">Health Research</string>
+  <string name="app_name" translatable="false">MGH BICEP</string>
   <string name="log_page" translatable="false">Log</string>
   <!-- need to localize -->
   <string name="join_a_study">연구에 참여하세요.</string>

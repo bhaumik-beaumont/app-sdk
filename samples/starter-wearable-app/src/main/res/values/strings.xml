@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">HealthResearchWearable</string>
     <string name="ok">OK</string>
-    <string name="app_name_wearable">Health Research\nWearable</string>
+    <string name="app_name_wearable">MGH BICEP\nWearable</string>
     <string name="app_message">Contribute to health\nresearches with your\nmeasurements.</string>
     <!-- blood oxygen/spo2 -->
     <string name="blood_oxygen">Blood oxygen</string>
