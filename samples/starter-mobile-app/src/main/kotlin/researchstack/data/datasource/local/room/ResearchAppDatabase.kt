@@ -18,6 +18,7 @@ import researchstack.data.datasource.local.room.dao.LogDao
 import researchstack.data.datasource.local.room.dao.ParticipationRequirementDao
 import researchstack.data.datasource.local.room.dao.ShareAgreementDao
 import researchstack.data.datasource.local.room.dao.SpeedDao
+import researchstack.data.datasource.local.room.dao.ExerciseDao
 import researchstack.data.datasource.local.room.dao.StudyDao
 import researchstack.data.datasource.local.room.dao.TaskDao
 import researchstack.data.datasource.local.room.entity.AppLogEntity
@@ -28,11 +29,12 @@ import researchstack.data.datasource.local.room.entity.ShareAgreementEntity
 import researchstack.data.datasource.local.room.entity.Speed
 import researchstack.data.datasource.local.room.entity.StudyEntity
 import researchstack.data.datasource.local.room.entity.TaskEntity
+import researchstack.domain.model.healthConnect.Exercise
 import researchstack.domain.model.sensor.Accelerometer
 import researchstack.domain.model.sensor.Light
 
 @Database(
-    version = 4,
+    version = 5,
     exportSchema = false,
     entities = [
         StudyEntity::class,
@@ -43,6 +45,7 @@ import researchstack.domain.model.sensor.Light
         Accelerometer::class,
         AppLogEntity::class,
         Speed::class,
+        Exercise::class,
         FileUploadRequestEntity::class,
         EventEntity::class,
     ],
@@ -63,6 +66,7 @@ abstract class ResearchAppDatabase : RoomDatabase() {
     abstract fun shareAgreementDao(): ShareAgreementDao
     abstract fun lightDao(): LightDao
     abstract fun speedDao(): SpeedDao
+    abstract fun exerciseDao(): ExerciseDao
     abstract fun accelerometerDao(): AccelerometerDao
     abstract fun logDao(): LogDao
     abstract fun fileUploadRequestDao(): FileUploadRequestDao
