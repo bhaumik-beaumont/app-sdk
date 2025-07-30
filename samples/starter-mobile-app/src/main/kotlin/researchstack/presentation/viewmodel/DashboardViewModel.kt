@@ -1,6 +1,7 @@
 package researchstack.presentation.viewmodel
 
 import android.app.Application
+import androidx.health.connect.client.records.ExerciseSessionRecord
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -65,6 +66,21 @@ class DashboardViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    fun isResistance(exerciseType:Int) : Boolean{
+        return when(exerciseType){
+            ExerciseSessionRecord.Companion.EXERCISE_TYPE_STRENGTH_TRAINING,
+            ExerciseSessionRecord.Companion.EXERCISE_TYPE_HIGH_INTENSITY_INTERVAL_TRAINING,
+            ExerciseSessionRecord.Companion.EXERCISE_TYPE_PILATES,
+            ExerciseSessionRecord.Companion.EXERCISE_TYPE_STRETCHING,
+            ExerciseSessionRecord.Companion.EXERCISE_TYPE_YOGA,
+            ExerciseSessionRecord.Companion.EXERCISE_TYPE_CALISTHENICS->
+                true
+
+            else -> false
+        }
+
     }
 
     private fun calculateCurrentWeekStart(enrollmentDate: LocalDate): LocalDate {
