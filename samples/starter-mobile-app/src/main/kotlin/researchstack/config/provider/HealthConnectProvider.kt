@@ -45,6 +45,7 @@ class HealthConnectProvider {
         exerciseDao: ExerciseDao,
         grpcHealthDataSynchronizer: GrpcHealthDataSynchronizer<HealthDataModel>
     ): HealthConnectDataSyncRepository = HealthConnectDataSyncRepositoryImpl(
+        context,
         healthConnectDataSource,
         shareAgreementDao,
         studyRepository,

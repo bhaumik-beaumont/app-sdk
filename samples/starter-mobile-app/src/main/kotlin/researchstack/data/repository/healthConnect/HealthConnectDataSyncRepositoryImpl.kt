@@ -1,6 +1,10 @@
 package researchstack.data.repository.healthConnect
 
+import android.content.Context
 import android.util.Log
+import kotlin.random.Random
+import researchstack.util.NotificationUtil
+import researchstack.R
 import androidx.health.connect.client.records.ExerciseSessionRecord
 import kotlinx.coroutines.flow.first
 import researchstack.backend.integration.GrpcHealthDataSynchronizer
@@ -22,11 +26,13 @@ import researchstack.domain.usecase.file.UploadFileUseCase
 import researchstack.domain.usecase.log.AppLogger
 import researchstack.domain.usecase.profile.GetProfileUseCase
 import researchstack.data.datasource.local.pref.EnrollmentDatePref
+import researchstack.presentation.util.toStringResourceId
 import java.time.LocalDate
 import java.time.ZoneId
 import javax.inject.Inject
 
 class HealthConnectDataSyncRepositoryImpl @Inject constructor(
+    private val context: Context,
     private val healthConnectDataSource: HealthConnectDataSource,
     private val shareAgreementDao: ShareAgreementDao,
     private val studyRepository: StudyRepository,
@@ -151,6 +157,16 @@ class HealthConnectDataSyncRepositoryImpl @Inject constructor(
             ).onSuccess {
                 Log.i(TAG, "success to upload data: $dataType")
                 AppLogger.saveLog(DataSyncLog("sync $dataType ${result.size}"))
+                NotificationUtil.initialize(context)
+                val dataTypeName = context.getString(dataType.toStringResourceId())
+                val message = context.getString(R.string.sync_success_with_type, dataTypeName)
+                NotificationUtil.getInstance().notify(
+                    NotificationUtil.SYNC_NOTIFICATION,
+                    Random.nextInt(),
+                    System.currentTimeMillis(),
+                    context.getString(R.string.app_name),
+                    message
+                )
             }.onFailure {
                 Log.e(TAG, "fail to upload data to server")
                 Log.e(TAG, it.stackTraceToString())

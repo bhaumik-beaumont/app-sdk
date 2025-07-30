@@ -186,5 +186,7 @@
     <string name="mark_as_read">Mark as read</string>
     <string name="enable_notifications">Enable notifications</string>
     <string name="enable_dark_mode">Enable dark mode</string>
+    <string name="sync_success">Data sync successful</string>
+    <string name="sync_success_with_type">%1$s 데이터 동기화 완료</string>
 
 </resources>
