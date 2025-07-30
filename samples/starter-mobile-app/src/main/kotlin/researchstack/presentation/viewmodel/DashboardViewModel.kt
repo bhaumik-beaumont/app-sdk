@@ -37,11 +37,20 @@ class DashboardViewModel @Inject constructor(
     private val _exercises = MutableStateFlow<List<Exercise>>(emptyList())
     val exercises: StateFlow<List<Exercise>> = _exercises
 
+    private val _resistanceExercises = MutableStateFlow<List<Exercise>>(emptyList())
+    val resistanceExercises: StateFlow<List<Exercise>> = _resistanceExercises
+
     private val _totalDurationMinutes = MutableStateFlow(0L)
     val totalDurationMinutes: StateFlow<Long> = _totalDurationMinutes
 
+    private val _resistanceDurationMinutes = MutableStateFlow(0L)
+    val resistanceDurationMinutes: StateFlow<Long> = _resistanceDurationMinutes
+
     private val _activityProgressPercent = MutableStateFlow(0)
     val activityProgressPercent: StateFlow<Int> = _activityProgressPercent
+
+    private val _resistanceProgressPercent = MutableStateFlow(0)
+    val resistanceProgressPercent: StateFlow<Int> = _resistanceProgressPercent
 
     init {
         refreshData()
@@ -56,12 +65,23 @@ class DashboardViewModel @Inject constructor(
                     val weekStart = calculateCurrentWeekStart(LocalDate.parse(dateString))
                     val startMillis = weekStart.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
                     exerciseDao.getExercisesFrom(startMillis).collect { list ->
-                        _exercises.value = list
-                        val totalMillis = list.sumOf { it.endTime - it.startTime }
+                        val resistanceList = list.filter { isResistance(it.exerciseType.toInt()) }
+                        val exerciseList = list.filterNot { isResistance(it.exerciseType.toInt()) }
+
+                        _resistanceExercises.value = resistanceList
+                        _exercises.value = exerciseList
+
+                        val totalMillis = exerciseList.sumOf { it.endTime - it.startTime }
                         val minutes = TimeUnit.MILLISECONDS.toMinutes(totalMillis)
                         _totalDurationMinutes.value = minutes
                         val progress = ((minutes * 100f) / ACTIVITY_GOAL_MINUTES).coerceAtMost(100f)
                         _activityProgressPercent.value = progress.toInt()
+
+                        val resistanceMillis = resistanceList.sumOf { it.endTime - it.startTime }
+                        val resistanceMinutes = TimeUnit.MILLISECONDS.toMinutes(resistanceMillis)
+                        _resistanceDurationMinutes.value = resistanceMinutes
+                        val resistanceProgress = ((resistanceMinutes * 100f) / ACTIVITY_GOAL_MINUTES).coerceAtMost(100f)
+                        _resistanceProgressPercent.value = resistanceProgress.toInt()
                     }
                 }
             }

@@ -75,8 +75,11 @@ fun DashboardScreen(
     val notificationViewModel: NotificationViewModel = hiltViewModel()
     val hasUnread by notificationViewModel.hasUnread.collectAsState()
     val exercises by dashboardViewModel.exercises.collectAsState()
+    val resistanceExercises by dashboardViewModel.resistanceExercises.collectAsState()
     val totalDuration by dashboardViewModel.totalDurationMinutes.collectAsState()
+    val resistanceDuration by dashboardViewModel.resistanceDurationMinutes.collectAsState()
     val activityProgressPercent by dashboardViewModel.activityProgressPercent.collectAsState()
+    val resistanceProgressPercent by dashboardViewModel.resistanceProgressPercent.collectAsState()
 
     var refreshing by remember { mutableStateOf(false) }
     val pullRefreshState = rememberPullRefreshState(refreshing, onRefresh = {
@@ -91,6 +94,12 @@ fun DashboardScreen(
     val activityDurationDisplay = remember(totalDuration) {
         val hours = totalDuration / 60
         val minutes = totalDuration % 60
+        if (hours > 0) "${hours}h ${minutes}m" else "${minutes}m"
+    }
+
+    val resistanceDurationDisplay = remember(resistanceDuration) {
+        val hours = resistanceDuration / 60
+        val minutes = resistanceDuration % 60
         if (hours > 0) "${hours}h ${minutes}m" else "${minutes}m"
     }
 
@@ -200,7 +209,7 @@ fun DashboardScreen(
                                 ComplianceSummaryCard(
                                     color = Color(0xFF287CC3),
                                     title = stringResource(id = R.string.resistance),
-                                    stats = stringResource(id = R.string.sessions),
+                                    stats = resistanceDurationDisplay,
                                     modifier = Modifier.weight(1f)
                                 )
                             }
@@ -264,7 +273,7 @@ fun DashboardScreen(
                                 )
                                 ProgressBarItem(
                                     stringResource(id = R.string.resistance),
-                                    0,
+                                    resistanceProgressPercent,
                                     Color(0xFFFFD700)
                                 )
                                 ProgressBarItem(
