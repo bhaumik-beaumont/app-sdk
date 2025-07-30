@@ -18,6 +18,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.Close
@@ -59,6 +60,7 @@ import researchstack.presentation.screen.notification.NotificationViewModel
 import researchstack.presentation.viewmodel.HealthConnectPermissionViewModel
 import researchstack.presentation.viewmodel.DashboardViewModel
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun DashboardScreen(
     healthConnectPermissionViewModel: HealthConnectPermissionViewModel = hiltViewModel(),
@@ -77,10 +79,11 @@ fun DashboardScreen(
     val activityProgressPercent by dashboardViewModel.activityProgressPercent.collectAsState()
 
     var refreshing by remember { mutableStateOf(false) }
-    val pullRefreshState = rememberPullRefreshState(refreshing) {
+    val pullRefreshState = rememberPullRefreshState(refreshing, onRefresh = {
         refreshing = true
         dashboardViewModel.refreshData()
-    }
+        refreshing = false
+    })
     LaunchedEffect(exercises) {
         refreshing = false
     }
