@@ -68,16 +68,14 @@ constructor(
                 // TODO how to handle
                 onJoinStudy(studyId)
             }.onFailure { ex ->
-                val message =
-                    if (ex is AlreadyJoinedStudy) {
-                        fetchJoinedStudiesUseCase()
-                        onJoinStudy(studyId)
-                        getApplication<Application>().applicationContext.getString(R.string.already_joined_study)
-                    } else {
-                        "Something Wrong"
-                    }
-
-                _joinState.value = Fail(message)
+                if (ex is AlreadyJoinedStudy) {
+                    fetchJoinedStudiesUseCase()
+                    onJoinStudy(studyId)
+                    _joinState.value = AlreadyJoined
+                } else {
+                    val message = "Something Wrong"
+                    _joinState.value = Fail(message)
+                }
             }
         }
     }
@@ -182,6 +180,8 @@ constructor(
     object Joining : StudyJoinState()
 
     object Success : StudyJoinState()
+
+    object AlreadyJoined : StudyJoinState()
 
     class Fail(
         val message: String,

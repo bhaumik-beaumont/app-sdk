@@ -164,7 +164,7 @@ suspend fun processExerciseData(
         calorie = (sessionData.totalEnergyBurned?.inCalories ?: 0.0).toInt()/1000*1.0,
         duration = sessionData.totalActiveTime?.toMillis() ?: 0,
         timeOffset = getCurrentTimeOffset(),
-        weekNumber = weekNumber,
+        weekNumber = weekNumber*1L,
         meanHeartRate = sessionData.avgHeartRate?.toDouble() ?: 0.00,
         maxHeartRate = sessionData.maxHeartRate?.toDouble() ?: 0.00,
         minHeartRate = sessionData.minHeartRate?.toDouble() ?: 0.00,

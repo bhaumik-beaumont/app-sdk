@@ -43,6 +43,10 @@ class DashboardViewModel @Inject constructor(
     val activityProgressPercent: StateFlow<Int> = _activityProgressPercent
 
     init {
+        refreshData()
+    }
+
+    fun refreshData(){
         viewModelScope.launch(Dispatchers.IO) {
             val studyId = studyRepository.getActiveStudies().firstOrNull()?.firstOrNull()?.id
             if (studyId != null) {

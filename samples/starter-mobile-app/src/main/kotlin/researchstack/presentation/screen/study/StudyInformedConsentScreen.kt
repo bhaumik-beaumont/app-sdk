@@ -61,6 +61,7 @@ import researchstack.presentation.viewmodel.study.StudyViewModel.Fail
 import researchstack.presentation.viewmodel.study.StudyViewModel.Joining
 import researchstack.presentation.viewmodel.study.StudyViewModel.NotStarted
 import researchstack.presentation.viewmodel.study.StudyViewModel.Success
+import researchstack.presentation.viewmodel.study.StudyViewModel.AlreadyJoined
 import se.warting.signaturepad.SignaturePadAdapter
 import se.warting.signaturepad.SignaturePadView
 
@@ -112,6 +113,13 @@ fun StudyInformedConsentScreen(
                 stringResource(id = string.joined_study_message).format(study?.name)
             )
             navController.navigate("${Main.name}/${MainPage.Data.ordinal}") {
+                popUpTo(0)
+            }
+        }
+
+        is StudyViewModel.AlreadyJoined -> {
+            LocalContext.current.showMessage(stringResource(id = string.already_joined_study))
+            navController.navigate("${Main.name}/0") {
                 popUpTo(0)
             }
         }
