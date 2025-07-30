@@ -18,8 +18,9 @@ class NotificationUtil private constructor() {
         lateinit var notificationManager: NotificationManager
 
         const val REMINDER_NOTIFICATION = "reminder"
+        const val SYNC_NOTIFICATION = "sync"
 
-        private val channelIds = listOf(REMINDER_NOTIFICATION)
+        private val channelIds = listOf(REMINDER_NOTIFICATION, SYNC_NOTIFICATION)
         private val notificationBuilderMap = mutableMapOf<String, NotificationCompat.Builder>()
         private lateinit var pendingIntent: PendingIntent
 
@@ -28,17 +29,23 @@ class NotificationUtil private constructor() {
                 if (Companion::INSTANCE.isInitialized.not()) {
                     notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-                    channelIds.forEach {
+                    channelIds.forEach { channelId ->
                         notificationManager.createNotificationChannel(
-                            NotificationChannel(it, it, NotificationManager.IMPORTANCE_DEFAULT).apply {
+                            NotificationChannel(channelId, channelId, NotificationManager.IMPORTANCE_DEFAULT).apply {
                                 enableVibration(true)
                                 vibrationPattern = longArrayOf(100, 200, 100, 200, 100, 400, 100, 400)
                             }
                         )
                         val uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
 
-                        notificationBuilderMap[it] = NotificationCompat.Builder(context, it)
-                            .setSmallIcon(R.drawable.ic_notification)
+                        val icon = if (channelId == SYNC_NOTIFICATION) {
+                            R.drawable.ic_launcher_playstore
+                        } else {
+                            R.drawable.ic_notification
+                        }
+
+                        notificationBuilderMap[channelId] = NotificationCompat.Builder(context, channelId)
+                            .setSmallIcon(icon)
                             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                             .setVisibility(VISIBILITY_PUBLIC)
                             .setShowWhen(true)
