@@ -181,6 +181,7 @@
     <string name="close">Close</string>
     <string name="sync">Sync</string>
     <string name="sync_now">Sync Now</string>
+    <string name="sync_request_submitted">Sync request has been submitted successfully</string>
     <string name="activity_tab">Activity</string>
     <string name="notifications">Notifications</string>
     <string name="weekly_progress">Weekly Progress</string>
