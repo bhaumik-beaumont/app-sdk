@@ -182,6 +182,8 @@
     <string name="sync">Sync</string>
     <string name="sync_now">Sync Now</string>
     <string name="sync_request_submitted">Sync request has been submitted successfully</string>
+    <string name="exercise_permission_required">Exercise read permissions are required to sync.</string>
+    <string name="background_permission_required">Background health data permission is required to sync.</string>
     <string name="activity_tab">Activity</string>
     <string name="notifications">Notifications</string>
     <string name="weekly_progress">Weekly Progress</string>
