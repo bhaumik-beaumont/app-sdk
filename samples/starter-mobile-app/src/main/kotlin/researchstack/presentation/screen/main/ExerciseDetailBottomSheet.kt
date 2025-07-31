@@ -2,6 +2,7 @@ package researchstack.presentation.screen.main
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -79,29 +80,92 @@ private fun ExerciseDetailItem(detail: ExerciseDetailUi) {
             modifier = Modifier.padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            Text(detail.name, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-            Text(detail.date, color = Color.LightGray, fontSize = 14.sp)
-            Text("${detail.startTime} – ${detail.endTime}", color = Color.White, fontSize = 14.sp)
             Text(
-                text = stringResource(id = R.string.duration_minutes, detail.durationMinutes),
-                color = Color.LightGray,
-                fontSize = 14.sp
+                detail.name,
+                color = Color.White,
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp
             )
-            Text(
-                "${stringResource(id = R.string.calories)}: ${detail.calories}",
-                color = Color.LightGray,
-                fontSize = 14.sp
-            )
-            Text(
-                "${stringResource(id = R.string.min_hr)}: ${detail.minHeartRate}",
-                color = Color.LightGray,
-                fontSize = 14.sp
-            )
-            Text(
-                "${stringResource(id = R.string.max_hr)}: ${detail.maxHeartRate}",
-                color = Color.LightGray,
-                fontSize = 14.sp
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    stringResource(id = R.string.date_label),
+                    color = Color.LightGray,
+                    fontSize = 16.sp
+                )
+                Text(detail.date, color = Color.White, fontSize = 14.sp)
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    stringResource(id = R.string.time_label),
+                    color = Color.LightGray,
+                    fontSize = 16.sp
+                )
+                Text(
+                    "${detail.startTime} – ${detail.endTime}",
+                    color = Color.White,
+                    fontSize = 14.sp
+                )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    stringResource(id = R.string.duration_label),
+                    color = Color.LightGray,
+                    fontSize = 16.sp
+                )
+                Text(
+                    "${detail.durationMinutes} ${stringResource(id = R.string.minutes_short)}",
+                    color = Color.White,
+                    fontSize = 14.sp
+                )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    stringResource(id = R.string.calories),
+                    color = Color.LightGray,
+                    fontSize = 16.sp
+                )
+                Text("${detail.calories}", color = Color.White, fontSize = 14.sp)
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    stringResource(id = R.string.min_hr),
+                    color = Color.LightGray,
+                    fontSize = 16.sp
+                )
+                Text("${detail.minHeartRate}", color = Color.White, fontSize = 14.sp)
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    stringResource(id = R.string.max_hr),
+                    color = Color.LightGray,
+                    fontSize = 16.sp
+                )
+                Text("${detail.maxHeartRate}", color = Color.White, fontSize = 14.sp)
+            }
         }
     }
 }

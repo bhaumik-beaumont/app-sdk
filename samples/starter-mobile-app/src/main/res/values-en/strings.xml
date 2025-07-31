@@ -184,4 +184,9 @@
     <string name="sync_success">Data sync successful</string>
     <string name="sync_success_with_type">%1$s data sync successful</string>
 
+    <string name="date_label">Date</string>
+    <string name="time_label">Time</string>
+    <string name="duration_label">Duration</string>
+    <string name="minutes_short">min</string>
+
 </resources>
