@@ -20,9 +20,11 @@ fun ComplianceSummaryCard(
     color: Color,
     title: String,
     stats: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit = {}
 ) {
     Card(
+        onClick = onClick,
         modifier = modifier
             .fillMaxWidth(),
         colors = CardDefaults.cardColors(color),
