@@ -82,7 +82,9 @@ fun WeeklyProgressScreen(
         }
         ModalBottomSheet(
             onDismissRequest = { detailType = null },
-            sheetState = sheetState
+            sheetState = sheetState,
+            containerColor = Color(0xFF222222),
+            modifier = Modifier.fillMaxHeight()
         ) {
             ExerciseDetailSheet(
                 title = if (detailType == DetailType.Resistance)

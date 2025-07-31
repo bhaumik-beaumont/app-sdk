@@ -38,6 +38,7 @@ class WeeklyProgressViewModel @Inject constructor(
     }
 
     private val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.getDefault())
+    private val dateFormatter = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy", Locale.getDefault())
 
     private val enrollmentDatePref = EnrollmentDatePref(application.dataStore)
 
@@ -151,20 +152,18 @@ class WeeklyProgressViewModel @Inject constructor(
     }
 
     private fun Exercise.toDetailUi(): ExerciseDetailUi {
-        val start = Instant.ofEpochMilli(startTime)
-            .atZone(ZoneId.systemDefault())
-            .toLocalTime()
-            .format(timeFormatter)
-        val end = Instant.ofEpochMilli(endTime)
-            .atZone(ZoneId.systemDefault())
-            .toLocalTime()
-            .format(timeFormatter)
+        val startInstant = Instant.ofEpochMilli(startTime).atZone(ZoneId.systemDefault())
+        val endInstant = Instant.ofEpochMilli(endTime).atZone(ZoneId.systemDefault())
+        val start = startInstant.toLocalTime().format(timeFormatter)
+        val end = endInstant.toLocalTime().format(timeFormatter)
+        val date = startInstant.toLocalDate().format(dateFormatter)
         val name = exerciseName.ifBlank {
             EXERCISE_TYPE_INT_TO_STRING_MAP[exerciseType.toInt()] ?: ""
         }
         val duration = TimeUnit.MILLISECONDS.toMinutes(endTime - startTime).toInt()
         return ExerciseDetailUi(
             name = name,
+            date = date,
             startTime = start,
             endTime = end,
             durationMinutes = duration,
@@ -190,6 +189,7 @@ class WeeklyProgressViewModel @Inject constructor(
 
 data class ExerciseDetailUi(
     val name: String,
+    val date: String,
     val startTime: String,
     val endTime: String,
     val durationMinutes: Int,
