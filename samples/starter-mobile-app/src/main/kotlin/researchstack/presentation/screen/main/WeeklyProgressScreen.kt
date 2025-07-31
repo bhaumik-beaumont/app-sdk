@@ -46,6 +46,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -192,7 +194,7 @@ fun WeeklyProgressScreen(
                     Box(
                         modifier = Modifier
                             .weight(1f)
-                            .aspectRatio(1f)
+                            .heightIn(min = 64.dp)
                             .clip(RoundedCornerShape(12.dp))
                             .background(if (isToday) Color.White else Color(0xFF333333))
                             .clickable {
@@ -205,19 +207,26 @@ fun WeeklyProgressScreen(
                                 .fillMaxSize()
                                 .padding(vertical = 8.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.SpaceBetween
+                            verticalArrangement = Arrangement.Center
                         ) {
                             Text(
                                 text = dayName,
                                 color = if (isToday) Color.Black else Color.White,
-                                fontSize = 14.sp
+                                fontSize = 14.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Clip,
+                                textAlign = TextAlign.Center
                             )
                             Text(
                                 text = dayNum,
                                 color = if (isToday) Color.Black else Color.White,
                                 fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Clip,
+                                textAlign = TextAlign.Center
                             )
+                            Spacer(modifier = Modifier.height(4.dp))
                             if (hasExercise) {
                                 Box(
                                     modifier = Modifier
