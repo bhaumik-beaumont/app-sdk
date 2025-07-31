@@ -189,4 +189,7 @@
     <string name="sync_success">Data sync successful</string>
     <string name="sync_success_with_type">%1$s 데이터 동기화 완료</string>
 
+    <string name="today">Today</string>
+    <string name="no_data_available">No data available</string>
+    <string name="minutes_out_of">%1$d out of %2$d minutes</string>
 </resources>
