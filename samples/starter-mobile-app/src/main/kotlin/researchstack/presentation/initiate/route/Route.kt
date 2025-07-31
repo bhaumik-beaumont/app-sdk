@@ -15,6 +15,7 @@ enum class Route {
     Login,
     Intro,
     Notifications,
+    WeeklyProgress,
 }
 
 enum class MainPage {
