@@ -203,6 +203,7 @@ fun WeeklyProgressScreen(
                     )
                 }
             }
+            SwipeHint()
             Spacer(Modifier.height(16.dp))
             Row(
                 modifier = Modifier
@@ -300,6 +301,36 @@ fun WeeklyProgressScreen(
             }
             Spacer(Modifier.height(24.dp))
         }
+    }
+}
+
+@Composable
+private fun SwipeHint() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            Icons.AutoMirrored.Filled.ArrowBack,
+            contentDescription = null,
+            tint = Color.LightGray,
+            modifier = Modifier.size(16.dp)
+        )
+        Text(
+            text = stringResource(id = R.string.swipe_to_change_week),
+            color = Color.LightGray,
+            fontSize = 12.sp,
+            modifier = Modifier.padding(horizontal = 4.dp)
+        )
+        Icon(
+            Icons.AutoMirrored.Filled.ArrowForwardIos,
+            contentDescription = null,
+            tint = Color.LightGray,
+            modifier = Modifier.size(16.dp)
+        )
     }
 }
 
