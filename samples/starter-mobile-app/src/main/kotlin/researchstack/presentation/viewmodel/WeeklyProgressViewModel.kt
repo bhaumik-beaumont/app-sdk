@@ -5,11 +5,11 @@ import androidx.health.connect.client.records.ExerciseSessionRecord
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import researchstack.data.datasource.local.pref.EnrollmentDatePref
 import researchstack.data.datasource.local.pref.dataStore
@@ -19,6 +19,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 
 @HiltViewModel
 class WeeklyProgressViewModel @Inject constructor(
@@ -148,6 +149,7 @@ class WeeklyProgressViewModel @Inject constructor(
             ExerciseSessionRecord.EXERCISE_TYPE_STRETCHING,
             ExerciseSessionRecord.EXERCISE_TYPE_YOGA,
             ExerciseSessionRecord.EXERCISE_TYPE_CALISTHENICS -> true
+
             else -> false
         }
     }

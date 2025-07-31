@@ -2,6 +2,7 @@ package researchstack.presentation.screen.main
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -253,13 +254,17 @@ fun DashboardScreen(
                         Spacer(Modifier.height(16.dp))
 
                         if (activeTab == stringResource(id = R.string.weekly)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.clickable { navController.navigate(Route.WeeklyProgress.name) }
+                            ) {
                                 Text(stringResource(id = R.string.this_week), color = Color.White)
                                 Icon(
                                     Icons.Default.ExpandMore,
                                     contentDescription = "Dropdown",
                                     tint = Color.White
                                 )
+
                             }
                             Spacer(Modifier.height(16.dp))
                             Column(
