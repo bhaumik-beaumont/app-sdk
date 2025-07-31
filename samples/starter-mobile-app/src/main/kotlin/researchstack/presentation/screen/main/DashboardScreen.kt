@@ -131,13 +131,13 @@ fun DashboardScreen(
                 Box(
                     Modifier
                         .size(32.dp)
-                        .background(Color(0xFF00CED1), CircleShape),
+                        .background(Color(0xFF7F8C8D), CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.fixed_biceps),
+                        painter = painterResource(id = R.drawable.flexed_biceps),
                         contentDescription = stringResource(id = R.string.home),
-                        tint = Color.Black,
+                        tint = Color.Yellow,
                         modifier = Modifier.size(22.dp)
                     )
                 }
