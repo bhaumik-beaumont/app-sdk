@@ -45,9 +45,6 @@ class WeeklyProgressViewModel @Inject constructor(
     private val _weekDays = MutableStateFlow<List<LocalDate>>(emptyList())
     val weekDays: StateFlow<List<LocalDate>> = _weekDays
 
-    private val _selectedDate = MutableStateFlow(LocalDate.now())
-    val selectedDate: StateFlow<LocalDate> = _selectedDate
-
     private val _activityMinutes = MutableStateFlow(0)
     val activityMinutes: StateFlow<Int> = _activityMinutes
 
@@ -81,9 +78,8 @@ class WeeklyProgressViewModel @Inject constructor(
                     maxWeekIndex = currentWeekIndex
                     _weekStart.value = start.plusDays((currentWeekIndex * 7).toLong())
                     _weekDays.value = (0..6).map { _weekStart.value.plusDays(it.toLong()) }
-                    _selectedDate.value = if (today in _weekDays.value) today else _weekStart.value
                     updateNavigationButtons()
-                    loadProgressForDate(_selectedDate.value)
+                    loadProgressForWeek(_weekStart.value)
                 }
             }
         }
@@ -96,27 +92,20 @@ class WeeklyProgressViewModel @Inject constructor(
         enrollmentDate?.let { start ->
             _weekStart.value = start.plusDays((currentWeekIndex * 7).toLong())
             _weekDays.value = (0..6).map { _weekStart.value.plusDays(it.toLong()) }
-            val today = LocalDate.now()
-            _selectedDate.value = if (today in _weekDays.value) today else _weekStart.value
             updateNavigationButtons()
-            loadProgressForDate(_selectedDate.value)
+            loadProgressForWeek(_weekStart.value)
         }
     }
 
-    fun selectDate(date: LocalDate) {
-        _selectedDate.value = date
-        loadProgressForDate(date)
-    }
-
-    private fun loadProgressForDate(date: LocalDate) {
+    private fun loadProgressForWeek(start: LocalDate) {
         progressJob?.cancel()
         progressJob = viewModelScope.launch(Dispatchers.IO) {
-            val startMillis = date.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
-            val endMillis = date.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+            val startMillis = start.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+            val endMillis = start.plusDays(7).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
             exerciseDao.getExercisesFrom(startMillis).collect { list ->
-                val dayList = list.filter { it.startTime < endMillis }
-                val resistanceList = dayList.filter { isResistance(it.exerciseType.toInt()) }
-                val exerciseList = dayList.filterNot { isResistance(it.exerciseType.toInt()) }
+                val weekList = list.filter { it.startTime < endMillis }
+                val resistanceList = weekList.filter { isResistance(it.exerciseType.toInt()) }
+                val exerciseList = weekList.filterNot { isResistance(it.exerciseType.toInt()) }
 
                 val totalMillis = exerciseList.sumOf { it.endTime - it.startTime }
                 val minutes = TimeUnit.MILLISECONDS.toMinutes(totalMillis).toInt()
@@ -131,7 +120,7 @@ class WeeklyProgressViewModel @Inject constructor(
                 _resistanceProgressPercent.value =
                     ((resistanceMinutes * 100f) / ACTIVITY_GOAL_MINUTES).coerceAtMost(100f).toInt()
 
-                _hasData.value = dayList.isNotEmpty()
+                _hasData.value = weekList.isNotEmpty()
             }
         }
     }

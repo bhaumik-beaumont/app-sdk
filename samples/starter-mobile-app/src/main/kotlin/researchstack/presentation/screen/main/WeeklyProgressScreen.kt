@@ -1,20 +1,18 @@
 package researchstack.presentation.screen.main
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -48,7 +46,6 @@ fun WeeklyProgressScreen(
     viewModel: WeeklyProgressViewModel = hiltViewModel(),
 ) {
     val weekDays by viewModel.weekDays.collectAsState()
-    val selectedDate by viewModel.selectedDate.collectAsState()
     val activityMinutes by viewModel.activityMinutes.collectAsState()
     val resistanceMinutes by viewModel.resistanceMinutes.collectAsState()
     val activityProgress by viewModel.activityProgressPercent.collectAsState()
@@ -104,33 +101,34 @@ fun WeeklyProgressScreen(
             }
         }
         Spacer(Modifier.height(16.dp))
-        LazyRow(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 24.dp)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(weekDays) { date ->
-                val selected = date == selectedDate
+            weekDays.forEach { date ->
+                val isToday = date == today
                 val dayName = date.format(DateTimeFormatter.ofPattern("EEE", Locale.getDefault()))
                 val dayNum = date.format(DateTimeFormatter.ofPattern("dd"))
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
-                        .clickable { viewModel.selectDate(date) }
+                        .weight(1f)
                         .background(
-                            if (selected) Color.White else Color(0xFF333333),
+                            if (isToday) Color.White else Color(0xFF333333),
                             RoundedCornerShape(12.dp)
                         )
-                        .padding(vertical = 8.dp, horizontal = 12.dp)
+                        .padding(vertical = 8.dp)
                 ) {
                     Text(
                         text = dayName,
-                        color = if (selected) Color.Black else Color.White,
+                        color = if (isToday) Color.Black else Color.White,
                         fontSize = 14.sp
                     )
                     Text(
                         text = dayNum,
-                        color = if (selected) Color.Black else Color.White,
+                        color = if (isToday) Color.Black else Color.White,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
                     )
