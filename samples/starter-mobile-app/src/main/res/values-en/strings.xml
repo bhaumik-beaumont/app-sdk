@@ -161,6 +161,7 @@
     <string name="weekly">Weekly</string>
     <string name="adherence">Adherence</string>
     <string name="this_week">This Week</string>
+    <string name="week_range">Week of %1$s - %2$s</string>
     <string name="device_sync">Device Sync</string>
     <string name="last_synced">Last synced 3 hrs. ago</string>
     <string name="close">Close</string>

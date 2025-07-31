@@ -63,6 +63,7 @@ import researchstack.presentation.initiate.route.Route
 import researchstack.presentation.screen.notification.NotificationViewModel
 import researchstack.presentation.viewmodel.HealthConnectPermissionViewModel
 import researchstack.presentation.viewmodel.DashboardViewModel
+import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -85,6 +86,8 @@ fun DashboardScreen(
     val resistanceDuration by dashboardViewModel.resistanceDurationMinutes.collectAsState()
     val activityProgressPercent by dashboardViewModel.activityProgressPercent.collectAsState()
     val resistanceProgressPercent by dashboardViewModel.resistanceProgressPercent.collectAsState()
+    val weekStart by dashboardViewModel.weekStart.collectAsState()
+    val rangeFormatter = DateTimeFormatter.ofPattern("MMM d")
 
     var refreshing by remember { mutableStateOf(false) }
     val pullRefreshState = rememberPullRefreshState(refreshing, onRefresh = {
@@ -229,6 +232,16 @@ fun DashboardScreen(
                             color = Color.White,
                             fontWeight = FontWeight.Medium,
                             fontSize = 20.sp
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            stringResource(
+                                id = R.string.week_range,
+                                weekStart.format(rangeFormatter),
+                                weekStart.plusDays(6).format(rangeFormatter)
+                            ),
+                            color = Color.White,
+                            fontSize = 14.sp
                         )
                         Spacer(Modifier.height(12.dp))
                         Column {

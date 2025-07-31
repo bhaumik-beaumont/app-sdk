@@ -52,6 +52,9 @@ class DashboardViewModel @Inject constructor(
     private val _resistanceProgressPercent = MutableStateFlow(0)
     val resistanceProgressPercent: StateFlow<Int> = _resistanceProgressPercent
 
+    private val _weekStart = MutableStateFlow(LocalDate.now())
+    val weekStart: StateFlow<LocalDate> = _weekStart
+
     init {
         refreshData()
     }
@@ -63,6 +66,7 @@ class DashboardViewModel @Inject constructor(
                 val enrollmentDate = enrollmentDatePref.getEnrollmentDate(studyId)
                 enrollmentDate?.let { dateString ->
                     val weekStart = calculateCurrentWeekStart(LocalDate.parse(dateString))
+                    _weekStart.value = weekStart
                     val startMillis = weekStart.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
                     exerciseDao.getExercisesFrom(startMillis).collect { list ->
                         val resistanceList = list.filter { isResistance(it.exerciseType.toInt()) }
