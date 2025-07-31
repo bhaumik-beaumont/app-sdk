@@ -13,6 +13,8 @@ import researchstack.domain.model.UserProfile
 import researchstack.domain.model.healthConnect.Exercise
 import researchstack.data.datasource.local.pref.EnrollmentDatePref
 import researchstack.domain.model.shealth.SHealthDataType
+import researchstack.domain.model.log.DataSyncLog
+import researchstack.domain.usecase.log.AppLogger
 import researchstack.util.getCurrentTimeOffset
 import researchstack.util.toEpochMilli
 import java.time.Instant
@@ -143,6 +145,7 @@ suspend fun processExerciseData(
     studyId: String,
     enrollmentDatePref: EnrollmentDatePref
 ): Exercise {
+    AppLogger.saveLog(DataSyncLog("start processExerciseData ${record.metadata.id}"))
 
     val name = EXERCISE_TYPE_INT_TO_STRING_MAP[record.exerciseType]
     val enrollmentDateStr = enrollmentDatePref.getEnrollmentDate(studyId)
@@ -154,6 +157,24 @@ suspend fun processExerciseData(
         (((record.startTime.toEpochMilli() - enrollmentMillis) / (7 * 24 * 60 * 60 * 1000L)) + 1).toInt()
     } ?: 0
 
+    fun <T> logValue(name: String, value: T?): T? {
+        return value?.also {
+            AppLogger.saveLog(DataSyncLog("$name $it"))
+        } ?: run {
+            AppLogger.saveLog(DataSyncLog("nothing to sync for $name"))
+            null
+        }
+    }
+
+    val calorie = ((logValue("totalEnergyBurned", sessionData.totalEnergyBurned?.inCalories)?.toInt() ?: 0) / 1000) * 1.0
+    val duration = logValue("totalActiveTime", sessionData.totalActiveTime?.toMillis()) ?: 0
+    val meanHeartRate = logValue("avgHeartRate", sessionData.avgHeartRate?.toDouble()) ?: 0.00
+    val maxHeartRate = logValue("maxHeartRate", sessionData.maxHeartRate?.toDouble()) ?: 0.00
+    val minHeartRate = logValue("minHeartRate", sessionData.minHeartRate?.toDouble()) ?: 0.00
+    val distance = logValue("totalDistance", sessionData.totalDistance?.inMeters) ?: 0.00
+    val maxSpeed = logValue("maxSpeed", sessionData.maxSpeed) ?: 0.00
+    val meanSpeed = logValue("meanSpeed", sessionData.meanSpeed) ?: 0.00
+
     val exercise = Exercise(
         id = record.metadata.id,
         timestamp = record.startTime.toEpochMilli(),
@@ -161,17 +182,18 @@ suspend fun processExerciseData(
         endTime = record.endTime.toEpochMilli(),
         exerciseType = record.exerciseType.toLong(),
         exerciseName = name ?: "",
-        calorie = (sessionData.totalEnergyBurned?.inCalories ?: 0.0).toInt()/1000*1.0,
-        duration = sessionData.totalActiveTime?.toMillis() ?: 0,
+        calorie = calorie,
+        duration = duration,
         timeOffset = getCurrentTimeOffset(),
         weekNumber = weekNumber*1L,
-        meanHeartRate = sessionData.avgHeartRate?.toDouble() ?: 0.00,
-        maxHeartRate = sessionData.maxHeartRate?.toDouble() ?: 0.00,
-        minHeartRate = sessionData.minHeartRate?.toDouble() ?: 0.00,
-        distance = sessionData.totalDistance?.inMeters ?: 0.00,
-        maxSpeed = sessionData.maxSpeed ?: 0.00,
-        meanSpeed = sessionData.meanSpeed ?: 0.00,
+        meanHeartRate = meanHeartRate,
+        maxHeartRate = maxHeartRate,
+        minHeartRate = minHeartRate,
+        distance = distance,
+        maxSpeed = maxSpeed,
+        meanSpeed = meanSpeed,
     )
+    AppLogger.saveLog(DataSyncLog("prepared exercise ${exercise.id}"))
     return exercise
 }
 
