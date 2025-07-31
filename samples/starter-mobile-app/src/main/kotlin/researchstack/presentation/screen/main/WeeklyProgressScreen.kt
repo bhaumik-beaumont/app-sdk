@@ -7,10 +7,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -187,38 +189,44 @@ fun WeeklyProgressScreen(
                     val dayName = date.format(DateTimeFormatter.ofPattern("EEE", Locale.getDefault()))
                     val dayNum = date.format(DateTimeFormatter.ofPattern("dd"))
                     val hasExercise = daysWithExercise.contains(date)
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
+                    Box(
                         modifier = Modifier
                             .weight(1f)
+                            .aspectRatio(1f)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(
-                                if (isToday) Color.White else Color(0xFF333333)
-                            )
+                            .background(if (isToday) Color.White else Color(0xFF333333))
                             .clickable {
                                 selectedDay = date
                                 detailType = null
                             }
-                            .padding(vertical = 8.dp)
                     ) {
-                        Text(
-                            text = dayName,
-                            color = if (isToday) Color.Black else Color.White,
-                            fontSize = 14.sp
-                        )
-                        Text(
-                            text = dayNum,
-                            color = if (isToday) Color.Black else Color.White,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        if (hasExercise) {
-                            Spacer(Modifier.height(4.dp))
-                            Box(
-                                modifier = Modifier
-                                    .size(6.dp)
-                                    .background(Color(0xFF00A86B), CircleShape)
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(vertical = 8.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = dayName,
+                                color = if (isToday) Color.Black else Color.White,
+                                fontSize = 14.sp
                             )
+                            Text(
+                                text = dayNum,
+                                color = if (isToday) Color.Black else Color.White,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            if (hasExercise) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(6.dp)
+                                        .background(Color(0xFF00A86B), CircleShape)
+                                )
+                            } else {
+                                Spacer(modifier = Modifier.height(6.dp))
+                            }
                         }
                     }
                 }
@@ -247,7 +255,7 @@ fun WeeklyProgressScreen(
                         minutes = resistanceMinutes,
                         calories = resistanceCalories,
                         progressPercent = resistanceProgress,
-                        color = Color(0xFFFFD700),
+                        color = Color(0xFF3B82F6),
                         onClick = {
                             detailType = DetailType.Resistance
                             selectedDay = null
@@ -282,21 +290,27 @@ private fun ProgressCard(
             .fillMaxWidth()
             .clickable { onClick() },
         colors = CardDefaults.cardColors(Color(0xFF333333)),
-        shape = RoundedCornerShape(16.dp)
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(horizontal = 16.dp, vertical = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(IntrinsicSize.Min),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                VerticalProgressBar(progressPercent, color)
-                Column(modifier = Modifier.weight(1f)) {
+                VerticalProgressBar(progressPercent, color, modifier = Modifier.fillMaxHeight())
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
                     Text(title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     Text(
                         stringResource(
@@ -329,13 +343,13 @@ private fun ProgressCard(
 }
 
 @Composable
-private fun VerticalProgressBar(progressPercent: Int, color: Color) {
+private fun VerticalProgressBar(progressPercent: Int, color: Color, modifier: Modifier = Modifier) {
     val progress = progressPercent.coerceIn(0, 100) / 100f
     Box(
-        modifier = Modifier
+        modifier = modifier
             .width(8.dp)
-            .height(80.dp)
-            .background(Color(0xFF374151), RoundedCornerShape(50))
+            .clip(RoundedCornerShape(50))
+            .background(Color(0xFF374151))
     ) {
         Box(
             modifier = Modifier
