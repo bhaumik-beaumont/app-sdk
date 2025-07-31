@@ -28,6 +28,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import researchstack.R
 import researchstack.presentation.util.HealthConnectManager
 import researchstack.presentation.worker.WorkerRegistrar
 import java.io.IOException
@@ -55,10 +56,10 @@ class HealthConnectPermissionViewModel @Inject constructor(
         HealthPermission.getReadPermission(TotalCaloriesBurnedRecord::class),
         HealthPermission.getReadPermission(SpeedRecord::class),
         HealthPermission.getReadPermission(HeartRateRecord::class),
-        )
+    )
 
-
-
+    private val backgroundPermissions = setOf(PERMISSION_READ_HEALTH_DATA_IN_BACKGROUND)
+    val allPermissions = permissions + backgroundPermissions
 
     var permissionsGranted = mutableStateOf(false)
         private set
@@ -99,11 +100,9 @@ class HealthConnectPermissionViewModel @Inject constructor(
         backgroundReadAvailable.value = healthConnectManager.isFeatureAvailable(
             HealthConnectFeatures.FEATURE_READ_HEALTH_DATA_IN_BACKGROUND
         )
-        backgroundReadGranted.value = healthConnectManager.hasAllPermissions(
-            setOf(PERMISSION_READ_HEALTH_DATA_IN_BACKGROUND)
-        )
+        backgroundReadGranted.value = healthConnectManager.hasAllPermissions(backgroundPermissions)
         uiState = try {
-            if (permissionsGranted.value) {
+            if (permissionsGranted.value && backgroundReadGranted.value) {
                 block()
             }
             UiState.Done
@@ -136,14 +135,30 @@ class HealthConnectPermissionViewModel @Inject constructor(
             if (hasAllPermissionsEnabled()) {
                 showToast()
             } else {
-                healthConnectPermissionsLauncher.launch(permissions)
+                healthConnectPermissionsLauncher.launch(allPermissions)
             }
         }
     }
+
+    suspend fun getMissingPermissions(): Set<String> {
+        val grantedPermissions = healthConnectClient.permissionController.getGrantedPermissions()
+        return allPermissions - grantedPermissions
+    }
+
+    fun getMissingPermissionsMessage(missingPermissions: Set<String>): String {
+        val messages = mutableListOf<String>()
+        if (missingPermissions.any { it != PERMISSION_READ_HEALTH_DATA_IN_BACKGROUND }) {
+            messages.add(context.getString(R.string.exercise_permission_required))
+        }
+        if (missingPermissions.contains(PERMISSION_READ_HEALTH_DATA_IN_BACKGROUND)) {
+            messages.add(context.getString(R.string.background_permission_required))
+        }
+        return messages.joinToString(" \n")
+    }
+
     private suspend fun hasAllPermissionsEnabled(): Boolean {
         val grantedPermissions = healthConnectClient.permissionController.getGrantedPermissions()
-        return grantedPermissions
-            .containsAll(permissions)
+        return grantedPermissions.containsAll(allPermissions)
     }
 
     private fun showToast() {

@@ -43,6 +43,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,6 +55,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import kotlinx.coroutines.launch
 import researchstack.R
 import researchstack.presentation.LocalNavController
 import researchstack.presentation.component.ComplianceSummaryCard
@@ -74,6 +76,7 @@ fun DashboardScreen(
     var showSyncDialog by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
     val navController = LocalNavController.current
+    val coroutineScope = rememberCoroutineScope()
     val notificationViewModel: NotificationViewModel = hiltViewModel()
     val hasUnread by notificationViewModel.hasUnread.collectAsState()
     val exercises by dashboardViewModel.exercises.collectAsState()
@@ -106,8 +109,22 @@ fun DashboardScreen(
     }
 
     val permissionsLauncher =
-        rememberLauncherForActivityResult(healthConnectPermissionViewModel.permissionsLauncher) {
-            healthConnectPermissionViewModel.initialLoad()
+        rememberLauncherForActivityResult(healthConnectPermissionViewModel.permissionsLauncher) { granted ->
+            val missing = healthConnectPermissionViewModel.allPermissions - granted
+            if (missing.isEmpty()) {
+                healthConnectPermissionViewModel.initialLoad()
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.sync_request_submitted),
+                    Toast.LENGTH_SHORT
+                ).show()
+            } else {
+                Toast.makeText(
+                    context,
+                    healthConnectPermissionViewModel.getMissingPermissionsMessage(missing),
+                    Toast.LENGTH_LONG
+                ).show()
+            }
         }
     Box(
         modifier = Modifier
@@ -146,12 +163,24 @@ fun DashboardScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     IconButton(onClick = {
-                        permissionsLauncher.launch(healthConnectPermissionViewModel.permissions)
-                        Toast.makeText(
-                            context,
-                            context.getString(R.string.sync_request_submitted),
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        coroutineScope.launch {
+                            val missing = healthConnectPermissionViewModel.getMissingPermissions()
+                            if (missing.isEmpty()) {
+                                healthConnectPermissionViewModel.initialLoad()
+                                Toast.makeText(
+                                    context,
+                                    context.getString(R.string.sync_request_submitted),
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    healthConnectPermissionViewModel.getMissingPermissionsMessage(missing),
+                                    Toast.LENGTH_LONG
+                                ).show()
+                                permissionsLauncher.launch(healthConnectPermissionViewModel.allPermissions)
+                            }
+                        }
                     }) {
                         Icon(
                             Icons.Default.Sync,
