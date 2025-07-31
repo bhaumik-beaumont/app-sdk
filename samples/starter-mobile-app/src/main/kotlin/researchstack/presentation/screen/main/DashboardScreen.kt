@@ -211,13 +211,15 @@ fun DashboardScreen(
                                     color = Color(0xFF2B9179),
                                     title = stringResource(id = R.string.activity),
                                     stats = activityDurationDisplay,
-                                    modifier = Modifier.weight(1f)
+                                    modifier = Modifier.weight(1f),
+                                    onClick = { navController.navigate(Route.WeeklyProgress.name) }
                                 )
                                 ComplianceSummaryCard(
                                     color = Color(0xFF287CC3),
                                     title = stringResource(id = R.string.resistance),
                                     stats = resistanceDurationDisplay,
-                                    modifier = Modifier.weight(1f)
+                                    modifier = Modifier.weight(1f),
+                                    onClick = { navController.navigate(Route.WeeklyProgress.name) }
                                 )
                             }
                             Spacer(Modifier.height(12.dp))
@@ -229,13 +231,15 @@ fun DashboardScreen(
                                     color = Color(0xFF6C43CD),
                                     title = stringResource(id = R.string.weight),
                                     stats = stringResource(id = R.string.lbs),
-                                    modifier = Modifier.weight(1f)
+                                    modifier = Modifier.weight(1f),
+                                    onClick = { navController.navigate(Route.WeeklyProgress.name) }
                                 )
                                 ComplianceSummaryCard(
                                     color = Color(0xFFAB369F),
                                     title = stringResource(id = R.string.bia),
                                     stats = "0%",
-                                    modifier = Modifier.weight(1f)
+                                    modifier = Modifier.weight(1f),
+                                    onClick = { navController.navigate(Route.WeeklyProgress.name) }
                                 )
                             }
                         }
