@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -46,6 +47,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.consume
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -89,6 +92,9 @@ fun WeeklyProgressScreen(
     val today = LocalDate.now()
     val dayFormatter = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy", Locale.getDefault())
     val rangeFormatter = DateTimeFormatter.ofPattern("MMM d")
+    val swipeThreshold = 100f
+    var dragOffset by remember { mutableStateOf(0f) }
+    val scrollState = rememberScrollState()
 
     if (detailType != null || selectedDay != null) {
         val exercises = when {
@@ -152,7 +158,23 @@ fun WeeklyProgressScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+                .pointerInput(canPrev, canNext) {
+                    detectHorizontalDragGestures(
+                        onHorizontalDrag = { change, amount ->
+                            change.consume()
+                            dragOffset += amount
+                        },
+                        onDragEnd = {
+                            when {
+                                dragOffset > swipeThreshold && canPrev -> viewModel.navigateWeek(-1)
+                                dragOffset < -swipeThreshold && canNext -> viewModel.navigateWeek(1)
+                            }
+                            dragOffset = 0f
+                        },
+                        onDragCancel = { dragOffset = 0f }
+                    )
+                }
+                .verticalScroll(scrollState)
                 .padding(innerPadding)
         ) {
             Row(
