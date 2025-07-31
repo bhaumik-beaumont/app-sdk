@@ -1,6 +1,7 @@
 package researchstack.presentation.screen.main
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,18 +19,19 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
-import androidx.compose.material.icons.automirrored.filled.Backspace
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBackIosNew
-import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.material.icons.filled.ArrowForwardIos
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -47,6 +49,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WeeklyProgressScreen(
     viewModel: WeeklyProgressViewModel = hiltViewModel(),
@@ -61,10 +64,35 @@ fun WeeklyProgressScreen(
     val weekStart by viewModel.weekStart.collectAsState()
     val canPrev by viewModel.canNavigatePrevious.collectAsState()
     val canNext by viewModel.canNavigateNext.collectAsState()
+    val activityDetails by viewModel.activityDetails.collectAsState()
+    val resistanceDetails by viewModel.resistanceDetails.collectAsState()
+
+    var detailType by remember { mutableStateOf<DetailType?>(null) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     val today = LocalDate.now()
     val dateFormatter = DateTimeFormatter.ofPattern("dd MMMM yyyy")
     val rangeFormatter = DateTimeFormatter.ofPattern("MMM d")
+
+    if (detailType != null) {
+        val exercises = if (detailType == DetailType.Resistance) {
+            resistanceDetails
+        } else {
+            activityDetails
+        }
+        ModalBottomSheet(
+            onDismissRequest = { detailType = null },
+            sheetState = sheetState
+        ) {
+            ExerciseDetailSheet(
+                title = if (detailType == DetailType.Resistance)
+                    stringResource(R.string.resistance_details)
+                else
+                    stringResource(R.string.activity_details),
+                exercises = exercises
+            )
+        }
+    }
 
     Scaffold(
         containerColor = Color(0xFF222222),
@@ -174,13 +202,15 @@ fun WeeklyProgressScreen(
                         title = stringResource(id = R.string.activity),
                         minutes = activityMinutes,
                         progressPercent = activityProgress,
-                        color = Color(0xFF00A86B)
+                        color = Color(0xFF00A86B),
+                        onClick = { detailType = DetailType.Activity }
                     )
                     ProgressCard(
                         title = stringResource(id = R.string.resistance),
                         minutes = resistanceMinutes,
                         progressPercent = resistanceProgress,
-                        color = Color(0xFFFFD700)
+                        color = Color(0xFFFFD700),
+                        onClick = { detailType = DetailType.Resistance }
                     )
                 }
             } else {
@@ -203,9 +233,12 @@ private fun ProgressCard(
     minutes: Int,
     progressPercent: Int,
     color: Color,
+    onClick: () -> Unit
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
         colors = CardDefaults.cardColors(Color(0xFF333333)),
         shape = RoundedCornerShape(16.dp)
     ) {
@@ -251,4 +284,6 @@ private fun VerticalProgressBar(progressPercent: Int, color: Color) {
         )
     }
 }
+
+private enum class DetailType { Activity, Resistance }
 
