@@ -188,5 +188,9 @@
     <string name="time_label">Time</string>
     <string name="duration_label">Duration</string>
     <string name="minutes_short">min</string>
+    <string name="show_details">Show Details</string>
+    <string name="kcal_unit">Kcal</string>
+    <string name="bpm_unit">BPM</string>
+    <string name="exercises_on_date">Exercises on %1$s</string>
 
 </resources>
