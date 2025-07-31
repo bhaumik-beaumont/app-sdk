@@ -16,8 +16,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
+import androidx.compose.material.icons.automirrored.filled.Backspace
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.ArrowForwardIos
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -68,14 +73,14 @@ fun WeeklyProgressScreen(
                 Modifier
                     .fillMaxWidth()
                     .background(Color.Black)
-                    .padding(16.dp)
+                    .padding(8.dp)
             ) {
                 IconButton(
                     onClick = { navController.popBackStack() },
                     modifier = Modifier.align(Alignment.CenterStart)
                 ) {
                     Icon(
-                        Icons.Default.ArrowBack,
+                        Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = stringResource(id = R.string.close),
                         tint = Color.White
                     )
@@ -96,107 +101,99 @@ fun WeeklyProgressScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(innerPadding)
         ) {
-        Text(
-            text = stringResource(id = R.string.today) + ", " + today.format(dateFormatter),
-            modifier = Modifier.padding(start = 24.dp, top = 24.dp, end = 24.dp),
-            color = Color.White,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Medium
-        )
-        Spacer(Modifier.height(16.dp))
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = { viewModel.navigateWeek(-1) }, enabled = canPrev) {
-                Icon(
-                    Icons.Default.ArrowBack,
-                    contentDescription = null,
-                    tint = if (canPrev) Color.White else Color.Gray
-                )
-            }
-            Text(
-                text = weekStart.format(rangeFormatter) + " - " + weekStart.plusDays(6).format(rangeFormatter),
-                color = Color.White,
-                fontWeight = FontWeight.Medium
-            )
-            IconButton(onClick = { viewModel.navigateWeek(1) }, enabled = canNext) {
-                Icon(
-                    Icons.Default.ArrowForward,
-                    contentDescription = null,
-                    tint = if (canNext) Color.White else Color.Gray
-                )
-            }
-        }
-        Spacer(Modifier.height(16.dp))
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            weekDays.forEach { date ->
-                val isToday = date == today
-                val dayName = date.format(DateTimeFormatter.ofPattern("EEE", Locale.getDefault()))
-                val dayNum = date.format(DateTimeFormatter.ofPattern("dd"))
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier
-                        .weight(1f)
-                        .background(
-                            if (isToday) Color.White else Color(0xFF333333),
-                            RoundedCornerShape(12.dp)
-                        )
-                        .padding(vertical = 8.dp)
-                ) {
-                    Text(
-                        text = dayName,
-                        color = if (isToday) Color.Black else Color.White,
-                        fontSize = 14.sp
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = { viewModel.navigateWeek(-1) }, enabled = canPrev) {
+                    Icon(
+                        Icons.Default.ArrowBackIosNew,
+                        contentDescription = null,
+                        tint = if (canPrev) Color.White else Color.Gray
                     )
-                    Text(
-                        text = dayNum,
-                        color = if (isToday) Color.Black else Color.White,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
+                }
+                Text(
+                    text = weekStart.format(rangeFormatter) + " - " + weekStart.plusDays(6).format(rangeFormatter),
+                    color = Color.White,
+                    fontWeight = FontWeight.Medium
+                )
+                IconButton(onClick = { viewModel.navigateWeek(1) }, enabled = canNext) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowForwardIos,
+                        contentDescription = null,
+                        tint = if (canNext) Color.White else Color.Gray
                     )
                 }
             }
-        }
-        Spacer(Modifier.height(24.dp))
-        if (hasData) {
-            Column(
+            Spacer(Modifier.height(16.dp))
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                    .padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                ProgressCard(
-                    title = stringResource(id = R.string.activity),
-                    minutes = activityMinutes,
-                    progressPercent = activityProgress,
-                    color = Color(0xFF00A86B)
-                )
-                ProgressCard(
-                    title = stringResource(id = R.string.resistance),
-                    minutes = resistanceMinutes,
-                    progressPercent = resistanceProgress,
-                    color = Color(0xFFFFD700)
+                weekDays.forEach { date ->
+                    val isToday = date == today
+                    val dayName = date.format(DateTimeFormatter.ofPattern("EEE", Locale.getDefault()))
+                    val dayNum = date.format(DateTimeFormatter.ofPattern("dd"))
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier
+                            .weight(1f)
+                            .background(
+                                if (isToday) Color.White else Color(0xFF333333),
+                                RoundedCornerShape(12.dp)
+                            )
+                            .padding(vertical = 8.dp)
+                    ) {
+                        Text(
+                            text = dayName,
+                            color = if (isToday) Color.Black else Color.White,
+                            fontSize = 14.sp
+                        )
+                        Text(
+                            text = dayNum,
+                            color = if (isToday) Color.Black else Color.White,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+            Spacer(Modifier.height(24.dp))
+            if (hasData) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    ProgressCard(
+                        title = stringResource(id = R.string.activity),
+                        minutes = activityMinutes,
+                        progressPercent = activityProgress,
+                        color = Color(0xFF00A86B)
+                    )
+                    ProgressCard(
+                        title = stringResource(id = R.string.resistance),
+                        minutes = resistanceMinutes,
+                        progressPercent = resistanceProgress,
+                        color = Color(0xFFFFD700)
+                    )
+                }
+            } else {
+                Text(
+                    text = stringResource(id = R.string.no_data_available),
+                    color = Color.White,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp)
                 )
             }
-        } else {
-            Text(
-                text = stringResource(id = R.string.no_data_available),
-                color = Color.White,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp)
-            )
+            Spacer(Modifier.height(24.dp))
         }
-        Spacer(Modifier.height(24.dp))
     }
 }
 
