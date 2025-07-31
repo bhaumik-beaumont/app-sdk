@@ -18,6 +18,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -35,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.ui.res.stringResource
 import researchstack.R
+import researchstack.presentation.LocalNavController
 import researchstack.presentation.viewmodel.WeeklyProgressViewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -44,6 +46,7 @@ import java.util.Locale
 fun WeeklyProgressScreen(
     viewModel: WeeklyProgressViewModel = hiltViewModel(),
 ) {
+    val navController = LocalNavController.current
     val weekDays by viewModel.weekDays.collectAsState()
     val activityMinutes by viewModel.activityMinutes.collectAsState()
     val resistanceMinutes by viewModel.resistanceMinutes.collectAsState()
@@ -58,12 +61,41 @@ fun WeeklyProgressScreen(
     val dateFormatter = DateTimeFormatter.ofPattern("dd MMMM yyyy")
     val rangeFormatter = DateTimeFormatter.ofPattern("MMM d")
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF222222))
-            .verticalScroll(rememberScrollState())
-    ) {
+    Scaffold(
+        containerColor = Color(0xFF222222),
+        topBar = {
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .background(Color.Black)
+                    .padding(16.dp)
+            ) {
+                IconButton(
+                    onClick = { navController.popBackStack() },
+                    modifier = Modifier.align(Alignment.CenterStart)
+                ) {
+                    Icon(
+                        Icons.Default.ArrowBack,
+                        contentDescription = stringResource(id = R.string.close),
+                        tint = Color.White
+                    )
+                }
+                Text(
+                    text = stringResource(id = R.string.weekly_progress),
+                    color = Color.White,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 20.sp,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(innerPadding)
+        ) {
         Text(
             text = stringResource(id = R.string.today) + ", " + today.format(dateFormatter),
             modifier = Modifier.padding(start = 24.dp, top = 24.dp, end = 24.dp),
