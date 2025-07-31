@@ -11,6 +11,8 @@ import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import androidx.health.connect.client.request.AggregateRequest
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
+import researchstack.domain.model.log.DataSyncLog
+import researchstack.domain.usecase.log.AppLogger
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -34,13 +36,18 @@ class HealthConnectDataSource @Inject constructor(private val healthConnectClien
         return result.records
     }
 
-    suspend fun getAggregateData(uid:String): ExerciseSessionData {
+    suspend fun getAggregateData(uid: String): ExerciseSessionData {
+        AppLogger.saveLog(DataSyncLog("start getAggregateData $uid"))
+
         val exerciseSession = healthConnectClient.readRecord(ExerciseSessionRecord::class, uid)
+        AppLogger.saveLog(DataSyncLog("read session ${'$'}{exerciseSession.record.metadata.id}"))
+
         // Use the start time and end time from the session, for reading raw and aggregate data.
         val timeRangeFilter = TimeRangeFilter.between(
             startTime = exerciseSession.record.startTime,
             endTime = exerciseSession.record.endTime
         )
+
         val aggregateDataTypes = setOf(
             ExerciseSessionRecord.EXERCISE_DURATION_TOTAL,
             StepsRecord.COUNT_TOTAL,
@@ -51,6 +58,7 @@ class HealthConnectDataSource @Inject constructor(private val healthConnectClien
             HeartRateRecord.BPM_MAX,
             HeartRateRecord.BPM_MIN,
         )
+
         // Limit the data read to just the application that wrote the session. This may or may not
         // be desirable depending on the use case: In some cases, it may be useful to combine with
         // data written by other apps.
@@ -58,20 +66,56 @@ class HealthConnectDataSource @Inject constructor(private val healthConnectClien
         val aggregateRequest = AggregateRequest(
             metrics = aggregateDataTypes,
             timeRangeFilter = timeRangeFilter,
-            dataOriginFilter = dataOriginFilter)
+            dataOriginFilter = dataOriginFilter
+        )
         val aggregateData = healthConnectClient.aggregate(aggregateRequest)
+        AppLogger.saveLog(DataSyncLog("aggregated data for $uid"))
+
+        fun <T> logValue(name: String, value: T?): T? {
+            return value?.also {
+                AppLogger.saveLog(DataSyncLog("$name $it"))
+            } ?: run {
+                AppLogger.saveLog(DataSyncLog("nothing to sync for $name"))
+                null
+            }
+        }
+
+        val totalActiveTime = logValue(
+            "totalActiveTime",
+            aggregateData[ExerciseSessionRecord.EXERCISE_DURATION_TOTAL]
+        )
+        val totalSteps = logValue("totalSteps", aggregateData[StepsRecord.COUNT_TOTAL])
+        val totalDistance = logValue(
+            "totalDistance",
+            aggregateData[DistanceRecord.DISTANCE_TOTAL]
+        )
+        val totalEnergyBurned = logValue(
+            "totalEnergyBurned",
+            aggregateData[TotalCaloriesBurnedRecord.ENERGY_TOTAL]
+        )
+        val minHeartRate = logValue("minHeartRate", aggregateData[HeartRateRecord.BPM_MIN])
+        val maxHeartRate = logValue("maxHeartRate", aggregateData[HeartRateRecord.BPM_MAX])
+        val avgHeartRate = logValue("avgHeartRate", aggregateData[HeartRateRecord.BPM_AVG])
+        val maxSpeed = logValue(
+            "maxSpeed",
+            aggregateData[SpeedRecord.SPEED_MAX]?.inMilesPerHour
+        ) ?: 0.0
+        val meanSpeed = logValue(
+            "meanSpeed",
+            aggregateData[SpeedRecord.SPEED_AVG]?.inMilesPerHour
+        ) ?: 0.0
 
         return ExerciseSessionData(
             uid = uid,
-            totalActiveTime = aggregateData[ExerciseSessionRecord.EXERCISE_DURATION_TOTAL],
-            totalSteps = aggregateData[StepsRecord.COUNT_TOTAL],
-            totalDistance = aggregateData[DistanceRecord.DISTANCE_TOTAL],
-            totalEnergyBurned = aggregateData[TotalCaloriesBurnedRecord.ENERGY_TOTAL],
-            minHeartRate = aggregateData[HeartRateRecord.BPM_MIN],
-            maxHeartRate = aggregateData[HeartRateRecord.BPM_MAX],
-            avgHeartRate = aggregateData[HeartRateRecord.BPM_AVG],
-            maxSpeed = aggregateData[SpeedRecord.SPEED_MAX]?.inMilesPerHour?:0.0,
-            meanSpeed = aggregateData[SpeedRecord.SPEED_AVG]?.inMilesPerHour?:0.0,
+            totalActiveTime = totalActiveTime,
+            totalSteps = totalSteps,
+            totalDistance = totalDistance,
+            totalEnergyBurned = totalEnergyBurned,
+            minHeartRate = minHeartRate,
+            maxHeartRate = maxHeartRate,
+            avgHeartRate = avgHeartRate,
+            maxSpeed = maxSpeed,
+            meanSpeed = meanSpeed,
         )
     }
 }
