@@ -59,6 +59,12 @@ class WeeklyProgressViewModel @Inject constructor(
     private val _resistanceMinutes = MutableStateFlow(0)
     val resistanceMinutes: StateFlow<Int> = _resistanceMinutes
 
+    private val _activityCalories = MutableStateFlow(0)
+    val activityCalories: StateFlow<Int> = _activityCalories
+
+    private val _resistanceCalories = MutableStateFlow(0)
+    val resistanceCalories: StateFlow<Int> = _resistanceCalories
+
     private val _activityProgressPercent = MutableStateFlow(0)
     val activityProgressPercent: StateFlow<Int> = _activityProgressPercent
 
@@ -79,6 +85,9 @@ class WeeklyProgressViewModel @Inject constructor(
 
     private val _resistanceDetails = MutableStateFlow<List<ExerciseDetailUi>>(emptyList())
     val resistanceDetails: StateFlow<List<ExerciseDetailUi>> = _resistanceDetails
+
+    private val _daysWithExercise = MutableStateFlow<Set<LocalDate>>(emptySet())
+    val daysWithExercise: StateFlow<Set<LocalDate>> = _daysWithExercise
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -132,14 +141,22 @@ class WeeklyProgressViewModel @Inject constructor(
                 val minutes = TimeUnit.MILLISECONDS.toMinutes(totalMillis).toInt()
                 _activityMinutes.value = minutes
 
+                _activityCalories.value = activityList.sumOf { it.calorie.toInt() }
+
                 val resistanceMillis = resistanceList.sumOf { it.endTime - it.startTime }
                 val resistanceMinutes = TimeUnit.MILLISECONDS.toMinutes(resistanceMillis).toInt()
                 _resistanceMinutes.value = resistanceMinutes
+
+                _resistanceCalories.value = resistanceList.sumOf { it.calorie.toInt() }
 
                 _activityProgressPercent.value =
                     ((minutes * 100f) / ACTIVITY_GOAL_MINUTES).coerceAtMost(100f).toInt()
                 _resistanceProgressPercent.value =
                     ((resistanceMinutes * 100f) / ACTIVITY_GOAL_MINUTES).coerceAtMost(100f).toInt()
+
+                _daysWithExercise.value = weekList.map {
+                    Instant.ofEpochMilli(it.startTime).atZone(ZoneId.systemDefault()).toLocalDate()
+                }.toSet()
 
                 _hasData.value = weekList.isNotEmpty()
             }

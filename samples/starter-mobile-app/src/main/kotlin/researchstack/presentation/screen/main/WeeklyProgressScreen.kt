@@ -12,8 +12,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -24,6 +26,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
@@ -38,6 +42,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -59,6 +64,8 @@ fun WeeklyProgressScreen(
     val weekDays by viewModel.weekDays.collectAsState()
     val activityMinutes by viewModel.activityMinutes.collectAsState()
     val resistanceMinutes by viewModel.resistanceMinutes.collectAsState()
+    val activityCalories by viewModel.activityCalories.collectAsState()
+    val resistanceCalories by viewModel.resistanceCalories.collectAsState()
     val activityProgress by viewModel.activityProgressPercent.collectAsState()
     val resistanceProgress by viewModel.resistanceProgressPercent.collectAsState()
     val hasData by viewModel.hasData.collectAsState()
@@ -67,31 +74,41 @@ fun WeeklyProgressScreen(
     val canNext by viewModel.canNavigateNext.collectAsState()
     val activityDetails by viewModel.activityDetails.collectAsState()
     val resistanceDetails by viewModel.resistanceDetails.collectAsState()
+    val daysWithExercise by viewModel.daysWithExercise.collectAsState()
 
     var detailType by remember { mutableStateOf<DetailType?>(null) }
+    var selectedDay by remember { mutableStateOf<LocalDate?>(null) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     val today = LocalDate.now()
-    val dateFormatter = DateTimeFormatter.ofPattern("dd MMMM yyyy")
+    val dayFormatter = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy", Locale.getDefault())
     val rangeFormatter = DateTimeFormatter.ofPattern("MMM d")
 
-    if (detailType != null) {
-        val exercises = if (detailType == DetailType.Resistance) {
-            resistanceDetails
-        } else {
-            activityDetails
+    if (detailType != null || selectedDay != null) {
+        val exercises = when {
+            selectedDay != null -> {
+                val formatted = selectedDay!!.format(dayFormatter)
+                (activityDetails + resistanceDetails).filter { it.date == formatted }
+            }
+            detailType == DetailType.Resistance -> resistanceDetails
+            else -> activityDetails
+        }
+        val title = when {
+            selectedDay != null -> stringResource(R.string.exercises_on_date, selectedDay!!.format(dayFormatter))
+            detailType == DetailType.Resistance -> stringResource(R.string.resistance_details)
+            else -> stringResource(R.string.activity_details)
         }
         ModalBottomSheet(
-            onDismissRequest = { detailType = null },
+            onDismissRequest = {
+                detailType = null
+                selectedDay = null
+            },
             sheetState = sheetState,
             containerColor = Color(0xFF222222),
             modifier = Modifier.fillMaxHeight()
         ) {
             ExerciseDetailSheet(
-                title = if (detailType == DetailType.Resistance)
-                    stringResource(R.string.resistance_details)
-                else
-                    stringResource(R.string.activity_details),
+                title = title,
                 exercises = exercises
             )
         }
@@ -169,14 +186,19 @@ fun WeeklyProgressScreen(
                     val isToday = date == today
                     val dayName = date.format(DateTimeFormatter.ofPattern("EEE", Locale.getDefault()))
                     val dayNum = date.format(DateTimeFormatter.ofPattern("dd"))
+                    val hasExercise = daysWithExercise.contains(date)
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier
                             .weight(1f)
+                            .clip(RoundedCornerShape(12.dp))
                             .background(
-                                if (isToday) Color.White else Color(0xFF333333),
-                                RoundedCornerShape(12.dp)
+                                if (isToday) Color.White else Color(0xFF333333)
                             )
+                            .clickable {
+                                selectedDay = date
+                                detailType = null
+                            }
                             .padding(vertical = 8.dp)
                     ) {
                         Text(
@@ -190,6 +212,14 @@ fun WeeklyProgressScreen(
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold
                         )
+                        if (hasExercise) {
+                            Spacer(Modifier.height(4.dp))
+                            Box(
+                                modifier = Modifier
+                                    .size(6.dp)
+                                    .background(Color(0xFF00A86B), CircleShape)
+                            )
+                        }
                     }
                 }
             }
@@ -204,16 +234,24 @@ fun WeeklyProgressScreen(
                     ProgressCard(
                         title = stringResource(id = R.string.activity),
                         minutes = activityMinutes,
+                        calories = activityCalories,
                         progressPercent = activityProgress,
                         color = Color(0xFF00A86B),
-                        onClick = { detailType = DetailType.Activity }
+                        onClick = {
+                            detailType = DetailType.Activity
+                            selectedDay = null
+                        }
                     )
                     ProgressCard(
                         title = stringResource(id = R.string.resistance),
                         minutes = resistanceMinutes,
+                        calories = resistanceCalories,
                         progressPercent = resistanceProgress,
                         color = Color(0xFFFFD700),
-                        onClick = { detailType = DetailType.Resistance }
+                        onClick = {
+                            detailType = DetailType.Resistance
+                            selectedDay = null
+                        }
                     )
                 }
             } else {
@@ -234,6 +272,7 @@ fun WeeklyProgressScreen(
 private fun ProgressCard(
     title: String,
     minutes: Int,
+    calories: Int,
     progressPercent: Int,
     color: Color,
     onClick: () -> Unit
@@ -245,25 +284,45 @@ private fun ProgressCard(
         colors = CardDefaults.cardColors(Color(0xFF333333)),
         shape = RoundedCornerShape(16.dp)
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            VerticalProgressBar(progressPercent, color)
-            Column {
-                Text(title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                Text(
-                    stringResource(
-                        id = R.string.minutes_out_of,
-                        minutes,
-                        WeeklyProgressViewModel.ACTIVITY_GOAL_MINUTES
-                    ),
-                    color = Color.White,
-                    fontSize = 14.sp
-                )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                VerticalProgressBar(progressPercent, color)
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text(
+                        stringResource(
+                            id = R.string.minutes_out_of,
+                            minutes,
+                            WeeklyProgressViewModel.ACTIVITY_GOAL_MINUTES
+                        ),
+                        color = Color.White,
+                        fontSize = 14.sp
+                    )
+                    Text(
+                        "${stringResource(id = R.string.calories)}: $calories ${stringResource(id = R.string.kcal_unit)}",
+                        color = Color.White,
+                        fontSize = 14.sp
+                    )
+                }
+            }
+            Box(modifier = Modifier.fillMaxWidth()) {
+                Button(
+                    onClick = onClick,
+                    colors = ButtonDefaults.buttonColors(containerColor = color),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.align(Alignment.BottomEnd)
+                ) {
+                    Text(stringResource(id = R.string.show_details), color = Color.White)
+                }
             }
         }
     }

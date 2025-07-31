@@ -140,7 +140,11 @@ private fun ExerciseDetailItem(detail: ExerciseDetailUi) {
                     color = Color.LightGray,
                     fontSize = 16.sp
                 )
-                Text("${detail.calories}", color = Color.White, fontSize = 14.sp)
+                Text(
+                    "${detail.calories} ${stringResource(id = R.string.kcal_unit)}",
+                    color = Color.White,
+                    fontSize = 14.sp
+                )
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -152,7 +156,11 @@ private fun ExerciseDetailItem(detail: ExerciseDetailUi) {
                     color = Color.LightGray,
                     fontSize = 16.sp
                 )
-                Text("${detail.minHeartRate}", color = Color.White, fontSize = 14.sp)
+                Text(
+                    "${detail.minHeartRate} ${stringResource(id = R.string.bpm_unit)}",
+                    color = Color.White,
+                    fontSize = 14.sp
+                )
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -164,7 +172,11 @@ private fun ExerciseDetailItem(detail: ExerciseDetailUi) {
                     color = Color.LightGray,
                     fontSize = 16.sp
                 )
-                Text("${detail.maxHeartRate}", color = Color.White, fontSize = 14.sp)
+                Text(
+                    "${detail.maxHeartRate} ${stringResource(id = R.string.bpm_unit)}",
+                    color = Color.White,
+                    fontSize = 14.sp
+                )
             }
         }
     }
