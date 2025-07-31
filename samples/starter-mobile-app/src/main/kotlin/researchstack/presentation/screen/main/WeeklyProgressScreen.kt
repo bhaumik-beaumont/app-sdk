@@ -24,6 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.filled.EventBusy
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -272,15 +273,44 @@ fun WeeklyProgressScreen(
                     )
                 }
             } else {
-                Text(
-                    text = stringResource(id = R.string.no_data_available),
-                    color = Color.White,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp)
-                )
+                EmptyState()
             }
             Spacer(Modifier.height(24.dp))
+        }
+    }
+}
+
+@Composable
+private fun EmptyState() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 48.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Icon(
+                Icons.Filled.EventBusy,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.size(72.dp)
+            )
+            Text(
+                text = stringResource(id = R.string.no_activities_this_week),
+                color = Color.White,
+                textAlign = TextAlign.Center,
+                fontSize = 16.sp
+            )
+            Text(
+                text = stringResource(id = R.string.try_sync_or_check_later),
+                color = Color.LightGray,
+                fontSize = 14.sp,
+                textAlign = TextAlign.Center
+            )
         }
     }
 }
@@ -317,10 +347,10 @@ private fun ProgressCard(
             ) {
                 VerticalProgressBar(progressPercent, color, modifier = Modifier.fillMaxHeight())
                 Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    modifier = Modifier.weight(1f)
                 ) {
                     Text(title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Spacer(Modifier.height(12.dp))
                     Text(
                         stringResource(
                             id = R.string.minutes_out_of,
@@ -330,10 +360,17 @@ private fun ProgressCard(
                         color = Color.White,
                         fontSize = 14.sp
                     )
+                    Spacer(Modifier.height(12.dp))
                     Text(
                         "${stringResource(id = R.string.calories)}: $calories ${stringResource(id = R.string.kcal_unit)}",
                         color = Color.White,
                         fontSize = 14.sp
+                    )
+                    Text(
+                        text = stringResource(id = R.string.weekly_summary_helper),
+                        color = Color.LightGray,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(top = 4.dp)
                     )
                 }
             }
