@@ -166,9 +166,10 @@
     <string name="close">Close</string>
     <string name="sync">Sync</string>
     <string name="sync_now">Sync Now</string>
-    <string name="activity_tab">Activity</string>
-    <string name="notifications">Notifications</string>
-    <string name="mark_as_read">Mark as read</string>
+  <string name="activity_tab">Activity</string>
+  <string name="notifications">Notifications</string>
+  <string name="weekly_progress">Weekly Progress</string>
+  <string name="mark_as_read">Mark as read</string>
     <string name="enable_notifications">Enable notifications</string>
     <string name="enable_dark_mode">Enable dark mode</string>
     <string name="bank">Bank</string>
