@@ -198,6 +198,9 @@
     <string name="no_activity_data_week">No activity data for this week.</string>
     <string name="calories">Calories</string>
     <string name="min_hr">Min HR</string>
+    <string name="weekly_summary_helper">This summary includes all sessions from this week.</string>
+    <string name="no_activities_this_week">No activities recorded for this week.</string>
+    <string name="try_sync_or_check_later">Try syncing your device or check again later.</string>
     <string name="max_hr">Max HR</string>
     <string name="duration_minutes">Duration: %1$d min</string>
     <string name="date_label">Date</string>
