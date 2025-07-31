@@ -2,6 +2,7 @@ package researchstack.presentation.viewmodel
 
 import android.app.Application
 import androidx.health.connect.client.records.ExerciseSessionRecord
+import androidx.health.connect.client.records.ExerciseSessionRecord.Companion.EXERCISE_TYPE_INT_TO_STRING_MAP
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -14,10 +15,14 @@ import kotlinx.coroutines.launch
 import researchstack.data.datasource.local.pref.EnrollmentDatePref
 import researchstack.data.datasource.local.pref.dataStore
 import researchstack.data.datasource.local.room.dao.ExerciseDao
+import researchstack.domain.model.healthConnect.Exercise
 import researchstack.domain.repository.StudyRepository
+import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -31,6 +36,8 @@ class WeeklyProgressViewModel @Inject constructor(
     companion object {
         const val ACTIVITY_GOAL_MINUTES = 150
     }
+
+    private val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.getDefault())
 
     private val enrollmentDatePref = EnrollmentDatePref(application.dataStore)
 
@@ -65,6 +72,12 @@ class WeeklyProgressViewModel @Inject constructor(
 
     private val _canNavigateNext = MutableStateFlow(false)
     val canNavigateNext: StateFlow<Boolean> = _canNavigateNext
+
+    private val _activityDetails = MutableStateFlow<List<ExerciseDetailUi>>(emptyList())
+    val activityDetails: StateFlow<List<ExerciseDetailUi>> = _activityDetails
+
+    private val _resistanceDetails = MutableStateFlow<List<ExerciseDetailUi>>(emptyList())
+    val resistanceDetails: StateFlow<List<ExerciseDetailUi>> = _resistanceDetails
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -105,9 +118,16 @@ class WeeklyProgressViewModel @Inject constructor(
             exerciseDao.getExercisesFrom(startMillis).collect { list ->
                 val weekList = list.filter { it.startTime < endMillis }
                 val resistanceList = weekList.filter { isResistance(it.exerciseType.toInt()) }
-                val exerciseList = weekList.filterNot { isResistance(it.exerciseType.toInt()) }
+                val activityList = weekList.filterNot { isResistance(it.exerciseType.toInt()) }
 
-                val totalMillis = exerciseList.sumOf { it.endTime - it.startTime }
+                _activityDetails.value = activityList
+                    .sortedBy { it.startTime }
+                    .map { it.toDetailUi() }
+                _resistanceDetails.value = resistanceList
+                    .sortedBy { it.startTime }
+                    .map { it.toDetailUi() }
+
+                val totalMillis = activityList.sumOf { it.endTime - it.startTime }
                 val minutes = TimeUnit.MILLISECONDS.toMinutes(totalMillis).toInt()
                 _activityMinutes.value = minutes
 
@@ -130,6 +150,30 @@ class WeeklyProgressViewModel @Inject constructor(
         _canNavigateNext.value = currentWeekIndex < maxWeekIndex
     }
 
+    private fun Exercise.toDetailUi(): ExerciseDetailUi {
+        val start = Instant.ofEpochMilli(startTime)
+            .atZone(ZoneId.systemDefault())
+            .toLocalTime()
+            .format(timeFormatter)
+        val end = Instant.ofEpochMilli(endTime)
+            .atZone(ZoneId.systemDefault())
+            .toLocalTime()
+            .format(timeFormatter)
+        val name = exerciseName.ifBlank {
+            EXERCISE_TYPE_INT_TO_STRING_MAP[exerciseType.toInt()] ?: ""
+        }
+        val duration = TimeUnit.MILLISECONDS.toMinutes(endTime - startTime).toInt()
+        return ExerciseDetailUi(
+            name = name,
+            startTime = start,
+            endTime = end,
+            durationMinutes = duration,
+            calories = calorie.toInt(),
+            minHeartRate = minHeartRate.toInt(),
+            maxHeartRate = maxHeartRate.toInt(),
+        )
+    }
+
     private fun isResistance(exerciseType: Int): Boolean {
         return when (exerciseType) {
             ExerciseSessionRecord.EXERCISE_TYPE_STRENGTH_TRAINING,
@@ -143,4 +187,14 @@ class WeeklyProgressViewModel @Inject constructor(
         }
     }
 }
+
+data class ExerciseDetailUi(
+    val name: String,
+    val startTime: String,
+    val endTime: String,
+    val durationMinutes: Int,
+    val calories: Int,
+    val minHeartRate: Int,
+    val maxHeartRate: Int,
+)
 

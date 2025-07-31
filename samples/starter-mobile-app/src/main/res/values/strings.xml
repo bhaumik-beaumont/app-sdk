@@ -193,4 +193,11 @@
     <string name="today">Today</string>
     <string name="no_data_available">No data available</string>
     <string name="minutes_out_of">%1$d out of %2$d minutes</string>
+    <string name="activity_details">Activity Details</string>
+    <string name="resistance_details">Resistance Details</string>
+    <string name="no_activity_data_week">No activity data for this week.</string>
+    <string name="calories">Calories</string>
+    <string name="min_hr">Min HR</string>
+    <string name="max_hr">Max HR</string>
+    <string name="duration_minutes">Duration: %1$d min</string>
 </resources>
