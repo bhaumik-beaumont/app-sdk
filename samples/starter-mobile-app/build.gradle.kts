@@ -53,7 +53,7 @@ android {
         buildConfigField(
             "boolean",
             "ENABLE_CELLULAR_DATA_TO_SYNC_DATA",
-            getPropertyOrDefault("ENABLE_CELLULAR_DATA_TO_SYNC_DATA", "false")
+            getPropertyOrDefault("ENABLE_CELLULAR_DATA_TO_SYNC_DATA", "true")
         )
         buildConfigField("boolean", "SHOW_COMPLETE_STUDY", getPropertyOrDefault("SHOW_COMPLETE_STUDY", "true"))
         buildConfigField("boolean", "SUPPORT_IN_CLINIC_MODE", getPropertyOrDefault("SUPPORT_IN_CLINIC_MODE", "true"))

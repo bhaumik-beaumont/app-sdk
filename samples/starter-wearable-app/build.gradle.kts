@@ -49,7 +49,7 @@ android {
         buildConfigField(
             "boolean",
             "ENABLE_INSTANT_SYNC_BUTTON",
-            getPropertyOrDefault("ENABLE_INSTANT_SYNC_BUTTON", "false")
+            getPropertyOrDefault("ENABLE_INSTANT_SYNC_BUTTON", "true")
         )
         buildConfigField("long", "DATA_SPLIT_INTERVAL_IN_MILLIS", getPropertyOrDefault("DATA_SPLIT_INTERVAL_IN_MILLIS", "3600000"))
     }
