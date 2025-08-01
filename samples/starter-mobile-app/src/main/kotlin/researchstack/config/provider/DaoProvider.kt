@@ -19,6 +19,7 @@ import researchstack.data.datasource.local.room.dao.StudyDao
 import researchstack.data.datasource.local.room.dao.TaskDao
 import researchstack.data.datasource.local.room.dao.ExerciseDao
 import researchstack.data.local.room.WearableAppDataBase
+import researchstack.data.local.room.dao.BiaDao
 import researchstack.data.local.room.dao.PassiveDataStatusDao
 import javax.inject.Singleton
 
@@ -97,4 +98,9 @@ object DaoProvider {
     fun provideWearablePassiveDataStatusDao(
         @ApplicationContext context: Context
     ): PassiveDataStatusDao = WearableAppDataBase.getDatabase(context).passiveDataStatusDao()
+
+    @Singleton
+    @Provides
+    fun provideBiaDao(@ApplicationContext context: Context): BiaDao =
+        WearableAppDataBase.getDatabase(context).biaDao()
 }
