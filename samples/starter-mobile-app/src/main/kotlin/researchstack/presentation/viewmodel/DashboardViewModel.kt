@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import researchstack.data.datasource.local.pref.EnrollmentDatePref
 import researchstack.data.datasource.local.pref.dataStore
@@ -19,6 +18,8 @@ import researchstack.data.local.room.dao.BiaDao
 import researchstack.data.local.room.dao.UserProfileDao
 import researchstack.domain.model.healthConnect.Exercise
 import researchstack.domain.repository.StudyRepository
+import researchstack.presentation.util.kgToLbs
+import researchstack.presentation.util.toDecimalFormat
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
@@ -71,15 +72,6 @@ class DashboardViewModel @Inject constructor(
 
     init {
         refreshData()
-        viewModelScope.launch(Dispatchers.IO) {
-            userProfileDao.getLatest().collect { profile ->
-                profile?.let {
-                    val unit = if (it.isMetricUnit == true) "kg" else "lb"
-                    val value = it.weight.toInt()
-                    _weight.value = "$value $unit"
-                }
-            }
-        }
     }
 
     fun refreshData(){
@@ -98,6 +90,15 @@ class DashboardViewModel @Inject constructor(
                             _biaCount.value = count
                             val progress = if (count > 0) 100 else 0
                             _biaProgressPercent.value = progress
+                        }
+                    }
+                    viewModelScope.launch(Dispatchers.IO) {
+                        userProfileDao.getLatest().collect { profile ->
+                            profile?.let {
+                                val unit = if (it.isMetricUnit == false) "lg" else "kg"
+                                val value = it.weight.kgToLbs(it.isMetricUnit == true)
+                                _weight.value = "${value.toDecimalFormat(2)} $unit"
+                            }
                         }
                     }
 

@@ -79,10 +79,12 @@ class WearableDataReceiver : WearableListenerService() {
                         val completedFile = File(outputDir, channel.path)
                         file.renameTo(completedFile)
                         CoroutineScope(Dispatchers.IO).launch {
-                            completedFile.inputStream().use { inputStream ->
-                                val reader = BufferedReader(InputStreamReader(inputStream))
-                                val dataType = PrivDataType.valueOf(reader.readLine())
-                                saveWearableDataUseCase(dataType, ReaderInputStream(reader))
+                            if(channel.path.lowercase().contains("bia")) {
+                                completedFile.inputStream().use { inputStream ->
+                                    val reader = BufferedReader(InputStreamReader(inputStream))
+                                    val dataType = PrivDataType.valueOf(reader.readLine())
+                                    saveWearableDataUseCase(dataType, ReaderInputStream(reader))
+                                }
                             }
                             AppLogger.saveLog(DataSyncLog("wear->mobile ${channel.path} success"))
                         }

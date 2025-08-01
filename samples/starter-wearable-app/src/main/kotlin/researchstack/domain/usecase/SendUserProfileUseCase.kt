@@ -9,5 +9,5 @@ class SendUserProfileUseCase @Inject constructor(
     private val dataSenderRepository: DataSenderRepository,
 ) {
     suspend operator fun invoke(userProfile: UserProfile) =
-        dataSenderRepository.sendData(userProfile, PrivDataType.WEAR_USER_PROFILE)
+        dataSenderRepository.sendData(userProfile.copy(timestamp = System.currentTimeMillis() ), PrivDataType.WEAR_USER_PROFILE)
 }
