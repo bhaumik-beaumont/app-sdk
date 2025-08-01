@@ -10,11 +10,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import researchstack.data.datasource.local.pref.EnrollmentDatePref
 import researchstack.data.datasource.local.pref.dataStore
 import researchstack.data.datasource.local.room.dao.ExerciseDao
 import researchstack.data.local.room.dao.BiaDao
+import researchstack.data.local.room.dao.UserProfileDao
 import researchstack.domain.model.healthConnect.Exercise
 import researchstack.domain.repository.StudyRepository
 import java.time.LocalDate
@@ -28,6 +30,7 @@ class DashboardViewModel @Inject constructor(
     private val studyRepository: StudyRepository,
     private val exerciseDao: ExerciseDao,
     private val biaDao: BiaDao,
+    private val userProfileDao: UserProfileDao,
 ) : AndroidViewModel(application) {
 
     companion object {
@@ -63,8 +66,20 @@ class DashboardViewModel @Inject constructor(
     private val _biaProgressPercent = MutableStateFlow(0)
     val biaProgressPercent: StateFlow<Int> = _biaProgressPercent
 
+    private val _weight = MutableStateFlow("--")
+    val weight: StateFlow<String> = _weight
+
     init {
         refreshData()
+        viewModelScope.launch(Dispatchers.IO) {
+            userProfileDao.getLatest().collect { profile ->
+                profile?.let {
+                    val unit = if (it.isMetricUnit == true) "kg" else "lb"
+                    val value = it.weight.toInt()
+                    _weight.value = "$value $unit"
+                }
+            }
+        }
     }
 
     fun refreshData(){
