@@ -21,8 +21,11 @@ import researchstack.domain.usecase.wearable.PassiveDataStatusUseCase
 import researchstack.domain.usecase.wearable.SaveWearableDataUseCase
 import researchstack.domain.usecase.wearable.WearablePassiveDataStatusSenderUseCase
 import java.io.File
+import java.io.BufferedReader
+import java.io.InputStreamReader
 import java.nio.file.Files
 import java.nio.file.Paths
+import org.apache.commons.io.input.ReaderInputStream
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -73,8 +76,14 @@ class WearableDataReceiver : WearableListenerService() {
                             AppLogger.saveLog(DataSyncLog("wear->mobile ${channel.path} fail code: $closeReason"))
                         }
                     } else {
-                        file.renameTo(File(outputDir, channel.path))
+                        val completedFile = File(outputDir, channel.path)
+                        file.renameTo(completedFile)
                         CoroutineScope(Dispatchers.IO).launch {
+                            completedFile.inputStream().use { inputStream ->
+                                val reader = BufferedReader(InputStreamReader(inputStream))
+                                val dataType = PrivDataType.valueOf(reader.readLine())
+                                saveWearableDataUseCase(dataType, ReaderInputStream(reader))
+                            }
                             AppLogger.saveLog(DataSyncLog("wear->mobile ${channel.path} success"))
                         }
                     }
