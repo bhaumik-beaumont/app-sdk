@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 import researchstack.data.datasource.local.pref.EnrollmentDatePref
 import researchstack.data.datasource.local.pref.dataStore
 import researchstack.data.datasource.local.room.dao.ExerciseDao
+import researchstack.data.local.room.dao.BiaDao
 import researchstack.domain.model.healthConnect.Exercise
 import researchstack.domain.repository.StudyRepository
 import java.time.LocalDate
@@ -26,6 +27,7 @@ class DashboardViewModel @Inject constructor(
     application: Application,
     private val studyRepository: StudyRepository,
     private val exerciseDao: ExerciseDao,
+    private val biaDao: BiaDao,
 ) : AndroidViewModel(application) {
 
     companion object {
@@ -55,6 +57,12 @@ class DashboardViewModel @Inject constructor(
     private val _weekStart = MutableStateFlow(LocalDate.now())
     val weekStart: StateFlow<LocalDate> = _weekStart
 
+    private val _biaCount = MutableStateFlow(0)
+    val biaCount: StateFlow<Int> = _biaCount
+
+    private val _biaProgressPercent = MutableStateFlow(0)
+    val biaProgressPercent: StateFlow<Int> = _biaProgressPercent
+
     init {
         refreshData()
     }
@@ -68,6 +76,16 @@ class DashboardViewModel @Inject constructor(
                     val weekStart = calculateCurrentWeekStart(LocalDate.parse(dateString))
                     _weekStart.value = weekStart
                     val startMillis = weekStart.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+                    val endMillis = startMillis + TimeUnit.DAYS.toMillis(7)
+
+                    launch {
+                        biaDao.countBetween(startMillis, endMillis).collect { count ->
+                            _biaCount.value = count
+                            val progress = if (count > 0) 100 else 0
+                            _biaProgressPercent.value = progress
+                        }
+                    }
+
                     exerciseDao.getExercisesFrom(startMillis).collect { list ->
                         val resistanceList = list.filter { isResistance(it.exerciseType.toInt()) }
                         val exerciseList = list.filterNot { isResistance(it.exerciseType.toInt()) }
