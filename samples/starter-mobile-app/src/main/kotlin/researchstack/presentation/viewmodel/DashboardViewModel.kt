@@ -15,8 +15,11 @@ import researchstack.data.datasource.local.pref.EnrollmentDatePref
 import researchstack.data.datasource.local.pref.dataStore
 import researchstack.data.datasource.local.room.dao.ExerciseDao
 import researchstack.data.local.room.dao.BiaDao
+import researchstack.data.local.room.dao.UserProfileDao
 import researchstack.domain.model.healthConnect.Exercise
 import researchstack.domain.repository.StudyRepository
+import researchstack.presentation.util.kgToLbs
+import researchstack.presentation.util.toDecimalFormat
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
@@ -28,6 +31,7 @@ class DashboardViewModel @Inject constructor(
     private val studyRepository: StudyRepository,
     private val exerciseDao: ExerciseDao,
     private val biaDao: BiaDao,
+    private val userProfileDao: UserProfileDao,
 ) : AndroidViewModel(application) {
 
     companion object {
@@ -63,6 +67,9 @@ class DashboardViewModel @Inject constructor(
     private val _biaProgressPercent = MutableStateFlow(0)
     val biaProgressPercent: StateFlow<Int> = _biaProgressPercent
 
+    private val _weight = MutableStateFlow("--")
+    val weight: StateFlow<String> = _weight
+
     init {
         refreshData()
     }
@@ -83,6 +90,15 @@ class DashboardViewModel @Inject constructor(
                             _biaCount.value = count
                             val progress = if (count > 0) 100 else 0
                             _biaProgressPercent.value = progress
+                        }
+                    }
+                    viewModelScope.launch(Dispatchers.IO) {
+                        userProfileDao.getLatest().collect { profile ->
+                            profile?.let {
+                                val unit = if (it.isMetricUnit == false) "lg" else "kg"
+                                val value = it.weight.kgToLbs(it.isMetricUnit == true)
+                                _weight.value = "${value.toDecimalFormat(2)} $unit"
+                            }
                         }
                     }
 

@@ -51,8 +51,9 @@ class SyncPrivDataUseCase @Inject constructor(
                 PrivDataType.WEAR_SPO2 -> it.syncFile(spO2FileRepository)
                 PrivDataType.WEAR_SWEAT_LOSS -> it.syncFile(sweatLossFileRepository)
                 PrivDataType.WEAR_HEART_RATE -> it.syncFile(heartRateFileRepository)
+                else -> null
             }
-        }.find { it.isFailure }?.getOrThrow()
+        }.find { it?.isFailure == true }?.getOrThrow()
     }
 
     private suspend fun PrivDataType.syncFile(

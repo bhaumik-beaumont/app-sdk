@@ -87,6 +87,7 @@ fun DashboardScreen(
     val activityProgressPercent by dashboardViewModel.activityProgressPercent.collectAsState()
     val resistanceProgressPercent by dashboardViewModel.resistanceProgressPercent.collectAsState()
     val biaCount by dashboardViewModel.biaCount.collectAsState()
+    val weight by dashboardViewModel.weight.collectAsState()
     val biaProgressPercent by dashboardViewModel.biaProgressPercent.collectAsState()
     val weekStart by dashboardViewModel.weekStart.collectAsState()
     val rangeFormatter = DateTimeFormatter.ofPattern("MMM d")
@@ -274,7 +275,7 @@ fun DashboardScreen(
                                 ComplianceSummaryCard(
                                     color = Color(0xFF6C43CD),
                                     title = stringResource(id = R.string.weight),
-                                    stats = biaCount.toString(),
+                                    stats = weight,
                                     modifier = Modifier.weight(1f),
                                     onClick = { navController.navigate(Route.WeeklyProgress.name) }
                                 )
