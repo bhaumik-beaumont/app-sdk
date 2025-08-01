@@ -10,6 +10,7 @@ import researchstack.data.datasource.local.pref.SyncTimePref
 import researchstack.data.datasource.local.room.dao.TimestampEntityBaseDao
 import researchstack.domain.model.TimestampMapData
 import researchstack.domain.model.log.DataSyncLog
+import researchstack.domain.model.priv.Bia
 import researchstack.domain.model.shealth.HealthDataModel
 import researchstack.domain.usecase.log.AppLogger
 import java.io.IOException
@@ -53,7 +54,8 @@ abstract class RoomToServerRepository<T : TimestampMapData>(
                         break
                     }
 
-                    val healthData = copiedLoadResult.data.toHealthDataModel()
+                    val processedData = copiedLoadResult.data.averageBiaIfNeeded()
+                    val healthData = processedData.toHealthDataModel()
                     grpcHealthDataSynchronizer.syncHealthData(studyIds, healthData)
                         .onSuccess {
                             lastSyncTime = copiedLoadResult.data.last().timestamp + 1
@@ -92,12 +94,44 @@ abstract class RoomToServerRepository<T : TimestampMapData>(
         } while (nextPage != null)
     }
 
+    private fun List<T>.averageBiaIfNeeded(): List<T> {
+        if (isEmpty()) return this
+        val first = first()
+        return if (first is Bia) {
+            @Suppress("UNCHECKED_CAST")
+            averageBia(this as List<Bia>) as List<T>
+        } else {
+            this
+        }
+    }
+
+    private fun averageBia(bias: List<Bia>): List<Bia> {
+        return bias
+            .groupBy { it.timestamp / FIVE_MINUTES_MILLIS }
+            .map { (_, group) ->
+                val sorted = group.sortedBy { it.timestamp }
+                val first = sorted.first()
+                first.copy(
+                    basalMetabolicRate = sorted.map { it.basalMetabolicRate }.average().toFloat(),
+                    bodyFatMass = sorted.map { it.bodyFatMass }.average().toFloat(),
+                    bodyFatRatio = sorted.map { it.bodyFatRatio }.average().toFloat(),
+                    fatFreeMass = sorted.map { it.fatFreeMass }.average().toFloat(),
+                    fatFreeRatio = sorted.map { it.fatFreeRatio }.average().toFloat(),
+                    skeletalMuscleMass = sorted.map { it.skeletalMuscleMass }.average().toFloat(),
+                    skeletalMuscleRatio = sorted.map { it.skeletalMuscleRatio }.average().toFloat(),
+                    totalBodyWater = sorted.map { it.totalBodyWater }.average().toFloat(),
+                )
+            }
+            .sortedBy { it.timestamp }
+    }
+
     private suspend fun finishSync(lastSyncTime: Long) {
         timestampEntityBaseDao.deleteLEThan(lastSyncTime)
         syncTimePref.update(lastSyncTime)
     }
 
     companion object {
+        private const val FIVE_MINUTES_MILLIS = 5 * 60 * 1000L
         private const val PAGE_LOAD_SIZE = 1000
         private const val SYNC_DELAY = 10000L
         private const val MAX_RETRY = 10
