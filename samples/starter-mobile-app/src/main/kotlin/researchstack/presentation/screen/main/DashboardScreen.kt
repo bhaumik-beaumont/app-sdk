@@ -274,7 +274,7 @@ fun DashboardScreen(
                                 ComplianceSummaryCard(
                                     color = Color(0xFF6C43CD),
                                     title = stringResource(id = R.string.weight),
-                                    stats = stringResource(id = R.string.lbs),
+                                    stats = biaCount.toString(),
                                     modifier = Modifier.weight(1f),
                                     onClick = { navController.navigate(Route.WeeklyProgress.name) }
                                 )
@@ -337,7 +337,7 @@ fun DashboardScreen(
                                 )
                                 ProgressBarItem(
                                     stringResource(id = R.string.weight),
-                                    0,
+                                    biaProgressPercent,
                                     Color(0xFFFF6347)
                                 )
                                 ProgressBarItem(

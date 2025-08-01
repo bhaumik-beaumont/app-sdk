@@ -32,7 +32,6 @@ class DashboardViewModel @Inject constructor(
 
     companion object {
         const val ACTIVITY_GOAL_MINUTES = 150
-        const val BIA_GOAL_PER_WEEK = 7
     }
 
     private val enrollmentDatePref = EnrollmentDatePref(application.dataStore)
@@ -82,8 +81,8 @@ class DashboardViewModel @Inject constructor(
                     launch {
                         biaDao.countBetween(startMillis, endMillis).collect { count ->
                             _biaCount.value = count
-                            val progress = ((count * 100f) / BIA_GOAL_PER_WEEK).coerceAtMost(100f)
-                            _biaProgressPercent.value = progress.toInt()
+                            val progress = if (count > 0) 100 else 0
+                            _biaProgressPercent.value = progress
                         }
                     }
 
