@@ -11,4 +11,7 @@ abstract class UserProfileDao : PrivDao<UserProfile>(USER_PROFILE_TABLE_NAME) {
 
     @Query("SELECT * FROM user_profile ORDER BY timestamp DESC LIMIT 1")
     abstract fun getLatest(): Flow<UserProfile?>
+
+    @Query("SELECT COUNT(*) FROM $USER_PROFILE_TABLE_NAME WHERE timestamp BETWEEN :start AND :end")
+    abstract fun countBetween(start: Long, end: Long): Flow<Int>
 }

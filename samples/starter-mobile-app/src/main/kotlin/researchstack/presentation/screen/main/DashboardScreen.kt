@@ -89,6 +89,7 @@ fun DashboardScreen(
     val biaCount by dashboardViewModel.biaCount.collectAsState()
     val weight by dashboardViewModel.weight.collectAsState()
     val biaProgressPercent by dashboardViewModel.biaProgressPercent.collectAsState()
+    val weightProgressPercent by dashboardViewModel.weightProgressPercent.collectAsState()
     val weekStart by dashboardViewModel.weekStart.collectAsState()
     val rangeFormatter = DateTimeFormatter.ofPattern("MMM d")
 
@@ -338,7 +339,7 @@ fun DashboardScreen(
                                 )
                                 ProgressBarItem(
                                     stringResource(id = R.string.weight),
-                                    biaProgressPercent,
+                                    weightProgressPercent,
                                     Color(0xFFFF6347)
                                 )
                                 ProgressBarItem(
