@@ -142,6 +142,7 @@ dependencies {
     implementation(AppDependencies.SIGNATURE)
     implementation("org.burnoutcrew.composereorderable:reorderable:0.9.6")
     implementation("androidx.compose.material3:material3:1.3.2")
+    implementation("com.patrykandpatrick.vico:compose-m3:2.1.3")
 
     // Room
     implementation(AppDependencies.roomLibs)
