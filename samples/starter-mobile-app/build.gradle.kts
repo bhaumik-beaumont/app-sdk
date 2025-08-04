@@ -2,13 +2,13 @@ import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
 
 plugins {
     id("com.android.application")
-    id("kotlin-android")
+    id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.kapt")
+    id("org.jetbrains.kotlin.plugin.compose")
     id("dagger.hilt.android.plugin")
     id("com.google.protobuf")
     id("io.gitlab.arturbosch.detekt")
     id("de.mannodermaus.android-junit5")
-    id("org.jetbrains.kotlin.android")
-    id("kotlin-kapt")
 }
 
 fun getProperty(key: String): String {
@@ -91,10 +91,6 @@ android {
     buildFeatures {
         buildConfig = true
         compose = true
-    }
-
-    composeOptions {
-        kotlinCompilerExtensionVersion = Versions.Compose.COMPILER
     }
 
     packaging {
