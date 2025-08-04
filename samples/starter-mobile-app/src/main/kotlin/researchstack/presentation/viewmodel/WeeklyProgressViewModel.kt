@@ -15,8 +15,14 @@ import kotlinx.coroutines.launch
 import researchstack.data.datasource.local.pref.EnrollmentDatePref
 import researchstack.data.datasource.local.pref.dataStore
 import researchstack.data.datasource.local.room.dao.ExerciseDao
+import researchstack.data.local.room.dao.BiaDao
+import researchstack.data.local.room.dao.UserProfileDao
 import researchstack.domain.model.healthConnect.Exercise
 import researchstack.domain.repository.StudyRepository
+import researchstack.presentation.util.kgToLbs
+import researchstack.presentation.util.toDecimalFormat
+import researchstack.domain.model.priv.Bia
+import researchstack.domain.model.UserProfile
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -31,6 +37,8 @@ class WeeklyProgressViewModel @Inject constructor(
     application: Application,
     private val studyRepository: StudyRepository,
     private val exerciseDao: ExerciseDao,
+    private val biaDao: BiaDao,
+    private val userProfileDao: UserProfileDao,
 ) : AndroidViewModel(application) {
 
     companion object {
@@ -46,6 +54,7 @@ class WeeklyProgressViewModel @Inject constructor(
     private var currentWeekIndex = 0
     private var maxWeekIndex = 0
     private var progressJob: Job? = null
+    private var isMetricUnit: Boolean = true
 
     private val _weekStart = MutableStateFlow(LocalDate.now())
     val weekStart: StateFlow<LocalDate> = _weekStart
@@ -71,6 +80,12 @@ class WeeklyProgressViewModel @Inject constructor(
     private val _resistanceProgressPercent = MutableStateFlow(0)
     val resistanceProgressPercent: StateFlow<Int> = _resistanceProgressPercent
 
+    private val _weightProgressPercent = MutableStateFlow(0)
+    val weightProgressPercent: StateFlow<Int> = _weightProgressPercent
+
+    private val _biaProgressPercent = MutableStateFlow(0)
+    val biaProgressPercent: StateFlow<Int> = _biaProgressPercent
+
     private val _hasData = MutableStateFlow(true)
     val hasData: StateFlow<Boolean> = _hasData
 
@@ -85,6 +100,12 @@ class WeeklyProgressViewModel @Inject constructor(
 
     private val _resistanceDetails = MutableStateFlow<List<ExerciseDetailUi>>(emptyList())
     val resistanceDetails: StateFlow<List<ExerciseDetailUi>> = _resistanceDetails
+
+    private val _weightDetails = MutableStateFlow<List<WeightDetailUi>>(emptyList())
+    val weightDetails: StateFlow<List<WeightDetailUi>> = _weightDetails
+
+    private val _biaDetails = MutableStateFlow<List<BiaDetailUi>>(emptyList())
+    val biaDetails: StateFlow<List<BiaDetailUi>> = _biaDetails
 
     private val _daysWithExercise = MutableStateFlow<Set<LocalDate>>(emptySet())
     val daysWithExercise: StateFlow<Set<LocalDate>> = _daysWithExercise
@@ -125,40 +146,59 @@ class WeeklyProgressViewModel @Inject constructor(
         progressJob = viewModelScope.launch(Dispatchers.IO) {
             val startMillis = start.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
             val endMillis = start.plusDays(7).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
-            exerciseDao.getExercisesFrom(startMillis).collect { list ->
-                val weekList = list.filter { it.startTime < endMillis }
-                val resistanceList = weekList.filter { isResistance(it.exerciseType.toInt()) }
-                val activityList = weekList.filterNot { isResistance(it.exerciseType.toInt()) }
+            isMetricUnit = userProfileDao.getLatest().firstOrNull()?.isMetricUnit != false
 
-                _activityDetails.value = activityList
-                    .sortedBy { it.startTime }
-                    .map { it.toDetailUi() }
-                _resistanceDetails.value = resistanceList
-                    .sortedBy { it.startTime }
-                    .map { it.toDetailUi() }
+            launch {
+                exerciseDao.getExercisesFrom(startMillis).collect { list ->
+                    val weekList = list.filter { it.startTime < endMillis }
+                    val resistanceList = weekList.filter { isResistance(it.exerciseType.toInt()) }
+                    val activityList = weekList.filterNot { isResistance(it.exerciseType.toInt()) }
 
-                val totalMillis = activityList.sumOf { it.endTime - it.startTime }
-                val minutes = TimeUnit.MILLISECONDS.toMinutes(totalMillis).toInt()
-                _activityMinutes.value = minutes
+                    _activityDetails.value = activityList
+                        .sortedBy { it.startTime }
+                        .map { it.toDetailUi() }
+                    _resistanceDetails.value = resistanceList
+                        .sortedBy { it.startTime }
+                        .map { it.toDetailUi() }
 
-                _activityCalories.value = activityList.sumOf { it.calorie.toInt() }
+                    val totalMillis = activityList.sumOf { it.endTime - it.startTime }
+                    val minutes = TimeUnit.MILLISECONDS.toMinutes(totalMillis).toInt()
+                    _activityMinutes.value = minutes
 
-                val resistanceMillis = resistanceList.sumOf { it.endTime - it.startTime }
-                val resistanceMinutes = TimeUnit.MILLISECONDS.toMinutes(resistanceMillis).toInt()
-                _resistanceMinutes.value = resistanceMinutes
+                    _activityCalories.value = activityList.sumOf { it.calorie.toInt() }
 
-                _resistanceCalories.value = resistanceList.sumOf { it.calorie.toInt() }
+                    val resistanceMillis = resistanceList.sumOf { it.endTime - it.startTime }
+                    val resistanceMinutes =
+                        TimeUnit.MILLISECONDS.toMinutes(resistanceMillis).toInt()
+                    _resistanceMinutes.value = resistanceMinutes
 
-                _activityProgressPercent.value =
-                    ((minutes * 100f) / ACTIVITY_GOAL_MINUTES).coerceAtMost(100f).toInt()
-                _resistanceProgressPercent.value =
-                    ((resistanceMinutes * 100f) / ACTIVITY_GOAL_MINUTES).coerceAtMost(100f).toInt()
+                    _resistanceCalories.value = resistanceList.sumOf { it.calorie.toInt() }
 
-                _daysWithExercise.value = weekList.map {
-                    Instant.ofEpochMilli(it.startTime).atZone(ZoneId.systemDefault()).toLocalDate()
-                }.toSet()
+                    _activityProgressPercent.value =
+                        ((minutes * 100f) / ACTIVITY_GOAL_MINUTES).coerceAtMost(100f).toInt()
+                    _resistanceProgressPercent.value =
+                        ((resistanceMinutes * 100f) / ACTIVITY_GOAL_MINUTES).coerceAtMost(100f).toInt()
 
-                _hasData.value = weekList.isNotEmpty()
+                    _daysWithExercise.value = weekList.map {
+                        Instant.ofEpochMilli(it.startTime).atZone(ZoneId.systemDefault()).toLocalDate()
+                    }.toSet()
+
+                    _hasData.value = weekList.isNotEmpty()
+                }
+            }
+
+            launch {
+                biaDao.getBetween(startMillis, endMillis).collect { list ->
+                    _biaDetails.value = list.sortedBy { it.timestamp }.map { it.toDetailUi(isMetricUnit) }
+                    _biaProgressPercent.value = if (list.isNotEmpty()) 100 else 0
+                }
+            }
+
+            launch {
+                userProfileDao.getBetween(startMillis, endMillis).collect { list ->
+                    _weightDetails.value = list.sortedBy { it.timestamp }.map { it.toDetailUi(isMetricUnit) }
+                    _weightProgressPercent.value = if (list.isNotEmpty()) 100 else 0
+                }
             }
         }
     }
@@ -202,6 +242,34 @@ class WeeklyProgressViewModel @Inject constructor(
             else -> false
         }
     }
+
+    private fun UserProfile.toDetailUi(isMetric: Boolean): WeightDetailUi {
+        val instant = Instant.ofEpochMilli(timestamp).atZone(ZoneId.systemDefault())
+        val date = instant.toLocalDate().format(dateFormatter)
+        val time = instant.toLocalTime().format(timeFormatter)
+        val unit = if (!isMetric) "lbs" else "kg"
+        val value = weight.kgToLbs(isMetric).toDecimalFormat(2)
+        return WeightDetailUi(
+            timestamp = "$date $time",
+            weight = "$value $unit"
+        )
+    }
+
+    private fun Bia.toDetailUi(isMetric: Boolean): BiaDetailUi {
+        val instant = Instant.ofEpochMilli(timestamp).atZone(ZoneId.systemDefault())
+        val date = instant.toLocalDate().format(dateFormatter)
+        val time = instant.toLocalTime().format(timeFormatter)
+        val unit = if (!isMetric) "lbs" else "kg"
+        val muscle = skeletalMuscleMass.kgToLbs(isMetric).toDecimalFormat(2)
+        val water = totalBodyWater.kgToLbs(isMetric).toDecimalFormat(2)
+        return BiaDetailUi(
+            timestamp = "$date $time",
+            skeletalMuscleMass = "$muscle $unit",
+            bodyFatPercent = bodyFatRatio.toDecimalFormat(2),
+            totalBodyWater = "$water $unit",
+            basalMetabolicRate = basalMetabolicRate.toDecimalFormat(2)
+        )
+    }
 }
 
 data class ExerciseDetailUi(
@@ -213,5 +281,18 @@ data class ExerciseDetailUi(
     val calories: Int,
     val minHeartRate: Int,
     val maxHeartRate: Int,
+)
+
+data class WeightDetailUi(
+    val timestamp: String,
+    val weight: String,
+)
+
+data class BiaDetailUi(
+    val timestamp: String,
+    val skeletalMuscleMass: String,
+    val bodyFatPercent: Float,
+    val totalBodyWater: String,
+    val basalMetabolicRate: Float,
 )
 

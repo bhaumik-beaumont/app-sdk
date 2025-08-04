@@ -2,22 +2,22 @@ package researchstack.presentation.screen.main
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -26,35 +26,35 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.EventBusy
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.compose.ui.res.stringResource
 import researchstack.R
 import researchstack.presentation.LocalNavController
 import researchstack.presentation.viewmodel.WeeklyProgressViewModel
@@ -75,12 +75,16 @@ fun WeeklyProgressScreen(
     val resistanceCalories by viewModel.resistanceCalories.collectAsState()
     val activityProgress by viewModel.activityProgressPercent.collectAsState()
     val resistanceProgress by viewModel.resistanceProgressPercent.collectAsState()
+    val weightProgress by viewModel.weightProgressPercent.collectAsState()
+    val biaProgress by viewModel.biaProgressPercent.collectAsState()
     val hasData by viewModel.hasData.collectAsState()
     val weekStart by viewModel.weekStart.collectAsState()
     val canPrev by viewModel.canNavigatePrevious.collectAsState()
     val canNext by viewModel.canNavigateNext.collectAsState()
     val activityDetails by viewModel.activityDetails.collectAsState()
     val resistanceDetails by viewModel.resistanceDetails.collectAsState()
+    val weightDetails by viewModel.weightDetails.collectAsState()
+    val biaDetails by viewModel.biaDetails.collectAsState()
     val daysWithExercise by viewModel.daysWithExercise.collectAsState()
 
     var detailType by remember { mutableStateOf<DetailType?>(null) }
@@ -95,19 +99,6 @@ fun WeeklyProgressScreen(
     val scrollState = rememberScrollState()
 
     if (detailType != null || selectedDay != null) {
-        val exercises = when {
-            selectedDay != null -> {
-                val formatted = selectedDay!!.format(dayFormatter)
-                (activityDetails + resistanceDetails).filter { it.date == formatted }
-            }
-            detailType == DetailType.Resistance -> resistanceDetails
-            else -> activityDetails
-        }
-        val title = when {
-            selectedDay != null -> stringResource(R.string.exercises_on_date, selectedDay!!.format(dayFormatter))
-            detailType == DetailType.Resistance -> stringResource(R.string.resistance_details)
-            else -> stringResource(R.string.activity_details)
-        }
         ModalBottomSheet(
             onDismissRequest = {
                 detailType = null
@@ -117,10 +108,40 @@ fun WeeklyProgressScreen(
             containerColor = Color(0xFF222222),
             modifier = Modifier.fillMaxHeight()
         ) {
-            ExerciseDetailSheet(
-                title = title,
-                exercises = exercises
-            )
+            when {
+                selectedDay != null -> {
+                    val formatted = selectedDay!!.format(dayFormatter)
+                    val exercises = (activityDetails + resistanceDetails).filter { it.date == formatted }
+                    ExerciseDetailSheet(
+                        title = stringResource(R.string.exercises_on_date, formatted),
+                        exercises = exercises
+                    )
+                }
+                detailType == DetailType.Resistance -> {
+                    ExerciseDetailSheet(
+                        title = stringResource(R.string.resistance_details),
+                        exercises = resistanceDetails
+                    )
+                }
+                detailType == DetailType.Activity -> {
+                    ExerciseDetailSheet(
+                        title = stringResource(R.string.activity_details),
+                        exercises = activityDetails
+                    )
+                }
+                detailType == DetailType.Weight -> {
+                    WeightDetailSheet(
+                        title = stringResource(R.string.weight_details),
+                        entries = weightDetails
+                    )
+                }
+                detailType == DetailType.Bia -> {
+                    BiaDetailSheet(
+                        title = stringResource(R.string.bia_details),
+                        entries = biaDetails
+                    )
+                }
+            }
         }
     }
 
@@ -293,6 +314,24 @@ fun WeeklyProgressScreen(
                             selectedDay = null
                         }
                     )
+                    BinaryProgressCard(
+                        title = stringResource(id = R.string.weight),
+                        progressPercent = weightProgress,
+                        color = Color(0xFFFF6347),
+                        onClick = {
+                            detailType = DetailType.Weight
+                            selectedDay = null
+                        }
+                    )
+                    BinaryProgressCard(
+                        title = stringResource(id = R.string.bia),
+                        progressPercent = biaProgress,
+                        color = Color(0xFFFFA500),
+                        onClick = {
+                            detailType = DetailType.Bia
+                            selectedDay = null
+                        }
+                    )
                 }
             } else {
                 EmptyState()
@@ -458,5 +497,57 @@ private fun VerticalProgressBar(progressPercent: Int, color: Color, modifier: Mo
     }
 }
 
-private enum class DetailType { Activity, Resistance }
+@Composable
+private fun BinaryProgressCard(
+    title: String,
+    progressPercent: Int,
+    color: Color,
+    onClick: () -> Unit,
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
+        colors = CardDefaults.cardColors(Color(0xFF333333)),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(72.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                VerticalProgressBar(progressPercent, color, modifier = Modifier.fillMaxHeight())
+                Row(
+                    modifier = Modifier.weight(1f),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text("${progressPercent}%", color = Color.White, fontSize = 14.sp)
+                }
+            }
+            Box(modifier = Modifier.fillMaxWidth()) {
+                Button(
+                    onClick = onClick,
+                    colors = ButtonDefaults.buttonColors(containerColor = color),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.align(Alignment.BottomEnd)
+                ) {
+                    Text(stringResource(id = R.string.show_details), color = Color.White)
+                }
+            }
+        }
+    }
+}
+
+private enum class DetailType { Activity, Resistance, Weight, Bia }
 
