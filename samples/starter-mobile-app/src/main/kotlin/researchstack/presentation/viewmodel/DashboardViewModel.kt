@@ -104,7 +104,7 @@ class DashboardViewModel @Inject constructor(
                     viewModelScope.launch(Dispatchers.IO) {
                         userProfileDao.getLatest().collect { profile ->
                             profile?.let {
-                                val unit = if (it.isMetricUnit == false) "lg" else "kg"
+                                val unit = if (it.isMetricUnit == false) "lbs" else "kg"
                                 val value = it.weight.kgToLbs(it.isMetricUnit == true)
                                 _weight.value = "${value.toDecimalFormat(2)} $unit"
                             }

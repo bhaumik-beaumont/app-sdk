@@ -51,6 +51,6 @@ abstract class PrivDao<T : Timestamp>(
     abstract fun deleteLEThan(query: SupportSQLiteQuery): Boolean
 
     fun deleteLEThan(timeStamp: Long) {
-        deleteLEThan(SimpleSQLiteQuery("DELETE FROM $tableName  WHERE timeStamp <= $timeStamp"))
+//        deleteLEThan(SimpleSQLiteQuery("DELETE FROM $tableName  WHERE timeStamp <= $timeStamp"))
     }
 }
