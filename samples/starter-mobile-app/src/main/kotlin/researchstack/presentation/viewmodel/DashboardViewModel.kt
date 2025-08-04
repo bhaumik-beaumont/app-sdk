@@ -67,6 +67,9 @@ class DashboardViewModel @Inject constructor(
     private val _biaProgressPercent = MutableStateFlow(0)
     val biaProgressPercent: StateFlow<Int> = _biaProgressPercent
 
+    private val _weightProgressPercent = MutableStateFlow(0)
+    val weightProgressPercent: StateFlow<Int> = _weightProgressPercent
+
     private val _weight = MutableStateFlow("--")
     val weight: StateFlow<String> = _weight
 
@@ -90,6 +93,12 @@ class DashboardViewModel @Inject constructor(
                             _biaCount.value = count
                             val progress = if (count > 0) 100 else 0
                             _biaProgressPercent.value = progress
+                        }
+                    }
+                    launch {
+                        userProfileDao.countBetween(startMillis, endMillis).collect { count ->
+                            val progress = if (count > 0) 100 else 0
+                            _weightProgressPercent.value = progress
                         }
                     }
                     viewModelScope.launch(Dispatchers.IO) {
