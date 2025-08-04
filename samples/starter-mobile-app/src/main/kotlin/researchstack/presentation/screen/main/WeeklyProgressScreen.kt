@@ -520,19 +520,22 @@ private fun BinaryProgressCard(
                 .padding(horizontal = 16.dp, vertical = 20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Column {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(IntrinsicSize.Min),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                VerticalProgressBar(progressPercent, color, modifier = Modifier.fillMaxHeight())
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(IntrinsicSize.Min),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    modifier = Modifier.weight(1f),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     Text("${progressPercent}%", color = Color.White, fontSize = 14.sp)
                 }
-                Spacer(Modifier.height(12.dp))
-                HorizontalProgressBar(progressPercent, color)
             }
             Box(modifier = Modifier.fillMaxWidth()) {
                 Button(
@@ -545,24 +548,6 @@ private fun BinaryProgressCard(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun HorizontalProgressBar(progressPercent: Int, color: Color) {
-    val progressFraction = (progressPercent.coerceIn(0, 100)) / 100f
-    Box(
-        Modifier
-            .fillMaxWidth()
-            .height(8.dp)
-            .background(Color(0xFF374151), RoundedCornerShape(50))
-    ) {
-        Box(
-            Modifier
-                .fillMaxHeight()
-                .fillMaxWidth(progressFraction)
-                .background(color, RoundedCornerShape(50))
-        )
     }
 }
 
