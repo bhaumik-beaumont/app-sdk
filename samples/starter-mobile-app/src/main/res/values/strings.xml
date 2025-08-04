@@ -216,4 +216,13 @@
     <string name="kcal_unit">Kcal</string>
     <string name="bpm_unit">BPM</string>
     <string name="exercises_on_date">Exercises on %1$s</string>
+    <string name="weight_details">Weight Details</string>
+    <string name="bia_details">BIA Details</string>
+    <string name="no_weight_data_week">No weight data for this week.</string>
+    <string name="no_bia_data_week">No BIA data for this week.</string>
+    <string name="timestamp_label">Timestamp</string>
+    <string name="skeletal_muscle_mass">Skeletal Muscle Mass</string>
+    <string name="body_fat_percent">Body Fat %</string>
+    <string name="total_body_water">Total Body Water</string>
+    <string name="bmr">BMR</string>
 </resources>

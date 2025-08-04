@@ -58,6 +58,8 @@ import androidx.compose.ui.res.stringResource
 import researchstack.R
 import researchstack.presentation.LocalNavController
 import researchstack.presentation.viewmodel.WeeklyProgressViewModel
+import researchstack.presentation.screen.main.WeightDetailSheet
+import researchstack.presentation.screen.main.BiaDetailSheet
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -75,12 +77,16 @@ fun WeeklyProgressScreen(
     val resistanceCalories by viewModel.resistanceCalories.collectAsState()
     val activityProgress by viewModel.activityProgressPercent.collectAsState()
     val resistanceProgress by viewModel.resistanceProgressPercent.collectAsState()
+    val weightProgress by viewModel.weightProgressPercent.collectAsState()
+    val biaProgress by viewModel.biaProgressPercent.collectAsState()
     val hasData by viewModel.hasData.collectAsState()
     val weekStart by viewModel.weekStart.collectAsState()
     val canPrev by viewModel.canNavigatePrevious.collectAsState()
     val canNext by viewModel.canNavigateNext.collectAsState()
     val activityDetails by viewModel.activityDetails.collectAsState()
     val resistanceDetails by viewModel.resistanceDetails.collectAsState()
+    val weightDetails by viewModel.weightDetails.collectAsState()
+    val biaDetails by viewModel.biaDetails.collectAsState()
     val daysWithExercise by viewModel.daysWithExercise.collectAsState()
 
     var detailType by remember { mutableStateOf<DetailType?>(null) }
@@ -95,19 +101,6 @@ fun WeeklyProgressScreen(
     val scrollState = rememberScrollState()
 
     if (detailType != null || selectedDay != null) {
-        val exercises = when {
-            selectedDay != null -> {
-                val formatted = selectedDay!!.format(dayFormatter)
-                (activityDetails + resistanceDetails).filter { it.date == formatted }
-            }
-            detailType == DetailType.Resistance -> resistanceDetails
-            else -> activityDetails
-        }
-        val title = when {
-            selectedDay != null -> stringResource(R.string.exercises_on_date, selectedDay!!.format(dayFormatter))
-            detailType == DetailType.Resistance -> stringResource(R.string.resistance_details)
-            else -> stringResource(R.string.activity_details)
-        }
         ModalBottomSheet(
             onDismissRequest = {
                 detailType = null
@@ -117,10 +110,40 @@ fun WeeklyProgressScreen(
             containerColor = Color(0xFF222222),
             modifier = Modifier.fillMaxHeight()
         ) {
-            ExerciseDetailSheet(
-                title = title,
-                exercises = exercises
-            )
+            when {
+                selectedDay != null -> {
+                    val formatted = selectedDay!!.format(dayFormatter)
+                    val exercises = (activityDetails + resistanceDetails).filter { it.date == formatted }
+                    ExerciseDetailSheet(
+                        title = stringResource(R.string.exercises_on_date, formatted),
+                        exercises = exercises
+                    )
+                }
+                detailType == DetailType.Resistance -> {
+                    ExerciseDetailSheet(
+                        title = stringResource(R.string.resistance_details),
+                        exercises = resistanceDetails
+                    )
+                }
+                detailType == DetailType.Activity -> {
+                    ExerciseDetailSheet(
+                        title = stringResource(R.string.activity_details),
+                        exercises = activityDetails
+                    )
+                }
+                detailType == DetailType.Weight -> {
+                    WeightDetailSheet(
+                        title = stringResource(R.string.weight_details),
+                        entries = weightDetails
+                    )
+                }
+                detailType == DetailType.Bia -> {
+                    BiaDetailSheet(
+                        title = stringResource(R.string.bia_details),
+                        entries = biaDetails
+                    )
+                }
+            }
         }
     }
 
@@ -293,6 +316,24 @@ fun WeeklyProgressScreen(
                             selectedDay = null
                         }
                     )
+                    BinaryProgressCard(
+                        title = stringResource(id = R.string.weight),
+                        progressPercent = weightProgress,
+                        color = Color(0xFFFF6347),
+                        onClick = {
+                            detailType = DetailType.Weight
+                            selectedDay = null
+                        }
+                    )
+                    BinaryProgressCard(
+                        title = stringResource(id = R.string.bia),
+                        progressPercent = biaProgress,
+                        color = Color(0xFFFFA500),
+                        onClick = {
+                            detailType = DetailType.Bia
+                            selectedDay = null
+                        }
+                    )
                 }
             } else {
                 EmptyState()
@@ -458,5 +499,72 @@ private fun VerticalProgressBar(progressPercent: Int, color: Color, modifier: Mo
     }
 }
 
-private enum class DetailType { Activity, Resistance }
+@Composable
+private fun BinaryProgressCard(
+    title: String,
+    progressPercent: Int,
+    color: Color,
+    onClick: () -> Unit,
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
+        colors = CardDefaults.cardColors(Color(0xFF333333)),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Column {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(IntrinsicSize.Min),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text("${progressPercent}%", color = Color.White, fontSize = 14.sp)
+                }
+                Spacer(Modifier.height(12.dp))
+                HorizontalProgressBar(progressPercent, color)
+            }
+            Box(modifier = Modifier.fillMaxWidth()) {
+                Button(
+                    onClick = onClick,
+                    colors = ButtonDefaults.buttonColors(containerColor = color),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.align(Alignment.BottomEnd)
+                ) {
+                    Text(stringResource(id = R.string.show_details), color = Color.White)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun HorizontalProgressBar(progressPercent: Int, color: Color) {
+    val progressFraction = (progressPercent.coerceIn(0, 100)) / 100f
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .height(8.dp)
+            .background(Color(0xFF374151), RoundedCornerShape(50))
+    ) {
+        Box(
+            Modifier
+                .fillMaxHeight()
+                .fillMaxWidth(progressFraction)
+                .background(color, RoundedCornerShape(50))
+        )
+    }
+}
+
+private enum class DetailType { Activity, Resistance, Weight, Bia }
 

@@ -11,4 +11,7 @@ abstract class BiaDao : PrivDao<Bia>(BIA_TABLE_NAME) {
 
     @Query("SELECT COUNT(*) FROM $BIA_TABLE_NAME WHERE timestamp BETWEEN :start AND :end")
     abstract fun countBetween(start: Long, end: Long): Flow<Int>
+
+    @Query("SELECT * FROM $BIA_TABLE_NAME WHERE timestamp BETWEEN :start AND :end ORDER BY timestamp ASC")
+    abstract fun getBetween(start: Long, end: Long): Flow<List<Bia>>
 }
