@@ -523,7 +523,7 @@ private fun BinaryProgressCard(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(IntrinsicSize.Min),
+                    .height(72.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {

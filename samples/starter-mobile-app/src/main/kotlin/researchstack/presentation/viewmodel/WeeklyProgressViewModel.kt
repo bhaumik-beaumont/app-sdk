@@ -54,6 +54,7 @@ class WeeklyProgressViewModel @Inject constructor(
     private var currentWeekIndex = 0
     private var maxWeekIndex = 0
     private var progressJob: Job? = null
+    private var isMetricUnit: Boolean = true
 
     private val _weekStart = MutableStateFlow(LocalDate.now())
     val weekStart: StateFlow<LocalDate> = _weekStart
@@ -145,6 +146,8 @@ class WeeklyProgressViewModel @Inject constructor(
         progressJob = viewModelScope.launch(Dispatchers.IO) {
             val startMillis = start.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
             val endMillis = start.plusDays(7).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+            isMetricUnit = userProfileDao.getLatest().firstOrNull()?.isMetricUnit != false
+
             launch {
                 exerciseDao.getExercisesFrom(startMillis).collect { list ->
                     val weekList = list.filter { it.startTime < endMillis }
@@ -186,14 +189,14 @@ class WeeklyProgressViewModel @Inject constructor(
 
             launch {
                 biaDao.getBetween(startMillis, endMillis).collect { list ->
-                    _biaDetails.value = list.sortedBy { it.timestamp }.map { it.toDetailUi() }
+                    _biaDetails.value = list.sortedBy { it.timestamp }.map { it.toDetailUi(isMetricUnit) }
                     _biaProgressPercent.value = if (list.isNotEmpty()) 100 else 0
                 }
             }
 
             launch {
                 userProfileDao.getBetween(startMillis, endMillis).collect { list ->
-                    _weightDetails.value = list.sortedBy { it.timestamp }.map { it.toDetailUi() }
+                    _weightDetails.value = list.sortedBy { it.timestamp }.map { it.toDetailUi(isMetricUnit) }
                     _weightProgressPercent.value = if (list.isNotEmpty()) 100 else 0
                 }
             }
@@ -240,27 +243,30 @@ class WeeklyProgressViewModel @Inject constructor(
         }
     }
 
-    private fun UserProfile.toDetailUi(): WeightDetailUi {
+    private fun UserProfile.toDetailUi(isMetric: Boolean): WeightDetailUi {
         val instant = Instant.ofEpochMilli(timestamp).atZone(ZoneId.systemDefault())
         val date = instant.toLocalDate().format(dateFormatter)
         val time = instant.toLocalTime().format(timeFormatter)
-        val unit = if (isMetricUnit == false) "lbs" else "kg"
-        val value = weight.kgToLbs(isMetricUnit == true).toDecimalFormat(2)
+        val unit = if (!isMetric) "lbs" else "kg"
+        val value = weight.kgToLbs(isMetric).toDecimalFormat(2)
         return WeightDetailUi(
             timestamp = "$date $time",
             weight = "$value $unit"
         )
     }
 
-    private fun Bia.toDetailUi(): BiaDetailUi {
+    private fun Bia.toDetailUi(isMetric: Boolean): BiaDetailUi {
         val instant = Instant.ofEpochMilli(timestamp).atZone(ZoneId.systemDefault())
         val date = instant.toLocalDate().format(dateFormatter)
         val time = instant.toLocalTime().format(timeFormatter)
+        val unit = if (!isMetric) "lbs" else "kg"
+        val muscle = skeletalMuscleMass.kgToLbs(isMetric).toDecimalFormat(2)
+        val water = totalBodyWater.kgToLbs(isMetric).toDecimalFormat(2)
         return BiaDetailUi(
             timestamp = "$date $time",
-            skeletalMuscleMass = skeletalMuscleMass.toDecimalFormat(2),
+            skeletalMuscleMass = "$muscle $unit",
             bodyFatPercent = bodyFatRatio.toDecimalFormat(2),
-            totalBodyWater = totalBodyWater.toDecimalFormat(2),
+            totalBodyWater = "$water $unit",
             basalMetabolicRate = basalMetabolicRate.toDecimalFormat(2)
         )
     }
@@ -284,9 +290,9 @@ data class WeightDetailUi(
 
 data class BiaDetailUi(
     val timestamp: String,
-    val skeletalMuscleMass: Float,
+    val skeletalMuscleMass: String,
     val bodyFatPercent: Float,
-    val totalBodyWater: Float,
+    val totalBodyWater: String,
     val basalMetabolicRate: Float,
 )
 

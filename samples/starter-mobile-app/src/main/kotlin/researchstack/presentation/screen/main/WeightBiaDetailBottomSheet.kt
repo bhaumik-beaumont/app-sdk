@@ -128,7 +128,7 @@ private fun BiaDetailItem(detail: BiaDetailUi) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(stringResource(id = R.string.skeletal_muscle_mass), color = Color.LightGray, fontSize = 16.sp)
-                Text("${detail.skeletalMuscleMass} kg", color = Color.White, fontSize = 14.sp)
+                Text(detail.skeletalMuscleMass, color = Color.White, fontSize = 14.sp)
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -144,7 +144,7 @@ private fun BiaDetailItem(detail: BiaDetailUi) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(stringResource(id = R.string.total_body_water), color = Color.LightGray, fontSize = 16.sp)
-                Text("${detail.totalBodyWater} kg", color = Color.White, fontSize = 14.sp)
+                Text(detail.totalBodyWater, color = Color.White, fontSize = 14.sp)
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
