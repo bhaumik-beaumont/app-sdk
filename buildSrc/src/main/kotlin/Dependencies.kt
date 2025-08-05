@@ -4,7 +4,7 @@ object Versions {
     const val APP_VERSION_NAME = "1.0.5"
     const val APP_VERSION_CODE = 4
 
-    const val KOTLIN = "1.9.23"
+    const val KOTLIN = "2.2.0"
 
     object GRPC {
         const val PROTOBUF = "0.9.4"
@@ -78,7 +78,7 @@ object Versions {
 
     // UI
     object Compose {
-        const val COMPILER = "1.5.13"
+        const val COMPILER = KOTLIN
         const val UI = "1.6.8"
         const val ACTIVITY = "1.9.1"
         const val WEARABLE = "1.3.1"
