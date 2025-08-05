@@ -29,16 +29,18 @@ import com.patrykandpatrick.vico.compose.chart.Chart
 import com.patrykandpatrick.vico.compose.chart.line.lineChart
 import com.patrykandpatrick.vico.compose.chart.line.lineSpec
 import com.patrykandpatrick.vico.compose.component.lineComponent
-import com.patrykandpatrick.vico.compose.component.marker.markerComponent
 import com.patrykandpatrick.vico.compose.component.shapeComponent
 import com.patrykandpatrick.vico.compose.component.textComponent
+import com.patrykandpatrick.vico.compose.component.marker.markerComponent
+import com.patrykandpatrick.vico.compose.cartesian.marker.rememberDefaultCartesianMarker
 import com.patrykandpatrick.vico.core.axis.AxisPosition
 import com.patrykandpatrick.vico.core.axis.formatter.AxisValueFormatter
 import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
 import com.patrykandpatrick.vico.core.entry.entryOf
 import com.patrykandpatrick.vico.core.component.shape.Shapes
+import com.patrykandpatrick.vico.core.cartesian.marker.DefaultCartesianMarker
+import com.patrykandpatrick.vico.core.cartesian.marker.LineCartesianLayerMarkerTarget
 import com.patrykandpatrick.vico.core.marker.Marker
-import com.patrykandpatrick.vico.core.marker.MarkerLabelFormatter
 import researchstack.R
 import researchstack.presentation.LocalNavController
 import researchstack.presentation.viewmodel.ProgressViewModel
@@ -207,21 +209,21 @@ private fun rememberBiaMarker(data: List<Pair<String, Float>>, unit: String): Ma
         color = Color.White,
         background = shapeComponent(Shapes.pillShape, Color.DarkGray)
     )
-    val indicator = shapeComponent(Shapes.pillShape, Color.White)
     val guideline = lineComponent(Color.White.copy(alpha = 0.2f), 2.dp)
     val formatter = remember(data, unit) {
-        MarkerLabelFormatter { marked, _ ->
-            val entry = marked.entries.firstOrNull()?.entry
-            val index = entry?.x?.toInt() ?: 0
+        DefaultCartesianMarker.ValueFormatter { _, targets ->
+            val target = targets.firstOrNull()
+            val index = target?.x?.toInt() ?: 0
             val date = data.getOrNull(index)?.first ?: ""
-            val value = entry?.y ?: 0f
+            val value = (target as? LineCartesianLayerMarkerTarget)
+                ?.points?.firstOrNull()?.entry?.y?.toFloat() ?: 0f
             "${date} ${value.toDecimalFormat(2)} $unit"
         }
     }
-    return markerComponent(
+    return rememberDefaultCartesianMarker(
         label = label,
-        indicator = indicator,
+        valueFormatter = formatter,
+        indicator = { _: Color -> shapeComponent(Shapes.pillShape, Color.White) },
         guideline = guideline,
-        labelFormatter = formatter
     )
 }
