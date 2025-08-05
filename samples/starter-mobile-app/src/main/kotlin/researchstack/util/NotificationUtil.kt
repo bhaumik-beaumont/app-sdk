@@ -39,9 +39,9 @@ class NotificationUtil private constructor() {
                         val uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
 
                         val icon = if (channelId == SYNC_NOTIFICATION) {
-                            R.drawable.ic_launcher_playstore
+                            R.drawable.flexed_biceps
                         } else {
-                            R.drawable.ic_notification
+                            R.drawable.flexed_biceps
                         }
 
                         notificationBuilderMap[channelId] = NotificationCompat.Builder(context, channelId)

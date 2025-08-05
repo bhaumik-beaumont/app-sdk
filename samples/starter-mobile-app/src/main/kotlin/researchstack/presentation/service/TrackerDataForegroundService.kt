@@ -97,7 +97,7 @@ class TrackerDataForegroundService : Service() {
 
         val notification: Notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Health Research Service")
-            .setSmallIcon(R.drawable.ic_launcher_playstore)
+            .setSmallIcon(R.drawable.flexed_biceps)
             .setContentIntent(pendingIntent)
             .build()
 
