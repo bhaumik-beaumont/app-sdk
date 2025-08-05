@@ -64,8 +64,8 @@ class ComplianceCheckReceiver : DaggerBroadcastReceiver() {
             val today = LocalDate.now()
             val days = ChronoUnit.DAYS.between(enrollment, today).toInt().coerceAtLeast(0)
             val weekStart = enrollment.plusDays((days / 7) * 7L)
-//            val dayOfWeek = days % 7 + 1
-            val dayOfWeek = 7
+            val dayOfWeek = days % 7 + 1
+//            val dayOfWeek = 7
             val startMillis = weekStart.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
             val endMillis = weekStart.plusDays(7).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
 
@@ -143,7 +143,8 @@ class ComplianceCheckReceiver : DaggerBroadcastReceiver() {
             .setContentIntent(pi)
             .setAutoCancel(true)
             .build()
-        manager.notify(2001, notification)
+        val notificationId = (System.currentTimeMillis() % Int.MAX_VALUE).toInt()
+        manager.notify(notificationId, notification)
     }
 
     private fun buildMessage(activity: Boolean, resistance: Boolean, bia: Boolean): String {
