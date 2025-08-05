@@ -232,4 +232,5 @@
     <string name="calorie_burn_over_time">Calorie Burn Over Time</string>
     <string name="bia_progress">BIA Progress</string>
     <string name="view_progress">View Progress</string>
+    <string name="weight_progress">Weight Progress</string>
 </resources>

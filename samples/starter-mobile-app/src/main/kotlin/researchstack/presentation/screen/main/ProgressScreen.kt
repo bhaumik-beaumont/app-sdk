@@ -54,6 +54,7 @@ fun ProgressScreen(viewModel: ProgressViewModel = hiltViewModel()) {
     val navController = LocalNavController.current
     val calories = viewModel.caloriesByDate.collectAsState().value
     val bia = viewModel.biaEntries.collectAsState().value
+    val weight = viewModel.weightByDate.collectAsState().value
     val isMetric = viewModel.isMetricUnit.collectAsState().value
     val scrollState = rememberScrollState()
 
@@ -124,6 +125,15 @@ fun ProgressScreen(viewModel: ProgressViewModel = hiltViewModel()) {
                 data = waterData,
                 unit = unit,
                 lineColor = Color(0xFF64B5F6)
+            )
+            Spacer(Modifier.height(24.dp))
+            Text(text = stringResource(id = R.string.weight_progress), color = Color.White, fontSize = 18.sp)
+            Spacer(Modifier.height(8.dp))
+            BiaMetricChart(
+                title = stringResource(R.string.weight) + " ($unit)",
+                data = weight,
+                unit = unit,
+                lineColor = Color(0xFFFFB74D)
             )
         }
     }

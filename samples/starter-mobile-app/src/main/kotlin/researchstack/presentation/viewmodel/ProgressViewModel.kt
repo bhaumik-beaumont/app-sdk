@@ -7,11 +7,13 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import researchstack.data.datasource.local.room.dao.ExerciseDao
 import researchstack.data.local.room.dao.BiaDao
 import researchstack.data.local.room.dao.UserProfileDao
 import researchstack.domain.model.priv.Bia
+import researchstack.presentation.util.kgToLbs
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -34,6 +36,9 @@ class ProgressViewModel @Inject constructor(
     private val _biaEntries = MutableStateFlow<List<Bia>>(emptyList())
     val biaEntries: StateFlow<List<Bia>> = _biaEntries
 
+    private val _weightByDate = MutableStateFlow<List<Pair<String, Float>>>(emptyList())
+    val weightByDate: StateFlow<List<Pair<String, Float>>> = _weightByDate
+
     private val _isMetricUnit = MutableStateFlow(true)
     val isMetricUnit: StateFlow<Boolean> = _isMetricUnit
 
@@ -52,6 +57,14 @@ class ProgressViewModel @Inject constructor(
             biaDao.getBetween(0, Long.MAX_VALUE).collect { list ->
                 _biaEntries.value = list.sortedBy { it.timestamp }
             }
+        }
+        viewModelScope.launch(Dispatchers.IO) {
+            combine(userProfileDao.getBetween(0, Long.MAX_VALUE), _isMetricUnit) { list, isMetric ->
+                list.sortedBy { it.timestamp }.map {
+                    Instant.ofEpochMilli(it.timestamp).atZone(ZoneId.systemDefault()).toLocalDate().format(dayFormatter) to
+                        it.weight.kgToLbs(isMetric)
+                }
+            }.collect { _weightByDate.value = it }
         }
         viewModelScope.launch(Dispatchers.IO) {
             userProfileDao.getLatest().collect { profile ->

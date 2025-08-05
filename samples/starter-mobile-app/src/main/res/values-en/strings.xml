@@ -211,5 +211,6 @@
     <string name="total_body_water">Total Body Water</string>
     <string name="bmr">BMR</string>
     <string name="view_progress">View Progress</string>
+    <string name="weight_progress">Weight Progress</string>
 
 </resources>
