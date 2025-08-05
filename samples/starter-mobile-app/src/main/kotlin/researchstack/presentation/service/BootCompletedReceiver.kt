@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import researchstack.domain.usecase.sensor.GetPermittedSensorTypesUseCase
 import researchstack.util.setAlarm
+import researchstack.util.scheduleComplianceCheck
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -20,5 +21,6 @@ class BootCompletedReceiver : DaggerBroadcastReceiver() {
                 context.startForegroundService(Intent(context, TrackerDataForegroundService::class.java))
         }
         setAlarm(context)
+        scheduleComplianceCheck(context)
     }
 }

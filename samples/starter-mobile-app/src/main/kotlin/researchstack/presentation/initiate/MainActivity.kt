@@ -2,6 +2,7 @@ package researchstack.presentation.initiate
 
 import android.R
 import android.content.Context
+import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
 import android.view.View
@@ -26,6 +27,7 @@ import researchstack.presentation.theme.AppTheme
 import researchstack.presentation.viewmodel.SplashLoadingViewModel
 import researchstack.util.NotificationUtil
 import researchstack.util.setAlarm
+import researchstack.util.scheduleComplianceCheck
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -44,16 +46,18 @@ class MainActivity : ComponentActivity() {
             this.window.statusBarColor = White.toArgb()
             val startDestination: Route? by splashLoadingViewModel.routeDestination.observeAsState()
             val page by splashLoadingViewModel.startMainPage.observeAsState(0)
+            val openWeeklyProgress = intent.getBooleanExtra("openWeeklyProgress", false)
 
             startDestination?.let {
                 AppTheme {
-                    ContentComposable(it, page)
+                    ContentComposable(it, page, openWeeklyProgress)
                 }
             }
         }
 
         setSuspendDrawingTheFirstView()
         setAlarm(this)
+        scheduleComplianceCheck(this)
     }
 
     private fun initSplashLoadingViewModel() {
@@ -67,10 +71,16 @@ class MainActivity : ComponentActivity() {
         splashLoadingViewModel.setStartMainPage()
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+    }
+
     @Composable
     private fun ContentComposable(
         startDestination: Route,
         page: Int = 0,
+        openWeeklyProgress: Boolean = false,
     ) {
         Surface {
             val navController = rememberNavController()
@@ -82,6 +92,11 @@ class MainActivity : ComponentActivity() {
                     startRoute = startDestination,
                     askedPage = intent.getIntExtra("page", page),
                 )
+                if (openWeeklyProgress) {
+                    androidx.compose.runtime.LaunchedEffect(Unit) {
+                        navController.navigate(Route.WeeklyProgress.name)
+                    }
+                }
             }
             RegisterSignOutReceiver(navController)
         }

@@ -36,6 +36,7 @@ import researchstack.presentation.screen.log.LogScreen
 import researchstack.presentation.screen.study.StudyListScreen
 import researchstack.presentation.screen.task.TaskListScreen
 import researchstack.presentation.theme.AppTheme
+import researchstack.presentation.util.checkAlarmPermission
 import researchstack.presentation.util.ignoreBatteryOptimization
 import researchstack.presentation.viewmodel.UISettingViewModel
 
@@ -58,6 +59,7 @@ fun MainScreen(
     PermissionChecker(permissions = permissions) {}
     LaunchedEffect(key1 = "pm") {
         ignoreBatteryOptimization(context)
+        checkAlarmPermission(context)
     }
 
     val coroutineScope = rememberCoroutineScope()
