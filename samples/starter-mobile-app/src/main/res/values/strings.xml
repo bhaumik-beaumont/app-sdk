@@ -225,4 +225,7 @@
     <string name="body_fat_percent">Body Fat %</string>
     <string name="total_body_water">Total Body Water</string>
     <string name="bmr">BMR</string>
+    <string name="insights">Insights</string>
+    <string name="calorie_burn_over_time">Calorie Burn Over Time</string>
+    <string name="bia_progress">BIA Progress</string>
 </resources>

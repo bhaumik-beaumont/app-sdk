@@ -10,6 +10,7 @@ import researchstack.presentation.screen.insight.SettingScreen
 import researchstack.presentation.screen.insight.StudyPermissionSettingScreen
 import researchstack.presentation.screen.insight.StudyStatusScreen
 import researchstack.presentation.screen.main.MainScreen
+import researchstack.presentation.screen.main.ProgressScreen
 import researchstack.presentation.screen.main.WeeklyProgressScreen
 import researchstack.presentation.screen.notification.NotificationScreen
 import researchstack.presentation.screen.study.EligibilityFailScreen
@@ -37,6 +38,9 @@ fun Router(navController: NavHostController, startRoute: Route, askedPage: Int) 
         }
         composable(Route.Notifications.name) {
             NotificationScreen()
+        }
+        composable(Route.Progress.name) {
+            ProgressScreen()
         }
         composable(Route.WeeklyProgress.name) {
             WeeklyProgressScreen()
