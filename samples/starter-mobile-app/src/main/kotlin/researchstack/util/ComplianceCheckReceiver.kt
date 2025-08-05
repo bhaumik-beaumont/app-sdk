@@ -64,7 +64,8 @@ class ComplianceCheckReceiver : DaggerBroadcastReceiver() {
             val today = LocalDate.now()
             val days = ChronoUnit.DAYS.between(enrollment, today).toInt().coerceAtLeast(0)
             val weekStart = enrollment.plusDays((days / 7) * 7L)
-            val dayOfWeek = days % 7 + 1
+//            val dayOfWeek = days % 7 + 1
+            val dayOfWeek = 7
             val startMillis = weekStart.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
             val endMillis = weekStart.plusDays(7).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
 
@@ -122,11 +123,9 @@ class ComplianceCheckReceiver : DaggerBroadcastReceiver() {
 
     private fun showNotification(context: Context, message: String) {
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            manager.createNotificationChannel(
-                NotificationChannel(CHANNEL_ID, CHANNEL_ID, NotificationManager.IMPORTANCE_HIGH)
-            )
-        }
+        manager.createNotificationChannel(
+            NotificationChannel(CHANNEL_ID, CHANNEL_ID, NotificationManager.IMPORTANCE_HIGH)
+        )
         val intent = Intent(context, MainActivity::class.java).apply {
             putExtra("openWeeklyProgress", true)
         }
@@ -137,7 +136,7 @@ class ComplianceCheckReceiver : DaggerBroadcastReceiver() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notification)
+            .setSmallIcon(R.drawable.flexed_biceps)
             .setContentTitle("Weekly Progress Reminder")
             .setContentText(message)
             .setPriority(NotificationCompat.PRIORITY_HIGH)

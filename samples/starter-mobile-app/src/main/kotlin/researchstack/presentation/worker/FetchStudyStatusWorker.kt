@@ -129,7 +129,7 @@ class FetchStudyStatusWorker @AssistedInject constructor(
         )
             .setContentTitle("Samsung Research")
             .setContentText(message)
-            .setSmallIcon(R.drawable.ic_notification)
+            .setSmallIcon(R.drawable.flexed_biceps)
             .setContentIntent(pendingIntent)
             .build()
     }
