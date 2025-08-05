@@ -215,6 +215,9 @@
     <string name="show_details">Show Details</string>
     <string name="kcal_unit">Kcal</string>
     <string name="bpm_unit">BPM</string>
+    <string name="kg_unit">kg</string>
+    <string name="lbs_unit">lbs</string>
+    <string name="percent_symbol">%</string>
     <string name="exercises_on_date">Exercises on %1$s</string>
     <string name="weight_details">Weight Details</string>
     <string name="bia_details">BIA Details</string>
@@ -228,4 +231,5 @@
     <string name="insights">Insights</string>
     <string name="calorie_burn_over_time">Calorie Burn Over Time</string>
     <string name="bia_progress">BIA Progress</string>
+    <string name="view_progress">View Progress</string>
 </resources>

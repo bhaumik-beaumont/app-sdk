@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import researchstack.data.datasource.local.room.dao.ExerciseDao
 import researchstack.data.local.room.dao.BiaDao
+import researchstack.data.local.room.dao.UserProfileDao
 import researchstack.domain.model.priv.Bia
 import java.time.Instant
 import java.time.ZoneId
@@ -22,6 +23,7 @@ class ProgressViewModel @Inject constructor(
     application: Application,
     private val exerciseDao: ExerciseDao,
     private val biaDao: BiaDao,
+    private val userProfileDao: UserProfileDao,
 ) : AndroidViewModel(application) {
 
     private val dayFormatter = DateTimeFormatter.ofPattern("dd MMM", Locale.getDefault())
@@ -31,6 +33,9 @@ class ProgressViewModel @Inject constructor(
 
     private val _biaEntries = MutableStateFlow<List<Bia>>(emptyList())
     val biaEntries: StateFlow<List<Bia>> = _biaEntries
+
+    private val _isMetricUnit = MutableStateFlow(true)
+    val isMetricUnit: StateFlow<Boolean> = _isMetricUnit
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -46,6 +51,11 @@ class ProgressViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             biaDao.getBetween(0, Long.MAX_VALUE).collect { list ->
                 _biaEntries.value = list.sortedBy { it.timestamp }
+            }
+        }
+        viewModelScope.launch(Dispatchers.IO) {
+            userProfileDao.getLatest().collect { profile ->
+                _isMetricUnit.value = profile?.isMetricUnit != false
             }
         }
     }
