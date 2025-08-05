@@ -3,10 +3,11 @@ package researchstack.presentation.screen.main
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -28,19 +29,21 @@ import com.patrykandpatrick.vico.compose.chart.Chart
 import com.patrykandpatrick.vico.compose.chart.line.lineChart
 import com.patrykandpatrick.vico.compose.chart.line.lineSpec
 import com.patrykandpatrick.vico.compose.component.lineComponent
-import com.patrykandpatrick.vico.compose.component.marker.markerComponent
 import com.patrykandpatrick.vico.compose.component.shapeComponent
 import com.patrykandpatrick.vico.compose.component.textComponent
+import com.patrykandpatrick.vico.compose.component.marker.markerComponent
 import com.patrykandpatrick.vico.core.axis.AxisPosition
 import com.patrykandpatrick.vico.core.axis.formatter.AxisValueFormatter
 import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
 import com.patrykandpatrick.vico.core.entry.entryOf
 import com.patrykandpatrick.vico.core.component.shape.Shapes
 import com.patrykandpatrick.vico.core.marker.Marker
+import com.patrykandpatrick.vico.core.marker.MarkerLabelFormatter
 import researchstack.R
-import researchstack.domain.model.priv.Bia
 import researchstack.presentation.LocalNavController
 import researchstack.presentation.viewmodel.ProgressViewModel
+import researchstack.presentation.util.kgToLbs
+import researchstack.presentation.util.toDecimalFormat
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -51,6 +54,8 @@ fun ProgressScreen(viewModel: ProgressViewModel = hiltViewModel()) {
     val navController = LocalNavController.current
     val calories = viewModel.caloriesByDate.collectAsState().value
     val bia = viewModel.biaEntries.collectAsState().value
+    val weight = viewModel.weightByDate.collectAsState().value
+    val isMetric = viewModel.isMetricUnit.collectAsState().value
     val scrollState = rememberScrollState()
 
     Scaffold(
@@ -87,7 +92,49 @@ fun ProgressScreen(viewModel: ProgressViewModel = hiltViewModel()) {
             Spacer(Modifier.height(24.dp))
             Text(text = stringResource(id = R.string.bia_progress), color = Color.White, fontSize = 18.sp)
             Spacer(Modifier.height(8.dp))
-            BiaChart(bia)
+            val dayFormatter = remember { DateTimeFormatter.ofPattern("dd MMM", Locale.getDefault()) }
+            val unit = if (isMetric) stringResource(R.string.kg_unit) else stringResource(R.string.lbs_unit)
+            val muscleData = bia.map {
+                Instant.ofEpochMilli(it.timestamp).atZone(ZoneId.systemDefault()).toLocalDate()
+                    .format(dayFormatter) to it.skeletalMuscleMass.kgToLbs(isMetric)
+            }
+            val fatData = bia.map {
+                Instant.ofEpochMilli(it.timestamp).atZone(ZoneId.systemDefault()).toLocalDate()
+                    .format(dayFormatter) to it.bodyFatRatio
+            }
+            val waterData = bia.map {
+                Instant.ofEpochMilli(it.timestamp).atZone(ZoneId.systemDefault()).toLocalDate()
+                    .format(dayFormatter) to it.totalBodyWater.kgToLbs(isMetric)
+            }
+            BiaMetricChart(
+                title = stringResource(R.string.skeletal_muscle_mass) + " ($unit)",
+                data = muscleData,
+                unit = unit,
+                lineColor = Color(0xFF81C784)
+            )
+            Spacer(Modifier.height(16.dp))
+            BiaMetricChart(
+                title = stringResource(R.string.body_fat_percent),
+                data = fatData,
+                unit = stringResource(R.string.percent_symbol),
+                lineColor = Color(0xFFE57373)
+            )
+            Spacer(Modifier.height(16.dp))
+            BiaMetricChart(
+                title = stringResource(R.string.total_body_water) + " ($unit)",
+                data = waterData,
+                unit = unit,
+                lineColor = Color(0xFF64B5F6)
+            )
+            Spacer(Modifier.height(24.dp))
+            Text(text = stringResource(id = R.string.weight_progress), color = Color.White, fontSize = 18.sp)
+            Spacer(Modifier.height(8.dp))
+            BiaMetricChart(
+                title = stringResource(R.string.weight) + " ($unit)",
+                data = weight,
+                unit = unit,
+                lineColor = Color(0xFFFFB74D)
+            )
         }
     }
 }
@@ -117,55 +164,35 @@ private fun CalorieChart(data: List<Pair<String, Float>>) {
 }
 
 @Composable
-private fun BiaChart(entries: List<Bia>) {
-    if (entries.isEmpty()) {
-        Text(text = stringResource(id = R.string.no_data_available), color = Color.White)
-        return
-    }
-    val modelProducer = remember { ChartEntryModelProducer() }
-    val marker = rememberSimpleMarker()
-    val dayFormatter = remember { DateTimeFormatter.ofPattern("dd MMM", Locale.getDefault()) }
-    LaunchedEffect(entries) {
-        val muscle = entries.mapIndexed { index, item -> entryOf(index.toFloat(), item.skeletalMuscleMass) }
-        val fat = entries.mapIndexed { index, item -> entryOf(index.toFloat(), item.bodyFatRatio) }
-        val water = entries.mapIndexed { index, item -> entryOf(index.toFloat(), item.totalBodyWater) }
-        modelProducer.setEntries(listOf(muscle, fat, water))
-    }
-    val formatter = AxisValueFormatter<AxisPosition.Horizontal.Bottom> { value, _ ->
-        entries.getOrNull(value.toInt())?.timestamp?.let {
-            Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate().format(dayFormatter)
-        } ?: ""
-    }
-    val muscleColor = Color(0xFF81C784)
-    val fatColor = Color(0xFFE57373)
-    val waterColor = Color(0xFF64B5F6)
-    Chart(
-        chart = lineChart(
-            lines = listOf(
-                lineSpec(muscleColor, point = shapeComponent(Shapes.pillShape, muscleColor)),
-                lineSpec(fatColor, point = shapeComponent(Shapes.pillShape, fatColor)),
-                lineSpec(waterColor, point = shapeComponent(Shapes.pillShape, waterColor)),
-            )
-        ),
-        chartModelProducer = modelProducer,
-        startAxis = rememberStartAxis(),
-        bottomAxis = rememberBottomAxis(valueFormatter = formatter),
-        marker = marker,
-    )
-    Spacer(Modifier.height(8.dp))
-    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        LegendItem(muscleColor, stringResource(R.string.skeletal_muscle_mass))
-        LegendItem(fatColor, stringResource(R.string.body_fat_percent))
-        LegendItem(waterColor, stringResource(R.string.total_body_water))
-    }
-}
-
-@Composable
-private fun LegendItem(color: Color, label: String) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(modifier = Modifier.size(12.dp).background(color, CircleShape))
-        Spacer(Modifier.width(4.dp))
-        Text(text = label, color = Color.White, fontSize = 12.sp)
+private fun BiaMetricChart(title: String, data: List<Pair<String, Float>>, unit: String, lineColor: Color) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF333333)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(title, color = Color.White, fontSize = 16.sp)
+            Spacer(Modifier.height(8.dp))
+            if (data.isEmpty()) {
+                Text(text = stringResource(id = R.string.no_data_available), color = Color.White)
+            } else {
+                val modelProducer = remember { ChartEntryModelProducer() }
+                val marker = rememberBiaMarker(data, unit)
+                LaunchedEffect(data) {
+                    modelProducer.setEntries(data.mapIndexed { index, pair -> entryOf(index.toFloat(), pair.second) })
+                }
+                val formatter = AxisValueFormatter<AxisPosition.Horizontal.Bottom> { value, _ ->
+                    data.getOrNull(value.toInt())?.first ?: ""
+                }
+                Chart(
+                    chart = lineChart(lines = listOf(lineSpec(lineColor, point = shapeComponent(Shapes.pillShape, lineColor)))),
+                    chartModelProducer = modelProducer,
+                    startAxis = rememberStartAxis(title = unit),
+                    bottomAxis = rememberBottomAxis(valueFormatter = formatter),
+                    marker = marker,
+                )
+            }
+        }
     }
 }
 
@@ -177,5 +204,31 @@ private fun rememberSimpleMarker(): Marker {
     )
     val indicator = shapeComponent(Shapes.pillShape, Color.White)
     val guideline = lineComponent(Color.White.copy(alpha = 0.2f), 2.dp)
-    return markerComponent(label = label, indicator = indicator, guideline = guideline)
+    return markerComponent(
+        label = label,
+        indicator = indicator,
+        guideline = guideline
+    )
+}
+
+@Composable
+private fun rememberBiaMarker(data: List<Pair<String, Float>>, unit: String): Marker {
+    val label = textComponent(
+        color = Color.White,
+        background = shapeComponent(Shapes.pillShape, Color.DarkGray)
+    )
+    val indicator = shapeComponent(Shapes.pillShape, Color.White)
+    val guideline = lineComponent(Color.White.copy(alpha = 0.2f), 2.dp)
+    return markerComponent(
+        label = label,
+        indicator = indicator,
+        guideline = guideline,
+    ).apply {
+        labelFormatter = MarkerLabelFormatter { markedEntries, _ ->
+            val index = markedEntries.firstOrNull()?.entry?.x?.toInt() ?: 0
+            val date = data.getOrNull(index)?.first ?: ""
+            val value = markedEntries.firstOrNull()?.entry?.y?.toFloat() ?: 0f
+            "$date ${value.toDecimalFormat(2)} $unit"
+        }
+    }
 }

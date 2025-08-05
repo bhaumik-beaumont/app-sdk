@@ -196,6 +196,9 @@
     <string name="show_details">Show Details</string>
     <string name="kcal_unit">Kcal</string>
     <string name="bpm_unit">BPM</string>
+    <string name="kg_unit">kg</string>
+    <string name="lbs_unit">lbs</string>
+    <string name="percent_symbol">%</string>
     <string name="exercises_on_date">Exercises on %1$s</string>
 
     <string name="weight_details">Weight Details</string>
@@ -207,5 +210,7 @@
     <string name="body_fat_percent">Body Fat %</string>
     <string name="total_body_water">Total Body Water</string>
     <string name="bmr">BMR</string>
+    <string name="view_progress">View Progress</string>
+    <string name="weight_progress">Weight Progress</string>
 
 </resources>
