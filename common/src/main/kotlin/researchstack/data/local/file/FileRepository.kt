@@ -71,7 +71,8 @@ open class FileRepository<T : Timestamp>(
 
         outdatedFiles.onEach { it.delete() }
 
-        return files.filter { it.measuredTime() < System.currentTimeMillis() / splitInterval * splitInterval - splitInterval }
+//        return files.filter { it.measuredTime() < System.currentTimeMillis() / splitInterval * splitInterval - splitInterval }
+        return files
     }
 
     private fun File.measuredTime() = this.name.split("-")[0].toLong()
