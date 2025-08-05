@@ -18,15 +18,21 @@ import researchstack.data.datasource.local.pref.dataStore
 import researchstack.data.datasource.local.room.dao.ExerciseDao
 import researchstack.data.local.room.dao.BiaDao
 import researchstack.data.local.room.dao.UserProfileDao
+import researchstack.domain.model.healthConnect.Exercise
 import researchstack.domain.repository.StudyRepository
 import researchstack.presentation.initiate.MainActivity
 import researchstack.presentation.service.DaggerBroadcastReceiver
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 private const val CHANNEL_ID = "weekly_compliance"
+private const val WEEKLY_ACTIVITY_GOAL_MINUTES = 150
+private const val WEEKLY_RESISTANCE_SESSION_COUNT = 2
+private const val MINIMUM_BIA_ENTRIES_PER_WEEK = 1
+private const val MINIMUM_WEIGHT_ENTRIES_PER_WEEK = 1
 
 @AndroidEntryPoint
 class ComplianceCheckReceiver : DaggerBroadcastReceiver() {
@@ -60,33 +66,34 @@ class ComplianceCheckReceiver : DaggerBroadcastReceiver() {
             val weekStart = enrollment.plusDays((days / 7) * 7L)
             val dayOfWeek = days % 7 + 1
             val startMillis = weekStart.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
-            val endMillis = today.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+            val endMillis = weekStart.plusDays(7).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
 
             val exercises = exerciseDao.getExercisesFrom(startMillis).first().filter { it.startTime < endMillis }
-            val activityRecorded = exercises.any { !isResistance(it.exerciseType.toInt()) }
-            val resistanceRecorded = exercises.any { isResistance(it.exerciseType.toInt()) }
+            val activityCompliant = isActivityCompliant(exercises)
+            val resistanceCompliant = isResistanceCompliant(exercises)
             val biaCount = biaDao.countBetween(startMillis, endMillis).first()
             val weightCount = userProfileDao.countBetween(startMillis, endMillis).first()
-            val biaOrWeightRecorded = (biaCount + weightCount) > 0
+            val biaCompliant = isBiaCompliant(biaCount)
+            val weightCompliant = isWeightCompliant(weightCount)
 
-            if (activityRecorded) reminderPref.clear(Type.ACTIVITY)
-            if (resistanceRecorded) reminderPref.clear(Type.RESISTANCE)
-            if (biaOrWeightRecorded) reminderPref.clear(Type.BIA)
+            if (activityCompliant) reminderPref.clear(Type.ACTIVITY)
+            if (resistanceCompliant) reminderPref.clear(Type.RESISTANCE)
+            if (biaCompliant && weightCompliant) reminderPref.clear(Type.BIA)
 
             val todayStr = today.toString()
             var missingActivity = false
             var missingResistance = false
             var missingBia = false
 
-            if (dayOfWeek >= 3 && !activityRecorded && reminderPref.getLastReminderDate(Type.ACTIVITY) != todayStr) {
+            if (dayOfWeek >= 3 && !activityCompliant && reminderPref.getLastReminderDate(Type.ACTIVITY) != todayStr) {
                 missingActivity = true
                 reminderPref.saveReminderDate(Type.ACTIVITY, todayStr)
             }
-            if (dayOfWeek >= 4 && !resistanceRecorded && reminderPref.getLastReminderDate(Type.RESISTANCE) != todayStr) {
+            if (dayOfWeek >= 4 && !resistanceCompliant && reminderPref.getLastReminderDate(Type.RESISTANCE) != todayStr) {
                 missingResistance = true
                 reminderPref.saveReminderDate(Type.RESISTANCE, todayStr)
             }
-            if (dayOfWeek == 7 && !biaOrWeightRecorded && reminderPref.getLastReminderDate(Type.BIA) != todayStr) {
+            if (dayOfWeek == 7 && (!biaCompliant || !weightCompliant) && reminderPref.getLastReminderDate(Type.BIA) != todayStr) {
                 missingBia = true
                 reminderPref.saveReminderDate(Type.BIA, todayStr)
             }
@@ -97,6 +104,21 @@ class ComplianceCheckReceiver : DaggerBroadcastReceiver() {
             }
         }
     }
+
+    private fun isActivityCompliant(exercises: List<Exercise>): Boolean {
+        val minutes = exercises.filter { !isResistance(it.exerciseType.toInt()) }
+            .sumOf { TimeUnit.MILLISECONDS.toMinutes(it.endTime - it.startTime) }
+        return minutes >= WEEKLY_ACTIVITY_GOAL_MINUTES
+    }
+
+    private fun isResistanceCompliant(exercises: List<Exercise>): Boolean {
+        val sessions = exercises.count { isResistance(it.exerciseType.toInt()) }
+        return sessions >= WEEKLY_RESISTANCE_SESSION_COUNT
+    }
+
+    private fun isBiaCompliant(count: Int) = count >= MINIMUM_BIA_ENTRIES_PER_WEEK
+
+    private fun isWeightCompliant(count: Int) = count >= MINIMUM_WEIGHT_ENTRIES_PER_WEEK
 
     private fun showNotification(context: Context, message: String) {
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
