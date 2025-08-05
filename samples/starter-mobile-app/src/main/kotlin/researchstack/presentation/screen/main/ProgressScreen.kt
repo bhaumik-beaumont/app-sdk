@@ -30,12 +30,13 @@ import com.patrykandpatrick.vico.compose.chart.line.lineSpec
 import com.patrykandpatrick.vico.compose.component.lineComponent
 import com.patrykandpatrick.vico.compose.component.marker.markerComponent
 import com.patrykandpatrick.vico.compose.component.shapeComponent
+import com.patrykandpatrick.vico.compose.component.textComponent
 import com.patrykandpatrick.vico.core.axis.AxisPosition
 import com.patrykandpatrick.vico.core.axis.formatter.AxisValueFormatter
-import com.patrykandpatrick.vico.core.component.marker.Marker
 import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
 import com.patrykandpatrick.vico.core.entry.entryOf
 import com.patrykandpatrick.vico.core.component.shape.Shapes
+import com.patrykandpatrick.vico.core.marker.Marker
 import researchstack.R
 import researchstack.domain.model.priv.Bia
 import researchstack.presentation.LocalNavController
@@ -170,11 +171,11 @@ private fun LegendItem(color: Color, label: String) {
 
 @Composable
 private fun rememberSimpleMarker(): Marker {
-    val label = com.patrykandpatrick.vico.compose.component.textComponent(
+    val label = textComponent(
         color = Color.White,
         background = shapeComponent(Shapes.pillShape, Color.DarkGray)
     )
     val indicator = shapeComponent(Shapes.pillShape, Color.White)
     val guideline = lineComponent(Color.White.copy(alpha = 0.2f), 2.dp)
-    return remember { markerComponent(label = label, indicator = indicator, guideline = guideline) }
+    return markerComponent(label = label, indicator = indicator, guideline = guideline)
 }
