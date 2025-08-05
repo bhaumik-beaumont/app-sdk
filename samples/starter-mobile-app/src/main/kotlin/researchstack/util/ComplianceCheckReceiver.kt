@@ -14,6 +14,7 @@ import researchstack.R
 import researchstack.data.datasource.local.pref.ComplianceReminderPref
 import researchstack.data.datasource.local.pref.EnrollmentDatePref
 import researchstack.data.datasource.local.pref.ComplianceReminderPref.Type
+import researchstack.data.datasource.local.pref.dataStore
 import researchstack.data.datasource.local.room.dao.ExerciseDao
 import researchstack.data.local.room.dao.BiaDao
 import researchstack.data.local.room.dao.UserProfileDao
@@ -42,7 +43,6 @@ class ComplianceCheckReceiver : DaggerBroadcastReceiver() {
     @Inject
     lateinit var userProfileDao: UserProfileDao
 
-    @Inject
     lateinit var enrollmentDatePref: EnrollmentDatePref
 
     @Inject
@@ -50,6 +50,7 @@ class ComplianceCheckReceiver : DaggerBroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent?) {
         super.onReceive(context, intent)
+        enrollmentDatePref= EnrollmentDatePref(context.dataStore)
         scheduleComplianceCheck(context)
         runBlocking {
             val studyId = studyRepository.getActiveStudies().first().firstOrNull()?.id ?: return@runBlocking

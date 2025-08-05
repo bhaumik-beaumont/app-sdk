@@ -71,9 +71,9 @@ class MainActivity : ComponentActivity() {
         splashLoadingViewModel.setStartMainPage()
     }
 
-    override fun onNewIntent(intent: Intent?) {
+    override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        intent?.let { setIntent(it) }
+        setIntent(intent)
     }
 
     @Composable
