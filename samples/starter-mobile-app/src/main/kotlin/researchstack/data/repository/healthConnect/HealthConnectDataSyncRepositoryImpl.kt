@@ -12,9 +12,12 @@ import researchstack.data.datasource.local.pref.EnrollmentDatePref
 import researchstack.data.datasource.local.room.dao.ExerciseDao
 import researchstack.data.datasource.local.room.dao.ShareAgreementDao
 import researchstack.data.datasource.local.room.dao.StudyDao
+import researchstack.data.local.room.dao.BiaDao
+import researchstack.data.local.room.dao.UserProfileDao
 import researchstack.domain.model.Study
 import researchstack.domain.model.TimestampMapData
 import researchstack.domain.model.healthConnect.Exercise
+import researchstack.domain.model.ComplianceEntry
 import researchstack.domain.model.shealth.HealthDataModel
 import researchstack.domain.model.shealth.SHealthDataType
 import researchstack.domain.repository.ShareAgreementRepository
@@ -26,6 +29,7 @@ import researchstack.presentation.util.toStringResourceId
 import researchstack.util.NotificationUtil
 import java.time.LocalDate
 import java.time.ZoneId
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlin.random.Random
 
@@ -39,10 +43,12 @@ class HealthConnectDataSyncRepositoryImpl @Inject constructor(
     private val getProfileUseCase: GetProfileUseCase,
     private val studyDao: StudyDao,
     private val exerciseDao: ExerciseDao,
+    private val biaDao: BiaDao,
+    private val userProfileDao: UserProfileDao,
     private val enrollmentDatePref: EnrollmentDatePref,
     private val grpcHealthDataSynchronizer: GrpcHealthDataSynchronizer<HealthDataModel>
 ) : HealthConnectDataSyncRepository {
-    override suspend fun syncHealthData() {
+    override suspend fun syncHealthData(): List<ComplianceEntry> {
         getProfileUseCase().onSuccess { profile ->
             getRequiredHealthDataTypes().forEach { dataType ->
                 val result: List<TimestampMapData>? = when (dataType) {
@@ -88,7 +94,7 @@ class HealthConnectDataSyncRepositoryImpl @Inject constructor(
         }.onFailure {
             Log.e(TAG, "fail to load profile", it)
         }
-
+        return generateWeeklyCompliance()
 //        getRequiredHealthDataTypes().forEach { dataType ->
 //            val result: List<TimestampMapData>? = when (dataType) {
 //                SHealthDataType.STEPS -> processStepsData(
@@ -195,6 +201,55 @@ class HealthConnectDataSyncRepositoryImpl @Inject constructor(
             }
         }.toSet()
         return types
+    }
+
+    private suspend fun generateWeeklyCompliance(): List<ComplianceEntry> {
+        val studyId = studyRepository.getActiveStudies().first().firstOrNull()?.id ?: return emptyList()
+        val enrollmentDateStr = enrollmentDatePref.getEnrollmentDate(studyId) ?: return emptyList()
+        val enrollmentDate = LocalDate.parse(enrollmentDateStr)
+        val today = LocalDate.now()
+        val entries = mutableListOf<ComplianceEntry>()
+        var weekStart = enrollmentDate
+        var weekNumber = 1
+        while (!weekStart.isAfter(today)) {
+            val weekEnd = weekStart.plusDays(6)
+            val periodEnd = if (weekEnd.isAfter(today)) today else weekEnd
+            val startMillis = weekStart.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+            val endMillis = periodEnd.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli() - 1
+            val exercises = exerciseDao.getExercisesBetween(startMillis, endMillis).first()
+            val activityMinutes = TimeUnit.MILLISECONDS.toMinutes(
+                exercises.filter { !isResistance(it.exerciseType.toInt()) }.sumOf { it.duration }
+            ).toInt()
+            val resistanceCount = exercises.count { isResistance(it.exerciseType.toInt()) }
+            val biaCount = biaDao.countBetween(startMillis, endMillis).first()
+            val weightCount = userProfileDao.countBetween(startMillis, endMillis).first()
+            entries.add(
+                ComplianceEntry(
+                    weekNumber = weekNumber,
+                    startDate = weekStart.toString(),
+                    endDate = periodEnd.toString(),
+                    totalActivityMinutes = activityMinutes,
+                    resistanceSessionCount = resistanceCount,
+                    biaRecordCount = biaCount,
+                    weightRecordCount = weightCount,
+                )
+            )
+            weekStart = weekStart.plusWeeks(1)
+            weekNumber++
+        }
+        return entries
+    }
+
+    private fun isResistance(exerciseType: Int): Boolean {
+        return when (exerciseType) {
+            ExerciseSessionRecord.EXERCISE_TYPE_STRENGTH_TRAINING,
+            ExerciseSessionRecord.EXERCISE_TYPE_HIGH_INTENSITY_INTERVAL_TRAINING,
+            ExerciseSessionRecord.EXERCISE_TYPE_PILATES,
+            ExerciseSessionRecord.EXERCISE_TYPE_STRETCHING,
+            ExerciseSessionRecord.EXERCISE_TYPE_YOGA,
+            ExerciseSessionRecord.EXERCISE_TYPE_CALISTHENICS -> true
+            else -> false
+        }
     }
 
     companion object {

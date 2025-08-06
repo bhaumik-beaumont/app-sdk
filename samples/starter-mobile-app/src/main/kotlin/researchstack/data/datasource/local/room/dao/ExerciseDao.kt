@@ -11,4 +11,7 @@ abstract class ExerciseDao : TimestampEntityBaseDao<Exercise>(EXERCISE_TABLE_NAM
 
     @Query("SELECT * FROM $EXERCISE_TABLE_NAME WHERE startTime >= :from ORDER BY startTime ASC")
     abstract fun getExercisesFrom(from: Long): Flow<List<Exercise>>
+
+    @Query("SELECT * FROM $EXERCISE_TABLE_NAME WHERE startTime BETWEEN :start AND :end ORDER BY startTime ASC")
+    abstract fun getExercisesBetween(start: Long, end: Long): Flow<List<Exercise>>
 }
