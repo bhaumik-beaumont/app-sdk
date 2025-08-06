@@ -118,9 +118,11 @@ fun DashboardScreen(
     }
 
     val resistanceDurationDisplay = remember(resistanceDuration) {
-        val hours = resistanceDuration / 60
-        val minutes = resistanceDuration % 60
-        if (hours > 0) "${hours}h ${minutes}m" else "${minutes}m"
+        if (resistanceExercises.size <= 1) {
+            "${resistanceExercises.size} Session"
+        } else {
+            "${resistanceExercises.size} Sessions"
+        }
     }
 
     val permissionsLauncher =

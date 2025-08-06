@@ -36,6 +36,7 @@ class DashboardViewModel @Inject constructor(
 
     companion object {
         const val ACTIVITY_GOAL_MINUTES = 150
+        const val RESISTANCE_SESSION_GOAL = 2
     }
 
     private val enrollmentDatePref = EnrollmentDatePref(application.dataStore)
@@ -127,8 +128,12 @@ class DashboardViewModel @Inject constructor(
                         val resistanceMillis = resistanceList.sumOf { it.endTime - it.startTime }
                         val resistanceMinutes = TimeUnit.MILLISECONDS.toMinutes(resistanceMillis)
                         _resistanceDurationMinutes.value = resistanceMinutes
-                        val resistanceProgress = ((resistanceMinutes * 100f) / ACTIVITY_GOAL_MINUTES).coerceAtMost(100f)
-                        _resistanceProgressPercent.value = resistanceProgress.toInt()
+                        val resistanceProgress = resistanceList.size * 100 / RESISTANCE_SESSION_GOAL
+                        _resistanceProgressPercent.value = if (resistanceProgress > 100) {
+                            100
+                        } else {
+                            resistanceProgress
+                        }
                     }
                 }
             }
