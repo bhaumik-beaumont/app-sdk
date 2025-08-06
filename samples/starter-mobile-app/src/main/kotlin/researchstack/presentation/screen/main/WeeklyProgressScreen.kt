@@ -72,7 +72,6 @@ fun WeeklyProgressScreen(
     val navController = LocalNavController.current
     val weekDays by viewModel.weekDays.collectAsState()
     val activityMinutes by viewModel.activityMinutes.collectAsState()
-    val resistanceMinutes by viewModel.resistanceMinutes.collectAsState()
     val activityCalories by viewModel.activityCalories.collectAsState()
     val resistanceCalories by viewModel.resistanceCalories.collectAsState()
     val activityProgress by viewModel.activityProgressPercent.collectAsState()
@@ -306,7 +305,11 @@ fun WeeklyProgressScreen(
                 ) {
                     ProgressCard(
                         title = stringResource(id = R.string.activity),
-                        minutes = activityMinutes,
+                        subTitle = stringResource(
+                            id = R.string.minutes_out_of,
+                            activityMinutes,
+                            WeeklyProgressViewModel.ACTIVITY_GOAL_MINUTES
+                        ),
                         calories = activityCalories,
                         progressPercent = activityProgress,
                         color = Color(0xFF00A86B),
@@ -317,7 +320,11 @@ fun WeeklyProgressScreen(
                     )
                     ProgressCard(
                         title = stringResource(id = R.string.resistance),
-                        minutes = resistanceMinutes,
+                        subTitle = if (resistanceDetails.size <= 1) {
+                            "${resistanceDetails.size} Session"
+                        } else {
+                            "${resistanceDetails.size} Sessions"
+                        },
                         calories = resistanceCalories,
                         progressPercent = resistanceProgress,
                         color = Color(0xFF3B82F6),
@@ -420,7 +427,7 @@ private fun EmptyState() {
 @Composable
 private fun ProgressCard(
     title: String,
-    minutes: Int,
+    subTitle: String,
     calories: Int,
     progressPercent: Int,
     color: Color,
@@ -454,11 +461,7 @@ private fun ProgressCard(
                     Text(title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     Spacer(Modifier.height(12.dp))
                     Text(
-                        stringResource(
-                            id = R.string.minutes_out_of,
-                            minutes,
-                            WeeklyProgressViewModel.ACTIVITY_GOAL_MINUTES
-                        ),
+                        subTitle,
                         color = Color.White,
                         fontSize = 14.sp
                     )

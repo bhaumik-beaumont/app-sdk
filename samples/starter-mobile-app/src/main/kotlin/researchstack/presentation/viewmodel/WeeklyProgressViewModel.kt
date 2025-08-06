@@ -43,6 +43,7 @@ class WeeklyProgressViewModel @Inject constructor(
 
     companion object {
         const val ACTIVITY_GOAL_MINUTES = 150
+        const val RESISTANCE_SESSION_GOAL = 2
     }
 
     private val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.getDefault())
@@ -177,7 +178,7 @@ class WeeklyProgressViewModel @Inject constructor(
                     _activityProgressPercent.value =
                         ((minutes * 100f) / ACTIVITY_GOAL_MINUTES).coerceAtMost(100f).toInt()
                     _resistanceProgressPercent.value =
-                        ((resistanceMinutes * 100f) / ACTIVITY_GOAL_MINUTES).coerceAtMost(100f).toInt()
+                        ((resistanceList.size * 100f) / RESISTANCE_SESSION_GOAL).coerceAtMost(100f).toInt()
 
                     _daysWithExercise.value = weekList.map {
                         Instant.ofEpochMilli(it.startTime).atZone(ZoneId.systemDefault()).toLocalDate()
