@@ -30,7 +30,7 @@ android {
 
     defaultConfig {
         applicationId = "com.mgb.beaumont.glp1activitytracking"
-        minSdk = 28
+        minSdk = 29
         targetSdk = 34
         versionCode = Versions.APP_VERSION_CODE * 2 - 1
         versionName = Versions.APP_VERSION_NAME
@@ -48,7 +48,7 @@ android {
         buildConfigField("String", "COGNITO_CLIENT_ID", getPropertyOrDefault("COGNITO_CLIENT_ID", "\"\""))
         buildConfigField("String", "COGNITO_CLIENT_REGION", getPropertyOrDefault("COGNITO_CLIENT_REGION", "\"\""))
         buildConfigField("boolean", "USE_PLAIN_TEXT", getPropertyOrDefault("USE_PLAIN_TEXT", "true"))
-        buildConfigField("long", "DATA_SYNC_PERIOD", getPropertyOrDefault("DATA_SYNC_PERIOD", "30"))
+        buildConfigField("long", "DATA_SYNC_PERIOD", getPropertyOrDefault("DATA_SYNC_PERIOD", "480"))
         buildConfigField("boolean", "ENABLE_LOGOUT", getPropertyOrDefault("ENABLE_LOGOUT", "false"))
         buildConfigField(
             "boolean",
@@ -118,6 +118,7 @@ dependencies {
     implementation(project(":common"))
     implementation(project(":backend-integration:interface"))
     implementation(project(":backend-integration:researchstack-adapter"))
+    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.aar"))))
 
     implementation(AppDependencies.composeImplLibsMobile)
     implementation(AppDependencies.hiltImplLibs)

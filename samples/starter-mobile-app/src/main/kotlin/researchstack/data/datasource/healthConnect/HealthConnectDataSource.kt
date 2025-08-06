@@ -11,6 +11,12 @@ import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import androidx.health.connect.client.request.AggregateRequest
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
+import com.samsung.android.sdk.health.data.HealthDataStore
+import com.samsung.android.sdk.health.data.data.HealthDataPoint
+import com.samsung.android.sdk.health.data.error.HealthDataException
+import com.samsung.android.sdk.health.data.request.DataTypes
+import com.samsung.android.sdk.health.data.request.LocalTimeFilter
+import com.samsung.android.sdk.health.data.request.ReadDataRequest
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -18,7 +24,7 @@ import java.time.ZoneId
 import javax.inject.Inject
 import kotlin.reflect.KClass
 
-class HealthConnectDataSource @Inject constructor(private val healthConnectClient: HealthConnectClient) {
+class HealthConnectDataSource @Inject constructor(private val healthConnectClient: HealthConnectClient,private val healthDataStore: HealthDataStore) {
     suspend fun <T : Record> getData(recordClass: KClass<out T>, duration: Long = 30): List<Record> {
         val currentDate: LocalDateTime = LocalDateTime.now().with(LocalTime.MIDNIGHT)
         val startTime: Instant =
@@ -32,6 +38,31 @@ class HealthConnectDataSource @Inject constructor(private val healthConnectClien
             )
         )
         return result.records
+    }
+
+    suspend fun getExerciseData(): List<HealthDataPoint> {
+        val currentDate: LocalDateTime = LocalDateTime.now().with(LocalTime.MIDNIGHT)
+        val startTime: Instant =
+            currentDate.minusDays(30).atZone(ZoneId.systemDefault()).toInstant()
+        val endTime: Instant = LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant()
+        val exerciseRequest = getExerciseAggregateRequestBuilder(startTime, endTime)
+        val exerciseResult = healthDataStore.readData(exerciseRequest)
+        return exerciseResult.dataList
+    }
+
+    @Throws(HealthDataException::class)
+    fun getExerciseAggregateRequestBuilder(
+        startTime: Instant,
+        endTime: Instant
+    ): ReadDataRequest<HealthDataPoint> {
+        val localTimeFilter = LocalTimeFilter.of(
+            LocalDateTime.ofInstant(startTime, ZoneId.systemDefault()),
+            LocalDateTime.ofInstant(endTime, ZoneId.systemDefault())
+        )
+        val aggregateRequest = DataTypes.EXERCISE.readDataRequestBuilder
+            .setLocalTimeFilter(localTimeFilter)
+            .build()
+        return aggregateRequest
     }
 
     suspend fun getAggregateData(uid: String): ExerciseSessionData {

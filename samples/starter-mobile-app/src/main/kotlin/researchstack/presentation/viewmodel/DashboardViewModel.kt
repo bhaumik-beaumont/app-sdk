@@ -112,8 +112,8 @@ class DashboardViewModel @Inject constructor(
                     }
 
                     exerciseDao.getExercisesFrom(startMillis).collect { list ->
-                        val resistanceList = list.filter { isResistance(it.exerciseType.toInt()) }
-                        val exerciseList = list.filterNot { isResistance(it.exerciseType.toInt()) }
+                        val resistanceList = list.filter { it.isResistance }
+                        val exerciseList = list.filterNot {it.isResistance }
 
                         _resistanceExercises.value = resistanceList
                         _exercises.value = exerciseList
@@ -133,21 +133,6 @@ class DashboardViewModel @Inject constructor(
                 }
             }
         }
-    }
-
-    fun isResistance(exerciseType:Int) : Boolean{
-        return when(exerciseType){
-            ExerciseSessionRecord.Companion.EXERCISE_TYPE_STRENGTH_TRAINING,
-            ExerciseSessionRecord.Companion.EXERCISE_TYPE_HIGH_INTENSITY_INTERVAL_TRAINING,
-            ExerciseSessionRecord.Companion.EXERCISE_TYPE_PILATES,
-            ExerciseSessionRecord.Companion.EXERCISE_TYPE_STRETCHING,
-            ExerciseSessionRecord.Companion.EXERCISE_TYPE_YOGA,
-            ExerciseSessionRecord.Companion.EXERCISE_TYPE_CALISTHENICS->
-                true
-
-            else -> false
-        }
-
     }
 
     private fun calculateCurrentWeekStart(enrollmentDate: LocalDate): LocalDate {

@@ -151,8 +151,8 @@ class WeeklyProgressViewModel @Inject constructor(
             launch {
                 exerciseDao.getExercisesFrom(startMillis).collect { list ->
                     val weekList = list.filter { it.startTime < endMillis }
-                    val resistanceList = weekList.filter { isResistance(it.exerciseType.toInt()) }
-                    val activityList = weekList.filterNot { isResistance(it.exerciseType.toInt()) }
+                    val resistanceList = weekList.filter { it.isResistance }
+                    val activityList = weekList.filterNot { it.isResistance }
 
                     _activityDetails.value = activityList
                         .sortedBy { it.startTime }
@@ -214,9 +214,7 @@ class WeeklyProgressViewModel @Inject constructor(
         val start = startInstant.toLocalTime().format(timeFormatter)
         val end = endInstant.toLocalTime().format(timeFormatter)
         val date = startInstant.toLocalDate().format(dateFormatter)
-        val name = exerciseName.ifBlank {
-            EXERCISE_TYPE_INT_TO_STRING_MAP[exerciseType.toInt()] ?: ""
-        }
+        val name = exerciseName
         val duration = TimeUnit.MILLISECONDS.toMinutes(endTime - startTime).toInt()
         return ExerciseDetailUi(
             name = name,
@@ -228,19 +226,6 @@ class WeeklyProgressViewModel @Inject constructor(
             minHeartRate = minHeartRate.toInt(),
             maxHeartRate = maxHeartRate.toInt(),
         )
-    }
-
-    private fun isResistance(exerciseType: Int): Boolean {
-        return when (exerciseType) {
-            ExerciseSessionRecord.EXERCISE_TYPE_STRENGTH_TRAINING,
-            ExerciseSessionRecord.EXERCISE_TYPE_HIGH_INTENSITY_INTERVAL_TRAINING,
-            ExerciseSessionRecord.EXERCISE_TYPE_PILATES,
-            ExerciseSessionRecord.EXERCISE_TYPE_STRETCHING,
-            ExerciseSessionRecord.EXERCISE_TYPE_YOGA,
-            ExerciseSessionRecord.EXERCISE_TYPE_CALISTHENICS -> true
-
-            else -> false
-        }
     }
 
     private fun UserProfile.toDetailUi(isMetric: Boolean): WeightDetailUi {

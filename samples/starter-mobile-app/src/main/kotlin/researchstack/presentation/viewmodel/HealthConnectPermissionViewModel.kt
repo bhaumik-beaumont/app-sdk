@@ -1,8 +1,10 @@
 package researchstack.presentation.viewmodel
 
+import android.app.Activity
 import android.app.Application
 import android.content.Context
 import android.os.RemoteException
+import android.util.Log
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -23,23 +25,35 @@ import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.samsung.android.sdk.health.data.HealthDataStore
+import com.samsung.android.sdk.health.data.error.HealthDataException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import researchstack.R
+import researchstack.domain.model.log.DataSyncLog
+import researchstack.domain.usecase.healthConnect.ArePermissionsGrantedUseCase
+import researchstack.domain.usecase.healthConnect.Permissions.PERMISSIONS
+import researchstack.domain.usecase.log.AppLogger
 import researchstack.presentation.util.HealthConnectManager
 import researchstack.presentation.worker.WorkerRegistrar
 import java.io.IOException
 import java.util.UUID
 import javax.inject.Inject
+import kotlin.coroutines.cancellation.CancellationException
 
 @HiltViewModel
 class HealthConnectPermissionViewModel @Inject constructor(
     application: Application,
     @ApplicationContext private val context: Context,
-    val healthConnectManager: HealthConnectManager
+    val healthConnectManager: HealthConnectManager,
+    val healthDataStore: HealthDataStore,
+    private val arePermissionsGrantedUseCase: ArePermissionsGrantedUseCase,
 ) : AndroidViewModel(application) {
     private val healthConnectClient by lazy { HealthConnectClient.getOrCreate(context) }
     private val healthConnectCompatibleApps = healthConnectManager.healthConnectCompatibleApps
@@ -80,6 +94,36 @@ class HealthConnectPermissionViewModel @Inject constructor(
         viewModelScope.launch {
             tryWithPermissionsCheck {
                 WorkerRegistrar.registerOneTimeDataSyncWorker(context)
+            }
+        }
+    }
+
+    fun requestSamsungPermissions(context: Activity) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val result = healthDataStore.requestPermissions(PERMISSIONS, context)
+                userAcceptedPermissions(result.containsAll(PERMISSIONS))
+            } catch (healthDataException: HealthDataException) {
+                UiState.Error(healthDataException)
+            } catch (cancellationException: CancellationException) {
+                AppLogger.saveLog(DataSyncLog(cancellationException.message.toString()))
+            }
+        }
+    }
+
+    fun userAcceptedPermissions(agreed: Boolean) {
+        if(agreed){
+            initialLoad()
+        }
+    }
+
+    fun checkSamsungPermissions(context: Activity) {
+        viewModelScope.launch {
+            val permissionsGranted = arePermissionsGrantedUseCase()
+            if (permissionsGranted) {
+                initialLoad()
+            }else{
+                requestSamsungPermissions(context)
             }
         }
     }
