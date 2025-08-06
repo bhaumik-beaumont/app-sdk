@@ -246,14 +246,14 @@ class WeeklyProgressViewModel @Inject constructor(
         val date = instant.toLocalDate().format(dateFormatter)
         val time = instant.toLocalTime().format(timeFormatter)
         val unit = if (!isMetric) "lbs" else "kg"
+        val fatMass = bodyFatMass.kgToLbs(isMetric).toDecimalFormat(2)
+        val fatFree = fatFreeMass.kgToLbs(isMetric).toDecimalFormat(2)
         val muscle = skeletalMuscleMass.kgToLbs(isMetric).toDecimalFormat(2)
-        val water = totalBodyWater.kgToLbs(isMetric).toDecimalFormat(2)
         return BiaDetailUi(
             timestamp = "$date $time",
+            bodyFatMass = "$fatMass $unit",
+            fatFreeMass = "$fatFree $unit",
             skeletalMuscleMass = "$muscle $unit",
-            bodyFatPercent = bodyFatRatio.toDecimalFormat(2),
-            totalBodyWater = "$water $unit",
-            basalMetabolicRate = basalMetabolicRate.toDecimalFormat(2)
         )
     }
 }
@@ -276,9 +276,8 @@ data class WeightDetailUi(
 
 data class BiaDetailUi(
     val timestamp: String,
+    val bodyFatMass: String,
+    val fatFreeMass: String,
     val skeletalMuscleMass: String,
-    val bodyFatPercent: Float,
-    val totalBodyWater: String,
-    val basalMetabolicRate: Float,
 )
 

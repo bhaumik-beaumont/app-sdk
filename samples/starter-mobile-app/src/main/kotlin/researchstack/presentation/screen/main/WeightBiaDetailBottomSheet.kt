@@ -127,32 +127,24 @@ private fun BiaDetailItem(detail: BiaDetailUi) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                Text(stringResource(id = R.string.body_fat_mass), color = Color.LightGray, fontSize = 16.sp)
+                Text(detail.bodyFatMass, color = Color.White, fontSize = 14.sp)
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(stringResource(id = R.string.fat_free_mass), color = Color.LightGray, fontSize = 16.sp)
+                Text(detail.fatFreeMass, color = Color.White, fontSize = 14.sp)
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text(stringResource(id = R.string.skeletal_muscle_mass), color = Color.LightGray, fontSize = 16.sp)
                 Text(detail.skeletalMuscleMass, color = Color.White, fontSize = 14.sp)
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(stringResource(id = R.string.body_fat_percent), color = Color.LightGray, fontSize = 16.sp)
-                Text("${detail.bodyFatPercent} %", color = Color.White, fontSize = 14.sp)
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(stringResource(id = R.string.total_body_water), color = Color.LightGray, fontSize = 16.sp)
-                Text(detail.totalBodyWater, color = Color.White, fontSize = 14.sp)
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(stringResource(id = R.string.bmr), color = Color.LightGray, fontSize = 16.sp)
-                Text("${detail.basalMetabolicRate} ${stringResource(id = R.string.kcal_unit)}", color = Color.White, fontSize = 14.sp)
             }
         }
     }
