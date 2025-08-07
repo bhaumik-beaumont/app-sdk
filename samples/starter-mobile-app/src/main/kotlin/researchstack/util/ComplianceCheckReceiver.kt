@@ -18,7 +18,6 @@ import researchstack.data.datasource.local.pref.dataStore
 import researchstack.data.datasource.local.room.dao.ExerciseDao
 import researchstack.data.local.room.dao.BiaDao
 import researchstack.data.local.room.dao.UserProfileDao
-import researchstack.domain.model.healthConnect.Exercise
 import researchstack.domain.repository.StudyRepository
 import researchstack.presentation.initiate.MainActivity
 import researchstack.presentation.service.DaggerBroadcastReceiver
@@ -70,10 +69,14 @@ class ComplianceCheckReceiver : DaggerBroadcastReceiver() {
             val endMillis = weekStart.plusDays(7).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
 
             val exercises = exerciseDao.getExercisesFrom(startMillis).first().filter { it.startTime < endMillis }
-            val activityCompliant = isActivityCompliant(exercises)
-            val resistanceCompliant = isResistanceCompliant(exercises)
+            val activityMinutes = exercises.filter { !it.isResistance }
+                .sumOf { TimeUnit.MILLISECONDS.toMinutes(it.endTime - it.startTime) }
+            val resistanceSessions = exercises.count { it.isResistance }
             val biaCount = biaDao.countBetween(startMillis, endMillis).first()
             val weightCount = userProfileDao.countBetween(startMillis, endMillis).first()
+
+            val activityCompliant = activityMinutes >= WEEKLY_ACTIVITY_GOAL_MINUTES
+            val resistanceCompliant = resistanceSessions >= WEEKLY_RESISTANCE_SESSION_COUNT
             val biaCompliant = isBiaCompliant(biaCount)
             val weightCompliant = isWeightCompliant(weightCount)
 
@@ -82,39 +85,30 @@ class ComplianceCheckReceiver : DaggerBroadcastReceiver() {
             if (biaCompliant && weightCompliant) reminderPref.clear(Type.BIA)
 
             val todayStr = today.toString()
-            var missingActivity = false
-            var missingResistance = false
-            var missingBia = false
+            val messages = mutableListOf<String>()
 
             if (dayOfWeek >= 3 && !activityCompliant && reminderPref.getLastReminderDate(Type.ACTIVITY) != todayStr) {
-                missingActivity = true
                 reminderPref.saveReminderDate(Type.ACTIVITY, todayStr)
+                messages += getActivityMessage(context, activityMinutes)
             }
             if (dayOfWeek >= 4 && !resistanceCompliant && reminderPref.getLastReminderDate(Type.RESISTANCE) != todayStr) {
-                missingResistance = true
                 reminderPref.saveReminderDate(Type.RESISTANCE, todayStr)
+                messages += getResistanceMessage(context, resistanceSessions)
             }
-            if (dayOfWeek == 7 && (!biaCompliant || !weightCompliant) && reminderPref.getLastReminderDate(Type.BIA) != todayStr) {
-                missingBia = true
-                reminderPref.saveReminderDate(Type.BIA, todayStr)
+            if (dayOfWeek == 7 && reminderPref.getLastReminderDate(Type.BIA) != todayStr) {
+                val biaMissing = !biaCompliant
+                val weightMissing = !weightCompliant
+                if (biaMissing || weightMissing) {
+                    reminderPref.saveReminderDate(Type.BIA, todayStr)
+                    if (biaMissing) messages += getBiaMessage(context, biaCount)
+                    if (weightMissing) messages += getWeightMessage(context, weightCount)
+                }
             }
 
-            if (missingActivity || missingResistance || missingBia) {
-                val message = buildMessage(missingActivity, missingResistance, missingBia)
-                showNotification(context, message)
+            if (messages.isNotEmpty()) {
+                showNotification(context, messages.joinToString("\n"))
             }
         }
-    }
-
-    private fun isActivityCompliant(exercises: List<Exercise>): Boolean {
-        val minutes = exercises.filter { !it.isResistance }
-            .sumOf { TimeUnit.MILLISECONDS.toMinutes(it.endTime - it.startTime) }
-        return minutes >= WEEKLY_ACTIVITY_GOAL_MINUTES
-    }
-
-    private fun isResistanceCompliant(exercises: List<Exercise>): Boolean {
-        val sessions = exercises.count { it.isResistance }
-        return sessions >= WEEKLY_RESISTANCE_SESSION_COUNT
     }
 
     private fun isBiaCompliant(count: Int) = count >= MINIMUM_BIA_ENTRIES_PER_WEEK
@@ -139,6 +133,7 @@ class ComplianceCheckReceiver : DaggerBroadcastReceiver() {
             .setSmallIcon(R.drawable.flexed_biceps)
             .setContentTitle("Weekly Progress Reminder")
             .setContentText(message)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(message))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setContentIntent(pi)
             .setAutoCancel(true)
@@ -147,16 +142,39 @@ class ComplianceCheckReceiver : DaggerBroadcastReceiver() {
         manager.notify(notificationId, notification)
     }
 
-    private fun buildMessage(activity: Boolean, resistance: Boolean, bia: Boolean): String {
+    private fun getActivityMessage(context: Context, minutes: Long): String {
         return when {
-            activity && resistance && bia -> "You haven’t logged any activity, resistance training, or BIA/weight data this week. Let’s complete your weekly goals!"
-            activity && resistance -> "No physical activity or resistance training logged yet. Let’s get moving!"
-            activity && bia -> "You haven’t logged activity or completed BIA/weight measurements this week. Let’s catch up!"
-            resistance && bia -> "Still missing resistance training and BIA/weight data this week. Time to take action!"
-            activity -> "Don’t forget to get moving! You haven’t logged any physical activity this week."
-            resistance -> "Time to train! You haven’t completed any resistance training this week."
-            bia -> "Please log your BIA or weight. Baseline measurements are due this week."
-            else -> ""
+            minutes == 0L -> context.getString(R.string.weekly_message_activity_none)
+            minutes < WEEKLY_ACTIVITY_GOAL_MINUTES -> context.getString(
+                R.string.weekly_message_activity_partial,
+                minutes,
+                WEEKLY_ACTIVITY_GOAL_MINUTES
+            )
+            else -> context.getString(R.string.weekly_message_activity_complete, minutes)
+        }
+    }
+
+    private fun getResistanceMessage(context: Context, count: Int): String {
+        return when (count) {
+            0 -> context.getString(R.string.weekly_message_resistance_none)
+            1 -> context.getString(R.string.weekly_message_resistance_one)
+            else -> context.getString(R.string.weekly_message_resistance_multi, count)
+        }
+    }
+
+    private fun getBiaMessage(context: Context, count: Int): String {
+        return if (count == 0) {
+            context.getString(R.string.weekly_message_bia_none)
+        } else {
+            context.getString(R.string.weekly_message_bia_logged)
+        }
+    }
+
+    private fun getWeightMessage(context: Context, count: Int): String {
+        return if (count == 0) {
+            context.getString(R.string.weekly_message_weight_none)
+        } else {
+            context.getString(R.string.weekly_message_weight_logged)
         }
     }
 }
