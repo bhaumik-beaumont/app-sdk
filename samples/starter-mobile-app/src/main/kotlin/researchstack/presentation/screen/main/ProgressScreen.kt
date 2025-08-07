@@ -143,7 +143,7 @@ private fun CalorieChart(data: List<ChartEntry>) {
         chart = lineChart(lines = listOf(lineSpec(lineColor, point = shapeComponent(Shapes.pillShape, lineColor)))),
         chartModelProducer = modelProducer,
         startAxis = rememberStartAxis(title = stringResource(R.string.kcal_unit)),
-        bottomAxis = rememberBottomAxis(valueFormatter = formatter),
+        bottomAxis = rememberBottomAxis(valueFormatter = formatter, labelRotationDegrees = 90f),
         marker = marker,
     )
 }
@@ -173,7 +173,7 @@ private fun BiaMetricChart(title: String, data: List<ChartEntry>, unit: String, 
                     chart = lineChart(lines = listOf(lineSpec(lineColor, point = shapeComponent(Shapes.pillShape, lineColor)))),
                     chartModelProducer = modelProducer,
                     startAxis = rememberStartAxis(title = unit),
-                    bottomAxis = rememberBottomAxis(valueFormatter = formatter),
+                    bottomAxis = rememberBottomAxis(valueFormatter = formatter, labelRotationDegrees = 90f),
                     marker = marker,
                 )
             }
