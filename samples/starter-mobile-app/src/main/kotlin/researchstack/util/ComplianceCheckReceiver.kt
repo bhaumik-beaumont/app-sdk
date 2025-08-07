@@ -28,10 +28,10 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 private const val CHANNEL_ID = "weekly_compliance"
-private const val WEEKLY_ACTIVITY_GOAL_MINUTES = 150
-private const val WEEKLY_RESISTANCE_SESSION_COUNT = 2
-private const val MINIMUM_BIA_ENTRIES_PER_WEEK = 1
-private const val MINIMUM_WEIGHT_ENTRIES_PER_WEEK = 1
+const val WEEKLY_ACTIVITY_GOAL_MINUTES = 150
+const val WEEKLY_RESISTANCE_SESSION_COUNT = 2
+const val MINIMUM_BIA_ENTRIES_PER_WEEK = 1
+const val MINIMUM_WEIGHT_ENTRIES_PER_WEEK = 1
 
 @AndroidEntryPoint
 class ComplianceCheckReceiver : DaggerBroadcastReceiver() {

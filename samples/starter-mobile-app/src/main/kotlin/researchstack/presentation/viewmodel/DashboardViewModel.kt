@@ -20,6 +20,8 @@ import researchstack.domain.model.healthConnect.Exercise
 import researchstack.domain.repository.StudyRepository
 import researchstack.presentation.util.kgToLbs
 import researchstack.presentation.util.toDecimalFormat
+import researchstack.util.WEEKLY_ACTIVITY_GOAL_MINUTES
+import researchstack.util.WEEKLY_RESISTANCE_SESSION_COUNT
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
@@ -33,11 +35,6 @@ class DashboardViewModel @Inject constructor(
     private val biaDao: BiaDao,
     private val userProfileDao: UserProfileDao,
 ) : AndroidViewModel(application) {
-
-    companion object {
-        const val ACTIVITY_GOAL_MINUTES = 150
-        const val RESISTANCE_SESSION_GOAL = 2
-    }
 
     private val enrollmentDatePref = EnrollmentDatePref(application.dataStore)
 
@@ -137,13 +134,13 @@ class DashboardViewModel @Inject constructor(
                         val totalMillis = exerciseList.sumOf { it.endTime - it.startTime }
                         val minutes = TimeUnit.MILLISECONDS.toMinutes(totalMillis)
                         _totalDurationMinutes.value = minutes
-                        val progress = ((minutes * 100f) / ACTIVITY_GOAL_MINUTES).coerceAtMost(100f)
+                        val progress = ((minutes * 100f) / WEEKLY_ACTIVITY_GOAL_MINUTES).coerceAtMost(100f)
                         _activityProgressPercent.value = progress.toInt()
 
                         val resistanceMillis = resistanceList.sumOf { it.endTime - it.startTime }
                         val resistanceMinutes = TimeUnit.MILLISECONDS.toMinutes(resistanceMillis)
                         _resistanceDurationMinutes.value = resistanceMinutes
-                        val resistanceProgress = resistanceList.size * 100 / RESISTANCE_SESSION_GOAL
+                        val resistanceProgress = resistanceList.size * 100 / WEEKLY_RESISTANCE_SESSION_COUNT
                         _resistanceProgressPercent.value = if (resistanceProgress > 100) {
                             100
                         } else {

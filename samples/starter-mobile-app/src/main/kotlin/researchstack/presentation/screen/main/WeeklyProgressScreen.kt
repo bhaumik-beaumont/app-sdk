@@ -60,6 +60,7 @@ import researchstack.R
 import researchstack.presentation.LocalNavController
 import researchstack.presentation.viewmodel.WeeklyProgressViewModel
 import researchstack.presentation.initiate.route.Route
+import researchstack.util.WEEKLY_ACTIVITY_GOAL_MINUTES
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -308,7 +309,7 @@ fun WeeklyProgressScreen(
                         subTitle = stringResource(
                             id = R.string.minutes_out_of,
                             activityMinutes,
-                            WeeklyProgressViewModel.ACTIVITY_GOAL_MINUTES
+                            WEEKLY_ACTIVITY_GOAL_MINUTES
                         ),
                         calories = activityCalories,
                         progressPercent = activityProgress,

@@ -1,7 +1,7 @@
 package researchstack.presentation.screen.main
 
+import AdherenceTabScreen
 import android.app.Activity
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.background
@@ -57,10 +57,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.samsung.android.sdk.health.data.HealthDataStore
-import com.samsung.android.sdk.health.data.error.HealthDataException
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import researchstack.R
 import researchstack.presentation.LocalNavController
@@ -70,8 +66,6 @@ import researchstack.presentation.screen.notification.NotificationViewModel
 import researchstack.presentation.viewmodel.HealthConnectPermissionViewModel
 import researchstack.presentation.viewmodel.DashboardViewModel
 import java.time.format.DateTimeFormatter
-import javax.inject.Inject
-import kotlin.coroutines.cancellation.CancellationException
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -327,19 +321,6 @@ fun DashboardScreen(
                         Spacer(Modifier.height(16.dp))
 
                         if (activeTab == weeklyTab) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.clickable { navController.navigate(Route.WeeklyProgress.name) }
-                            ) {
-                                Text(stringResource(id = R.string.this_week), color = Color.White)
-                                Icon(
-                                    Icons.Default.ExpandMore,
-                                    contentDescription = "Dropdown",
-                                    tint = Color.White
-                                )
-
-                            }
-                            Spacer(Modifier.height(16.dp))
                             Column(
                                 verticalArrangement = Arrangement.spacedBy(24.dp),
                                 modifier = Modifier.padding(bottom = 80.dp) // Add bottom padding to prevent hiding behind bottom nav

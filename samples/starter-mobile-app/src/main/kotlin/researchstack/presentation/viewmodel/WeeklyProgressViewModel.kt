@@ -23,6 +23,8 @@ import researchstack.presentation.util.kgToLbs
 import researchstack.presentation.util.toDecimalFormat
 import researchstack.domain.model.priv.Bia
 import researchstack.domain.model.UserProfile
+import researchstack.util.WEEKLY_ACTIVITY_GOAL_MINUTES
+import researchstack.util.WEEKLY_RESISTANCE_SESSION_COUNT
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -41,10 +43,6 @@ class WeeklyProgressViewModel @Inject constructor(
     private val userProfileDao: UserProfileDao,
 ) : AndroidViewModel(application) {
 
-    companion object {
-        const val ACTIVITY_GOAL_MINUTES = 150
-        const val RESISTANCE_SESSION_GOAL = 2
-    }
 
     private val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.getDefault())
     private val dateFormatter = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy", Locale.getDefault())
@@ -176,9 +174,9 @@ class WeeklyProgressViewModel @Inject constructor(
                     _resistanceCalories.value = resistanceList.sumOf { it.calorie.toInt() }
 
                     _activityProgressPercent.value =
-                        ((minutes * 100f) / ACTIVITY_GOAL_MINUTES).coerceAtMost(100f).toInt()
+                        ((minutes * 100f) / WEEKLY_ACTIVITY_GOAL_MINUTES).coerceAtMost(100f).toInt()
                     _resistanceProgressPercent.value =
-                        ((resistanceList.size * 100f) / RESISTANCE_SESSION_GOAL).coerceAtMost(100f).toInt()
+                        ((resistanceList.size * 100f) / WEEKLY_RESISTANCE_SESSION_COUNT).coerceAtMost(100f).toInt()
 
                     _daysWithExercise.value = weekList.map {
                         Instant.ofEpochMilli(it.startTime).atZone(ZoneId.systemDefault()).toLocalDate()
