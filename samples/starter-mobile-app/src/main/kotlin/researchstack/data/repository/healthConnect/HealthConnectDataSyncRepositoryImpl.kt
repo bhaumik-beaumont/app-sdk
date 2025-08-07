@@ -231,7 +231,9 @@ class HealthConnectDataSyncRepositoryImpl @Inject constructor(
             ).toInt()
             val resistanceCount = exercises.count { it.isResistance }
             val biaCount = biaDao.countBetween(startMillis, endMillis).first()
-            val weightCount = userProfileDao.countBetween(startMillis, endMillis).first()
+            val weightEntries = userProfileDao.getBetween(startMillis, endMillis).first()
+            val weightCount = weightEntries.size
+            val avgWeight = if (weightEntries.isEmpty()) 0f else weightEntries.map { it.weight }.average().toFloat()
             entries.add(
                 ComplianceEntry(
                     weekNumber = weekNumber,
@@ -242,6 +244,7 @@ class HealthConnectDataSyncRepositoryImpl @Inject constructor(
                     resistanceSessionCount = resistanceCount,
                     biaRecordCount = biaCount,
                     weightRecordCount = weightCount,
+                    avgWeight = avgWeight,
                 )
             )
             weekStart = weekStart.plusWeeks(1)
