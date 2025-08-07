@@ -86,10 +86,17 @@ class ProgressViewModel @Inject constructor(
                         fatMass.getOrPut(date) { mutableListOf() }.add(bia.bodyFatMass.kgToLbs(isMetric))
                         fatFree.getOrPut(date) { mutableListOf() }.add(bia.fatFreeMass.kgToLbs(isMetric))
                     }
-                    _muscleMassByDate.value = aggregateFloatData(muscle.mapValues { it.value.average().toFloat() })
-                    _fatMassByDate.value = aggregateFloatData(fatMass.mapValues { it.value.average().toFloat() })
-                    _fatFreeMassByDate.value = aggregateFloatData(fatFree.mapValues { it.value.average().toFloat() })
-                }.collect()
+                    Triple(
+                        aggregateFloatData(muscle.mapValues { it.value.average().toFloat() }),
+                        aggregateFloatData(fatMass.mapValues { it.value.average().toFloat() }),
+                        aggregateFloatData(fatFree.mapValues { it.value.average().toFloat() })
+                    )
+                }.collect { (muscleList, fatMassList, fatFreeList) ->
+                    _muscleMassByDate.value = muscleList
+                    _fatMassByDate.value = fatMassList
+                    _fatFreeMassByDate.value = fatFreeList
+                }
+
             }
             launch {
                 combine(userProfileDao.getBetween(0, Long.MAX_VALUE), _isMetricUnit) { list, isMetric ->
