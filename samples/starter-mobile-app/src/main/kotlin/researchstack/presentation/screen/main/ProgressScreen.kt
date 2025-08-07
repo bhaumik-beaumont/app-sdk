@@ -42,18 +42,15 @@ import com.patrykandpatrick.vico.core.marker.MarkerLabelFormatter
 import researchstack.R
 import researchstack.presentation.LocalNavController
 import researchstack.presentation.viewmodel.ProgressViewModel
-import researchstack.presentation.util.kgToLbs
 import researchstack.presentation.util.toDecimalFormat
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 @Composable
 fun ProgressScreen(viewModel: ProgressViewModel = hiltViewModel()) {
     val navController = LocalNavController.current
     val calories = viewModel.caloriesByDate.collectAsState().value
-    val bia = viewModel.biaEntries.collectAsState().value
+    val muscleData = viewModel.muscleMassByDate.collectAsState().value
+    val fatMassData = viewModel.fatMassByDate.collectAsState().value
+    val fatFreeData = viewModel.fatFreeMassByDate.collectAsState().value
     val weight = viewModel.weightByDate.collectAsState().value
     val isMetric = viewModel.isMetricUnit.collectAsState().value
     val scrollState = rememberScrollState()
@@ -92,20 +89,7 @@ fun ProgressScreen(viewModel: ProgressViewModel = hiltViewModel()) {
             Spacer(Modifier.height(24.dp))
             Text(text = stringResource(id = R.string.bia_progress), color = Color.White, fontSize = 18.sp)
             Spacer(Modifier.height(8.dp))
-            val dayFormatter = remember { DateTimeFormatter.ofPattern("dd MMM", Locale.getDefault()) }
             val unit = if (isMetric) stringResource(R.string.kg_unit) else stringResource(R.string.lbs_unit)
-            val muscleData = bia.map {
-                Instant.ofEpochMilli(it.timestamp).atZone(ZoneId.systemDefault()).toLocalDate()
-                    .format(dayFormatter) to it.skeletalMuscleMass.kgToLbs(isMetric)
-            }
-            val fatMassData = bia.map {
-                Instant.ofEpochMilli(it.timestamp).atZone(ZoneId.systemDefault()).toLocalDate()
-                    .format(dayFormatter) to it.bodyFatMass.kgToLbs(isMetric)
-            }
-            val fatFreeData = bia.map {
-                Instant.ofEpochMilli(it.timestamp).atZone(ZoneId.systemDefault()).toLocalDate()
-                    .format(dayFormatter) to it.fatFreeMass.kgToLbs(isMetric)
-            }
             BiaMetricChart(
                 title = stringResource(R.string.skeletal_muscle_mass) + " ($unit)",
                 data = muscleData,
