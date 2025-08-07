@@ -10,6 +10,7 @@ import researchstack.data.datasource.healthConnect.HealthConnectDataSource
 import researchstack.data.datasource.healthConnect.processExerciseData
 import researchstack.data.datasource.local.pref.EnrollmentDatePref
 import researchstack.data.datasource.local.room.dao.ExerciseDao
+import researchstack.data.datasource.local.room.dao.ComplianceEntryDao
 import researchstack.data.datasource.local.room.dao.ShareAgreementDao
 import researchstack.data.datasource.local.room.dao.StudyDao
 import researchstack.data.local.room.dao.BiaDao
@@ -43,6 +44,7 @@ class HealthConnectDataSyncRepositoryImpl @Inject constructor(
     private val getProfileUseCase: GetProfileUseCase,
     private val studyDao: StudyDao,
     private val exerciseDao: ExerciseDao,
+    private val complianceEntryDao: ComplianceEntryDao,
     private val biaDao: BiaDao,
     private val userProfileDao: UserProfileDao,
     private val enrollmentDatePref: EnrollmentDatePref,
@@ -94,7 +96,10 @@ class HealthConnectDataSyncRepositoryImpl @Inject constructor(
         }.onFailure {
             Log.e(TAG, "fail to load profile", it)
         }
-        return generateWeeklyCompliance()
+        val entries = generateWeeklyCompliance()
+        complianceEntryDao.clear()
+        complianceEntryDao.insertAll(*entries.toTypedArray())
+        return entries
 //        getRequiredHealthDataTypes().forEach { dataType ->
 //            val result: List<TimestampMapData>? = when (dataType) {
 //                SHealthDataType.STEPS -> processStepsData(

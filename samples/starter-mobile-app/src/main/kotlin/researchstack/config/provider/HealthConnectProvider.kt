@@ -12,6 +12,7 @@ import researchstack.data.datasource.healthConnect.HealthConnectDataSource
 import researchstack.data.datasource.local.room.dao.ShareAgreementDao
 import researchstack.data.datasource.local.room.dao.StudyDao
 import researchstack.data.datasource.local.room.dao.ExerciseDao
+import researchstack.data.datasource.local.room.dao.ComplianceEntryDao
 import researchstack.data.local.room.dao.BiaDao
 import researchstack.data.local.room.dao.UserProfileDao
 import researchstack.data.repository.healthConnect.HealthConnectDataSyncRepositoryImpl
@@ -45,6 +46,7 @@ class HealthConnectProvider {
         getProfileUseCase: GetProfileUseCase,
         studyDao: StudyDao,
         exerciseDao: ExerciseDao,
+        complianceEntryDao: ComplianceEntryDao,
         biaDao: BiaDao,
         userProfileDao: UserProfileDao,
         grpcHealthDataSynchronizer: GrpcHealthDataSynchronizer<HealthDataModel>
@@ -58,6 +60,7 @@ class HealthConnectProvider {
         getProfileUseCase,
         studyDao,
         exerciseDao,
+        complianceEntryDao,
         biaDao,
         userProfileDao,
         EnrollmentDatePref(context.dataStore),
