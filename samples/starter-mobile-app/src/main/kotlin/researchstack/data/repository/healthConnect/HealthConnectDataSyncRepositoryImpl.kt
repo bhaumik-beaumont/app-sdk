@@ -245,9 +245,9 @@ class HealthConnectDataSyncRepositoryImpl @Inject constructor(
             val endMillis = periodEnd.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli() - 1
             val exercises = exerciseDao.getExercisesBetween(startMillis, endMillis).first()
             val activityMinutes = TimeUnit.MILLISECONDS.toMinutes(
-                exercises.filter { !isResistance(it.exerciseType.toInt()) }.sumOf { it.duration }
+                exercises.filter { !it.isResistance }.sumOf { it.duration }
             ).toInt()
-            val resistanceCount = exercises.count { isResistance(it.exerciseType.toInt()) }
+            val resistanceCount = exercises.count { it.isResistance }
             val biaCount = biaDao.countBetween(startMillis, endMillis).first()
             val weightCount = userProfileDao.countBetween(startMillis, endMillis).first()
             entries.add(
@@ -265,18 +265,6 @@ class HealthConnectDataSyncRepositoryImpl @Inject constructor(
             weekNumber++
         }
         return entries
-    }
-
-    private fun isResistance(exerciseType: Int): Boolean {
-        return when (exerciseType) {
-            ExerciseSessionRecord.EXERCISE_TYPE_STRENGTH_TRAINING,
-            ExerciseSessionRecord.EXERCISE_TYPE_HIGH_INTENSITY_INTERVAL_TRAINING,
-            ExerciseSessionRecord.EXERCISE_TYPE_PILATES,
-            ExerciseSessionRecord.EXERCISE_TYPE_STRETCHING,
-            ExerciseSessionRecord.EXERCISE_TYPE_YOGA,
-            ExerciseSessionRecord.EXERCISE_TYPE_CALISTHENICS -> true
-            else -> false
-        }
     }
 
     companion object {
