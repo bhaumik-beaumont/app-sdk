@@ -33,7 +33,7 @@ private fun DomainHealthDataType.toGrpcHealthDataType() = when (this) {
     SHealthDataType.TOTAL_CALORIES_BURNED -> HealthDataType.HEALTH_DATA_TYPE_TOTAL_CALORIES_BURNED
     SHealthDataType.BLOOD_GLUCOSE -> HealthDataType.HEALTH_DATA_TYPE_BLOOD_GLUCOSE
     SHealthDataType.EXERCISE -> HealthDataType.HEALTH_DATA_TYPE_EXERCISE
-    SHealthDataType.USER_COMPLIANCE -> HealthDataType.HEALTH_DATA_TYPE_UNSPECIFIED
+    SHealthDataType.USER_COMPLIANCE -> HealthDataType.HEALTH_DATA_TYPE_USER_COMPLIANCE
     SHealthDataType.UNSPECIFIED -> HealthDataType.HEALTH_DATA_TYPE_UNSPECIFIED
 }
 
@@ -47,6 +47,7 @@ private fun PrivDataType.toGrpcHealthDataType() = when (this) {
     PrivDataType.WEAR_SPO2 -> HealthDataType.HEALTH_DATA_TYPE_WEAR_SPO2
     PrivDataType.WEAR_SWEAT_LOSS -> HealthDataType.HEALTH_DATA_TYPE_WEAR_SWEAT_LOSS
     PrivDataType.WEAR_HEART_RATE -> HealthDataType.HEALTH_DATA_TYPE_WEAR_HEART_RATE
+    PrivDataType.WEAR_USER_PROFILE -> HealthDataType.HEALTH_DATA_TYPE_UNSPECIFIED
 }
 
 private fun DeviceStatDataType.toGrpcHealthDataType() = when (this) {

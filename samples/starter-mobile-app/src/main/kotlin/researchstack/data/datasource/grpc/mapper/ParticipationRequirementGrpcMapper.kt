@@ -1,6 +1,7 @@
 package researchstack.data.datasource.grpc.mapper
 
 import researchstack.backend.grpc.GetParticipationRequirementListResponse
+import researchstack.backend.grpc.HealthData.HealthDataType.*
 import researchstack.backend.grpc.HealthData.HealthDataType.HEALTH_DATA_TYPE_ACCELEROMETER
 import researchstack.backend.grpc.HealthData.HealthDataType.HEALTH_DATA_TYPE_BATTERY
 import researchstack.backend.grpc.HealthData.HealthDataType.HEALTH_DATA_TYPE_BLOOD_GLUCOSE
@@ -179,6 +180,7 @@ fun GrpcHealthDataType.toDomain() =
         HEALTH_DATA_TYPE_DEVICE_STAT_WEAR_BATTERY -> DeviceStatDataType.WEAR_BATTERY
         HEALTH_DATA_TYPE_DEVICE_STAT_WEAR_OFF_BODY -> DeviceStatDataType.WEAR_OFF_BODY
         HEALTH_DATA_TYPE_DEVICE_STAT_WEAR_POWER_ON_OFF -> DeviceStatDataType.WEAR_POWER_ON_OFF
+        HEALTH_DATA_TYPE_USER_COMPLIANCE -> SHealthDataType.USER_COMPLIANCE
     }
 
 fun GrpcAnswer.getType(): QuestionType {

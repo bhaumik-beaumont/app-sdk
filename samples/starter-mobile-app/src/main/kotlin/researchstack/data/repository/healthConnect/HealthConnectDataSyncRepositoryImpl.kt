@@ -168,7 +168,7 @@ class HealthConnectDataSyncRepositoryImpl @Inject constructor(
             shareAgreementRepository.getApprovalShareAgreementWithStudyAndDataType(
                 it.id,
                 dataType.name
-            )
+            ) || dataType == SHealthDataType.USER_COMPLIANCE
         }
         approvedStudies.forEach { study ->
             grpcHealthDataSynchronizer.syncHealthData(

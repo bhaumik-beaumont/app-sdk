@@ -232,4 +232,5 @@
     <string name="bia_progress">BIA Progress</string>
     <string name="view_progress">View Progress</string>
     <string name="weight_progress">Weight Progress</string>
+    <string name="user_compliance">User Compliance</string>
 </resources>
