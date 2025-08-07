@@ -41,6 +41,7 @@ import com.patrykandpatrick.vico.core.marker.Marker
 import com.patrykandpatrick.vico.core.marker.MarkerLabelFormatter
 import researchstack.R
 import researchstack.presentation.LocalNavController
+import researchstack.presentation.viewmodel.ChartEntry
 import researchstack.presentation.viewmodel.ProgressViewModel
 import researchstack.presentation.util.toDecimalFormat
 
@@ -124,7 +125,7 @@ fun ProgressScreen(viewModel: ProgressViewModel = hiltViewModel()) {
 }
 
 @Composable
-private fun CalorieChart(data: List<Pair<String, Float>>) {
+private fun CalorieChart(data: List<ChartEntry>) {
     if (data.isEmpty()) {
         Text(text = stringResource(id = R.string.no_data_available), color = Color.White)
         return
@@ -132,10 +133,10 @@ private fun CalorieChart(data: List<Pair<String, Float>>) {
     val modelProducer = remember { ChartEntryModelProducer() }
     val marker = rememberSimpleMarker()
     LaunchedEffect(data) {
-        modelProducer.setEntries(data.mapIndexed { index, pair -> entryOf(index.toFloat(), pair.second) })
+        modelProducer.setEntries(data.mapIndexed { index, entry -> entryOf(index.toFloat(), entry.value) })
     }
     val formatter = AxisValueFormatter<AxisPosition.Horizontal.Bottom> { value, _ ->
-        data.getOrNull(value.toInt())?.first ?: ""
+        data.getOrNull(value.toInt())?.label ?: ""
     }
     val lineColor = Color(0xFF64B5F6)
     Chart(
@@ -148,7 +149,7 @@ private fun CalorieChart(data: List<Pair<String, Float>>) {
 }
 
 @Composable
-private fun BiaMetricChart(title: String, data: List<Pair<String, Float>>, unit: String, lineColor: Color) {
+private fun BiaMetricChart(title: String, data: List<ChartEntry>, unit: String, lineColor: Color) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF333333)),
@@ -163,10 +164,10 @@ private fun BiaMetricChart(title: String, data: List<Pair<String, Float>>, unit:
                 val modelProducer = remember { ChartEntryModelProducer() }
                 val marker = rememberBiaMarker(data, unit)
                 LaunchedEffect(data) {
-                    modelProducer.setEntries(data.mapIndexed { index, pair -> entryOf(index.toFloat(), pair.second) })
+                    modelProducer.setEntries(data.mapIndexed { index, entry -> entryOf(index.toFloat(), entry.value) })
                 }
                 val formatter = AxisValueFormatter<AxisPosition.Horizontal.Bottom> { value, _ ->
-                    data.getOrNull(value.toInt())?.first ?: ""
+                    data.getOrNull(value.toInt())?.label ?: ""
                 }
                 Chart(
                     chart = lineChart(lines = listOf(lineSpec(lineColor, point = shapeComponent(Shapes.pillShape, lineColor)))),
@@ -196,7 +197,7 @@ private fun rememberSimpleMarker(): Marker {
 }
 
 @Composable
-private fun rememberBiaMarker(data: List<Pair<String, Float>>, unit: String): Marker {
+private fun rememberBiaMarker(data: List<ChartEntry>, unit: String): Marker {
     val label = textComponent(
         color = Color.White,
         background = shapeComponent(Shapes.pillShape, Color.DarkGray)
@@ -210,9 +211,9 @@ private fun rememberBiaMarker(data: List<Pair<String, Float>>, unit: String): Ma
     ).apply {
         labelFormatter = MarkerLabelFormatter { markedEntries, _ ->
             val index = markedEntries.firstOrNull()?.entry?.x?.toInt() ?: 0
-            val date = data.getOrNull(index)?.first ?: ""
+            val label = data.getOrNull(index)?.label ?: ""
             val value = markedEntries.firstOrNull()?.entry?.y?.toFloat() ?: 0f
-            "$date ${value.toDecimalFormat(2)} $unit"
+            "$label ${value.toDecimalFormat(2)} $unit"
         }
     }
 }
