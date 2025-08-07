@@ -150,7 +150,7 @@ class ComplianceCheckReceiver : DaggerBroadcastReceiver() {
                 minutes,
                 WEEKLY_ACTIVITY_GOAL_MINUTES
             )
-            else -> context.getString(R.string.weekly_message_activity_complete, minutes)
+            else -> ""
         }
     }
 
@@ -158,7 +158,7 @@ class ComplianceCheckReceiver : DaggerBroadcastReceiver() {
         return when (count) {
             0 -> context.getString(R.string.weekly_message_resistance_none)
             1 -> context.getString(R.string.weekly_message_resistance_one)
-            else -> context.getString(R.string.weekly_message_resistance_multi, count)
+            else -> ""
         }
     }
 
@@ -166,7 +166,7 @@ class ComplianceCheckReceiver : DaggerBroadcastReceiver() {
         return if (count == 0) {
             context.getString(R.string.weekly_message_bia_none)
         } else {
-            context.getString(R.string.weekly_message_bia_logged)
+            ""
         }
     }
 
@@ -174,7 +174,7 @@ class ComplianceCheckReceiver : DaggerBroadcastReceiver() {
         return if (count == 0) {
             context.getString(R.string.weekly_message_weight_none)
         } else {
-            context.getString(R.string.weekly_message_weight_logged)
+            ""
         }
     }
 }

@@ -236,12 +236,8 @@
     <!-- Weekly compliance messages -->
     <string name="weekly_message_activity_none">You haven’t logged any activity this week. Try to stay active for better results.</string>
     <string name="weekly_message_activity_partial">You’ve logged %1$d minutes of activity. Try to reach %2$d minutes this week!</string>
-    <string name="weekly_message_activity_complete">Great job! You’ve met your activity goal with %1$d minutes!</string>
     <string name="weekly_message_resistance_none">You haven’t completed any resistance training sessions this week. Let’s get moving!</string>
     <string name="weekly_message_resistance_one">You’ve completed 1 resistance training session. Aim for 2 sessions each week.</string>
-    <string name="weekly_message_resistance_multi">Awesome! You’ve completed %1$d resistance training sessions this week!</string>
     <string name="weekly_message_bia_none">Don’t forget to record your body composition this week.</string>
-    <string name="weekly_message_bia_logged">Body composition recorded for this week. Keep it up!</string>
     <string name="weekly_message_weight_none">Update your weight once this week to track your progress.</string>
-    <string name="weekly_message_weight_logged">Weight record for the week received. Nice work staying on track!</string>
 </resources>
