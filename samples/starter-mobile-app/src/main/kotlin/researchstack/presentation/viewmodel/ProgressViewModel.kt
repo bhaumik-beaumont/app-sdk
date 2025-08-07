@@ -73,7 +73,7 @@ class ProgressViewModel @Inject constructor(
                     }.mapValues { entry ->
                         entry.value.sumOf { it.calorie }.toFloat()
                     }
-                    _caloriesByDate.value = aggregateFloatData(daily)
+                    _caloriesByDate.value = aggregateFloatData(daily, sum = true)
                 }
             }
             launch {
@@ -117,7 +117,7 @@ class ProgressViewModel @Inject constructor(
         }
     }
 
-    private fun aggregateFloatData(daily: Map<LocalDate, Float>): List<ChartEntry> {
+    private fun aggregateFloatData(daily: Map<LocalDate, Float>, sum: Boolean = false): List<ChartEntry> {
         val sorted = daily.toSortedMap()
         if (sorted.isEmpty()) return emptyList()
 
@@ -127,10 +127,10 @@ class ProgressViewModel @Inject constructor(
         val dailyEntries = groupByDay(sorted, start, end)
         if (dailyEntries.size <= 6) return dailyEntries
 
-        val weeklyEntries = groupByWeek(sorted, start, end)
+        val weeklyEntries = groupByWeek(sorted, start, end, sum)
         if (weeklyEntries.size <= 6) return weeklyEntries
 
-        return groupByMonth(sorted, start, end).takeLast(6)
+        return groupByMonth(sorted, start, end, sum).takeLast(6)
     }
 
     private fun groupByDay(data: Map<LocalDate, Float>, start: LocalDate, end: LocalDate): List<ChartEntry> {
@@ -141,25 +141,29 @@ class ProgressViewModel @Inject constructor(
         }
     }
 
-    private fun groupByWeek(data: Map<LocalDate, Float>, start: LocalDate, end: LocalDate): List<ChartEntry> {
+    private fun groupByWeek(data: Map<LocalDate, Float>, start: LocalDate, end: LocalDate, sum: Boolean): List<ChartEntry> {
         val weeks = ChronoUnit.WEEKS.between(start, end).toInt() + 1
         return (0 until weeks).map { index ->
             val weekStart = start.plusWeeks(index.toLong())
             val weekEnd = weekStart.plusDays(6)
             val values = data.filterKeys { !it.isBefore(weekStart) && !it.isAfter(weekEnd) }.values
-            val avg = if (values.isNotEmpty()) values.average().toFloat() else 0f
-            ChartEntry("Week-${index + 1}", avg)
+            val value = if (values.isNotEmpty()) {
+                if (sum) values.sum() else values.average().toFloat()
+            } else 0f
+            ChartEntry("Week-${index + 1}", value)
         }
     }
 
-    private fun groupByMonth(data: Map<LocalDate, Float>, start: LocalDate, end: LocalDate): List<ChartEntry> {
+    private fun groupByMonth(data: Map<LocalDate, Float>, start: LocalDate, end: LocalDate, sum: Boolean): List<ChartEntry> {
         val months = ChronoUnit.MONTHS.between(start, end).toInt() + 1
         return (0 until months).map { index ->
             val monthStart = start.plusMonths(index.toLong())
             val nextMonthStart = monthStart.plusMonths(1)
             val values = data.filterKeys { !it.isBefore(monthStart) && it.isBefore(nextMonthStart) }.values
-            val avg = if (values.isNotEmpty()) values.average().toFloat() else 0f
-            ChartEntry("Month-${index + 1}", avg)
+            val value = if (values.isNotEmpty()) {
+                if (sum) values.sum() else values.average().toFloat()
+            } else 0f
+            ChartEntry("Month-${index + 1}", value)
         }
     }
 }
