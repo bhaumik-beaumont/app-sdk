@@ -31,7 +31,7 @@ class SyncDataWorker @AssistedInject constructor(
             listOf<suspend () -> Unit>(
                 { syncTrackerDataUseCase() },
                 { syncWearableDataUseCase() },
-                { syncHealthConnectDataUseCase().let { } }
+                { syncHealthConnectDataUseCase() }
             ).forEach { func ->
                 CoroutineScope(Dispatchers.IO).launch {
                     kotlin.runCatching { func() }.onFailure {

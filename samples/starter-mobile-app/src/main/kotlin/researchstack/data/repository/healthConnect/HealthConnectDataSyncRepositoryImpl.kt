@@ -50,7 +50,7 @@ class HealthConnectDataSyncRepositoryImpl @Inject constructor(
     private val enrollmentDatePref: EnrollmentDatePref,
     private val grpcHealthDataSynchronizer: GrpcHealthDataSynchronizer<HealthDataModel>
 ) : HealthConnectDataSyncRepository {
-    override suspend fun syncHealthData(): List<ComplianceEntry> {
+    override suspend fun syncHealthData() {
         getProfileUseCase().onSuccess { profile ->
             getRequiredHealthDataTypes().forEach { dataType ->
                 val result: List<TimestampMapData>? = when (dataType) {
@@ -99,7 +99,6 @@ class HealthConnectDataSyncRepositoryImpl @Inject constructor(
         val entries = generateWeeklyCompliance()
         complianceEntryDao.clear()
         complianceEntryDao.insertAll(*entries.toTypedArray())
-        return entries
 //        getRequiredHealthDataTypes().forEach { dataType ->
 //            val result: List<TimestampMapData>? = when (dataType) {
 //                SHealthDataType.STEPS -> processStepsData(
