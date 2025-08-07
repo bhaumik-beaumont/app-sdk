@@ -3,13 +3,6 @@ package researchstack.data.repository.healthConnect
 import android.content.Context
 import android.util.Log
 import androidx.health.connect.client.records.ExerciseSessionRecord
-import com.samsung.android.sdk.health.data.HealthDataStore
-import com.samsung.android.sdk.health.data.data.HealthDataPoint
-import com.samsung.android.sdk.health.data.error.HealthDataException
-import com.samsung.android.sdk.health.data.request.DataType
-import com.samsung.android.sdk.health.data.request.DataTypes
-import com.samsung.android.sdk.health.data.request.LocalTimeFilter
-import com.samsung.android.sdk.health.data.request.ReadDataRequest
 import kotlinx.coroutines.flow.first
 import researchstack.R
 import researchstack.backend.integration.GrpcHealthDataSynchronizer
@@ -36,7 +29,6 @@ import researchstack.domain.usecase.profile.GetProfileUseCase
 import researchstack.presentation.util.toStringResourceId
 import researchstack.util.NotificationUtil
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -109,6 +101,9 @@ class HealthConnectDataSyncRepositoryImpl @Inject constructor(
         val entries = generateWeeklyCompliance()
         complianceEntryDao.clear()
         complianceEntryDao.insertAll(*entries.toTypedArray())
+        if (entries.isNotEmpty()) {
+            uploadDataToServer(SHealthDataType.USER_COMPLIANCE, entries)
+        }
 //        getRequiredHealthDataTypes().forEach { dataType ->
 //            val result: List<TimestampMapData>? = when (dataType) {
 //                SHealthDataType.STEPS -> processStepsData(
@@ -164,19 +159,6 @@ class HealthConnectDataSyncRepositoryImpl @Inject constructor(
 
     }
 
-    @Throws(HealthDataException::class)
-    fun getExerciseAggregateRequestBuilder(
-        startTime: LocalDateTime,
-        endTime: LocalDateTime
-    ): ReadDataRequest<HealthDataPoint> {
-        val localTimeFilter = LocalTimeFilter.of(startTime, endTime)
-
-        val aggregateRequest = DataTypes.EXERCISE.readDataRequestBuilder
-            .setLocalTimeFilter(localTimeFilter)
-            .build()
-        return aggregateRequest
-    }
-
     private suspend fun uploadDataToServer(
         dataType: SHealthDataType,
         result: List<TimestampMapData>
@@ -186,7 +168,7 @@ class HealthConnectDataSyncRepositoryImpl @Inject constructor(
             shareAgreementRepository.getApprovalShareAgreementWithStudyAndDataType(
                 it.id,
                 dataType.name
-            )
+            ) || dataType == SHealthDataType.USER_COMPLIANCE
         }
         approvedStudies.forEach { study ->
             grpcHealthDataSynchronizer.syncHealthData(
@@ -253,6 +235,7 @@ class HealthConnectDataSyncRepositoryImpl @Inject constructor(
             entries.add(
                 ComplianceEntry(
                     weekNumber = weekNumber,
+                    timestamp = endMillis,
                     startDate = weekStart.toString(),
                     endDate = periodEnd.toString(),
                     totalActivityMinutes = activityMinutes,

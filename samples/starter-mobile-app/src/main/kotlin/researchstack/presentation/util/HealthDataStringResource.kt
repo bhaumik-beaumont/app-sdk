@@ -20,6 +20,7 @@ private fun SHealthDataType.toStringResourceId(): Int =
         SHealthDataType.WEIGHT -> string.weight
         SHealthDataType.RESPIRATORY_RATE -> string.respiratory_rate
         SHealthDataType.TOTAL_CALORIES_BURNED -> string.total_calories_burned
+        SHealthDataType.USER_COMPLIANCE -> string.user_compliance
         SHealthDataType.UNSPECIFIED -> string.unspecified
     }
 

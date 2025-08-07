@@ -211,5 +211,6 @@
     <string name="fat_free_mass">Fat Free Mass</string>
     <string name="view_progress">View Progress</string>
     <string name="weight_progress">Weight Progress</string>
+    <string name="user_compliance">User Compliance</string>
 
 </resources>

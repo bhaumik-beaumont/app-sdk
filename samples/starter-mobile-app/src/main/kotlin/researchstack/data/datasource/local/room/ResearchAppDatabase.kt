@@ -36,7 +36,7 @@ import researchstack.domain.model.sensor.Accelerometer
 import researchstack.domain.model.sensor.Light
 
 @Database(
-    version = 7,
+    version = 8,
     exportSchema = false,
     entities = [
         StudyEntity::class,

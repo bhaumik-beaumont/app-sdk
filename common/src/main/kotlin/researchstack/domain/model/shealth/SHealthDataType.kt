@@ -16,5 +16,6 @@ enum class SHealthDataType : HealthTypeEnum {
     // etc
     RESPIRATORY_RATE,
     TOTAL_CALORIES_BURNED,
+    USER_COMPLIANCE,
     UNSPECIFIED,
 }
