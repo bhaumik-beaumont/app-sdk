@@ -25,6 +25,8 @@ import java.time.temporal.ChronoUnit
 import java.util.Locale
 import javax.inject.Inject
 
+data class ChartEntry(val label: String, val value: Float)
+
 @HiltViewModel
 class ProgressViewModel @Inject constructor(
     application: Application,
@@ -35,22 +37,21 @@ class ProgressViewModel @Inject constructor(
 ) : AndroidViewModel(application) {
 
     private val dayFormatter = DateTimeFormatter.ofPattern("MMM dd", Locale.getDefault())
-    private val monthFormatter = DateTimeFormatter.ofPattern("MMM yyyy", Locale.getDefault())
 
-    private val _caloriesByDate = MutableStateFlow<List<Pair<String, Float>>>(emptyList())
-    val caloriesByDate: StateFlow<List<Pair<String, Float>>> = _caloriesByDate
+    private val _caloriesByDate = MutableStateFlow<List<ChartEntry>>(emptyList())
+    val caloriesByDate: StateFlow<List<ChartEntry>> = _caloriesByDate
 
-    private val _muscleMassByDate = MutableStateFlow<List<Pair<String, Float>>>(emptyList())
-    val muscleMassByDate: StateFlow<List<Pair<String, Float>>> = _muscleMassByDate
+    private val _muscleMassByDate = MutableStateFlow<List<ChartEntry>>(emptyList())
+    val muscleMassByDate: StateFlow<List<ChartEntry>> = _muscleMassByDate
 
-    private val _fatMassByDate = MutableStateFlow<List<Pair<String, Float>>>(emptyList())
-    val fatMassByDate: StateFlow<List<Pair<String, Float>>> = _fatMassByDate
+    private val _fatMassByDate = MutableStateFlow<List<ChartEntry>>(emptyList())
+    val fatMassByDate: StateFlow<List<ChartEntry>> = _fatMassByDate
 
-    private val _fatFreeMassByDate = MutableStateFlow<List<Pair<String, Float>>>(emptyList())
-    val fatFreeMassByDate: StateFlow<List<Pair<String, Float>>> = _fatFreeMassByDate
+    private val _fatFreeMassByDate = MutableStateFlow<List<ChartEntry>>(emptyList())
+    val fatFreeMassByDate: StateFlow<List<ChartEntry>> = _fatFreeMassByDate
 
-    private val _weightByDate = MutableStateFlow<List<Pair<String, Float>>>(emptyList())
-    val weightByDate: StateFlow<List<Pair<String, Float>>> = _weightByDate
+    private val _weightByDate = MutableStateFlow<List<ChartEntry>>(emptyList())
+    val weightByDate: StateFlow<List<ChartEntry>> = _weightByDate
 
     private val _isMetricUnit = MutableStateFlow(true)
     val isMetricUnit: StateFlow<Boolean> = _isMetricUnit
@@ -116,37 +117,49 @@ class ProgressViewModel @Inject constructor(
         }
     }
 
-    private fun aggregateFloatData(daily: Map<LocalDate, Float>): List<Pair<String, Float>> {
+    private fun aggregateFloatData(daily: Map<LocalDate, Float>): List<ChartEntry> {
         val sorted = daily.toSortedMap()
         if (sorted.isEmpty()) return emptyList()
 
-        if (sorted.size <= 6) {
-            return sorted.map { (date, value) -> date.format(dayFormatter) to value }
-        }
-
         val start = enrollmentDate ?: sorted.firstKey()
-        val weekGroups = sorted.entries.groupBy { entry ->
-            val days = ChronoUnit.DAYS.between(start, entry.key).toInt()
-            start.plusDays((days / 7) * 7L)
-        }
-        val weekData = weekGroups.toSortedMap().map { (weekStart, entries) ->
-            val avg = entries.map { it.value }.average().toFloat()
-            val end = weekStart.plusDays(6)
-            val label = "${weekStart.format(dayFormatter)} - ${end.format(dayFormatter)}"
-            label to avg
-        }
-        if (weekData.size <= 6) {
-            return weekData
-        }
+        val end = sorted.lastKey()
 
-        val monthGroups = sorted.entries.groupBy { entry ->
-            val months = ChronoUnit.MONTHS.between(start, entry.key).toInt()
-            start.plusMonths(months.toLong())
+        val dailyEntries = groupByDay(sorted, start, end)
+        if (dailyEntries.size <= 6) return dailyEntries
+
+        val weeklyEntries = groupByWeek(sorted, start, end)
+        if (weeklyEntries.size <= 6) return weeklyEntries
+
+        return groupByMonth(sorted, start, end).takeLast(6)
+    }
+
+    private fun groupByDay(data: Map<LocalDate, Float>, start: LocalDate, end: LocalDate): List<ChartEntry> {
+        val days = ChronoUnit.DAYS.between(start, end).toInt() + 1
+        return (0 until days).map { offset ->
+            val date = start.plusDays(offset.toLong())
+            ChartEntry(date.format(dayFormatter), data[date] ?: 0f)
         }
-        val monthData = monthGroups.toSortedMap().map { (monthStart, entries) ->
-            val avg = entries.map { it.value }.average().toFloat()
-            monthStart.format(monthFormatter) to avg
+    }
+
+    private fun groupByWeek(data: Map<LocalDate, Float>, start: LocalDate, end: LocalDate): List<ChartEntry> {
+        val weeks = ChronoUnit.WEEKS.between(start, end).toInt() + 1
+        return (0 until weeks).map { index ->
+            val weekStart = start.plusWeeks(index.toLong())
+            val weekEnd = weekStart.plusDays(6)
+            val values = data.filterKeys { !it.isBefore(weekStart) && !it.isAfter(weekEnd) }.values
+            val avg = if (values.isNotEmpty()) values.average().toFloat() else 0f
+            ChartEntry("Week-${index + 1}", avg)
         }
-        return monthData.takeLast(6)
+    }
+
+    private fun groupByMonth(data: Map<LocalDate, Float>, start: LocalDate, end: LocalDate): List<ChartEntry> {
+        val months = ChronoUnit.MONTHS.between(start, end).toInt() + 1
+        return (0 until months).map { index ->
+            val monthStart = start.plusMonths(index.toLong())
+            val nextMonthStart = monthStart.plusMonths(1)
+            val values = data.filterKeys { !it.isBefore(monthStart) && it.isBefore(nextMonthStart) }.values
+            val avg = if (values.isNotEmpty()) values.average().toFloat() else 0f
+            ChartEntry("Month-${index + 1}", avg)
+        }
     }
 }
