@@ -33,6 +33,7 @@ private fun DomainHealthDataType.toGrpcHealthDataType() = when (this) {
     SHealthDataType.TOTAL_CALORIES_BURNED -> HealthDataType.HEALTH_DATA_TYPE_TOTAL_CALORIES_BURNED
     SHealthDataType.BLOOD_GLUCOSE -> HealthDataType.HEALTH_DATA_TYPE_BLOOD_GLUCOSE
     SHealthDataType.EXERCISE -> HealthDataType.HEALTH_DATA_TYPE_EXERCISE
+    SHealthDataType.USER_COMPLIANCE -> HealthDataType.HEALTH_DATA_TYPE_UNSPECIFIED
     SHealthDataType.UNSPECIFIED -> HealthDataType.HEALTH_DATA_TYPE_UNSPECIFIED
 }
 
