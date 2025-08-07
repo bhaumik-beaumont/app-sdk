@@ -1,5 +1,6 @@
 package researchstack.domain.model
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import researchstack.domain.model.TimestampMapData
@@ -17,6 +18,8 @@ data class ComplianceEntry(
     val resistanceSessionCount: Int,
     val biaRecordCount: Int,
     val weightRecordCount: Int,
+    @ColumnInfo(defaultValue = "0")
+    val avgWeight: Float = 0F,
     override val timeOffset: Int = getCurrentTimeOffset(),
 ) : TimestampMapData {
     override fun toDataMap(): Map<String, Any> = mapOf(
@@ -28,6 +31,7 @@ data class ComplianceEntry(
         ::resistanceSessionCount.name to resistanceSessionCount,
         ::biaRecordCount.name to biaRecordCount,
         ::weightRecordCount.name to weightRecordCount,
+        ::avgWeight.name to avgWeight,
         ::timeOffset.name to timeOffset,
     )
 }

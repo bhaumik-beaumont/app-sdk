@@ -5,6 +5,8 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import researchstack.data.datasource.local.room.converter.EligibilityConverter
 import researchstack.data.datasource.local.room.converter.LocalDateTimeConverter
 import researchstack.data.datasource.local.room.converter.MapConverter
@@ -32,11 +34,12 @@ import researchstack.data.datasource.local.room.entity.StudyEntity
 import researchstack.data.datasource.local.room.entity.TaskEntity
 import researchstack.domain.model.healthConnect.Exercise
 import researchstack.domain.model.ComplianceEntry
+import researchstack.domain.model.COMPLIANCE_ENTRY_TABLE_NAME
 import researchstack.domain.model.sensor.Accelerometer
 import researchstack.domain.model.sensor.Light
 
 @Database(
-    version = 8,
+    version = 9,
     exportSchema = false,
     entities = [
         StudyEntity::class,
@@ -80,6 +83,12 @@ abstract class ResearchAppDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: ResearchAppDatabase? = null
 
+        private val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE $COMPLIANCE_ENTRY_TABLE_NAME ADD COLUMN avgWeight REAL NOT NULL DEFAULT 0")
+            }
+        }
+
         fun getDatabase(
             context: Context,
         ): ResearchAppDatabase =
@@ -89,6 +98,7 @@ abstract class ResearchAppDatabase : RoomDatabase() {
                     ResearchAppDatabase::class.java,
                     "research_app_db"
                 )
+                    .addMigrations(MIGRATION_8_9)
                     .fallbackToDestructiveMigration()
                     .addTypeConverter(EligibilityConverter())
                     .addTypeConverter(LocalDateTimeConverter())
