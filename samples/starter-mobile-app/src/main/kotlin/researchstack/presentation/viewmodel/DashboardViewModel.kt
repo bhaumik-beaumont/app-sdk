@@ -74,6 +74,15 @@ class DashboardViewModel @Inject constructor(
     private val _weight = MutableStateFlow("--")
     val weight: StateFlow<String> = _weight
 
+    private val _currentWeek = MutableStateFlow(1)
+    val currentWeek: StateFlow<Int> = _currentWeek
+
+    private val _currentDay = MutableStateFlow(1)
+    val currentDay: StateFlow<Int> = _currentDay
+
+    private val _weightCount = MutableStateFlow(0)
+    val weightCount: StateFlow<Int> = _weightCount
+
     init {
         refreshData()
     }
@@ -84,10 +93,15 @@ class DashboardViewModel @Inject constructor(
             if (studyId != null) {
                 val enrollmentDate = enrollmentDatePref.getEnrollmentDate(studyId)
                 enrollmentDate?.let { dateString ->
-                    val weekStart = calculateCurrentWeekStart(LocalDate.parse(dateString))
+                    val enrollmentLocalDate = LocalDate.parse(dateString)
+                    val weekStart = calculateCurrentWeekStart(enrollmentLocalDate)
                     _weekStart.value = weekStart
                     val startMillis = weekStart.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
                     val endMillis = startMillis + TimeUnit.DAYS.toMillis(7)
+
+                    val daysSinceEnrollment = ChronoUnit.DAYS.between(enrollmentLocalDate, LocalDate.now()).toInt()
+                    _currentWeek.value = daysSinceEnrollment / 7 + 1
+                    _currentDay.value = daysSinceEnrollment % 7 + 1
 
                     launch {
                         biaDao.countBetween(startMillis, endMillis).collect { count ->
@@ -100,6 +114,7 @@ class DashboardViewModel @Inject constructor(
                         userProfileDao.countBetween(startMillis, endMillis).collect { count ->
                             val progress = if (count > 0) 100 else 0
                             _weightProgressPercent.value = progress
+                            _weightCount.value = count
                         }
                     }
                     viewModelScope.launch(Dispatchers.IO) {
