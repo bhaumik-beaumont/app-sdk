@@ -81,6 +81,7 @@ fun DashboardScreen(
 ) {
     val context = LocalContext.current
     val weeklyTab = stringResource(id = R.string.weekly)
+    val adherenceTab = stringResource(id = R.string.adherence)
     var activeTab by remember { mutableStateOf(weeklyTab) }
     var showSyncDialog by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
@@ -311,19 +312,21 @@ fun DashboardScreen(
                             horizontalArrangement = Arrangement.spacedBy(32.dp)
                         ) {
                             TabButton(
-                                stringResource(id = R.string.weekly),
-                                activeTab == stringResource(id = R.string.weekly)
+                                weeklyTab,
+                                activeTab == weeklyTab
                             ) {
+                                activeTab = weeklyTab
                             }
                             TabButton(
-                                stringResource(id = R.string.adherence),
-                                activeTab == stringResource(id = R.string.adherence)
+                                adherenceTab,
+                                activeTab == adherenceTab
                             ) {
+                                activeTab = adherenceTab
                             }
                         }
                         Spacer(Modifier.height(16.dp))
 
-                        if (activeTab == stringResource(id = R.string.weekly)) {
+                        if (activeTab == weeklyTab) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier.clickable { navController.navigate(Route.WeeklyProgress.name) }
@@ -362,6 +365,8 @@ fun DashboardScreen(
                                     Color(0xFFFFA500)
                                 )
                             }
+                        } else {
+                            AdherenceTabScreen(dashboardViewModel)
                         }
                     }
                 }
