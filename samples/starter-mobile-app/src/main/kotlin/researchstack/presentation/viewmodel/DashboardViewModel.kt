@@ -36,6 +36,7 @@ class DashboardViewModel @Inject constructor(
 
     companion object {
         const val ACTIVITY_GOAL_MINUTES = 150
+        const val RESISTANCE_SESSION_GOAL = 2
     }
 
     private val enrollmentDatePref = EnrollmentDatePref(application.dataStore)
@@ -112,8 +113,8 @@ class DashboardViewModel @Inject constructor(
                     }
 
                     exerciseDao.getExercisesFrom(startMillis).collect { list ->
-                        val resistanceList = list.filter { isResistance(it.exerciseType.toInt()) }
-                        val exerciseList = list.filterNot { isResistance(it.exerciseType.toInt()) }
+                        val resistanceList = list.filter { it.isResistance }
+                        val exerciseList = list.filterNot {it.isResistance }
 
                         _resistanceExercises.value = resistanceList
                         _exercises.value = exerciseList
@@ -127,27 +128,16 @@ class DashboardViewModel @Inject constructor(
                         val resistanceMillis = resistanceList.sumOf { it.endTime - it.startTime }
                         val resistanceMinutes = TimeUnit.MILLISECONDS.toMinutes(resistanceMillis)
                         _resistanceDurationMinutes.value = resistanceMinutes
-                        val resistanceProgress = ((resistanceMinutes * 100f) / ACTIVITY_GOAL_MINUTES).coerceAtMost(100f)
-                        _resistanceProgressPercent.value = resistanceProgress.toInt()
+                        val resistanceProgress = resistanceList.size * 100 / RESISTANCE_SESSION_GOAL
+                        _resistanceProgressPercent.value = if (resistanceProgress > 100) {
+                            100
+                        } else {
+                            resistanceProgress
+                        }
                     }
                 }
             }
         }
-    }
-
-    fun isResistance(exerciseType:Int) : Boolean{
-        return when(exerciseType){
-            ExerciseSessionRecord.Companion.EXERCISE_TYPE_STRENGTH_TRAINING,
-            ExerciseSessionRecord.Companion.EXERCISE_TYPE_HIGH_INTENSITY_INTERVAL_TRAINING,
-            ExerciseSessionRecord.Companion.EXERCISE_TYPE_PILATES,
-            ExerciseSessionRecord.Companion.EXERCISE_TYPE_STRETCHING,
-            ExerciseSessionRecord.Companion.EXERCISE_TYPE_YOGA,
-            ExerciseSessionRecord.Companion.EXERCISE_TYPE_CALISTHENICS->
-                true
-
-            else -> false
-        }
-
     }
 
     private fun calculateCurrentWeekStart(enrollmentDate: LocalDate): LocalDate {

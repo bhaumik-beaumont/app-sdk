@@ -9,6 +9,8 @@ import androidx.health.connect.client.records.HeartRateRecord
 import androidx.health.connect.client.records.OxygenSaturationRecord
 import androidx.health.connect.client.records.SleepSessionRecord
 import androidx.health.connect.client.records.StepsRecord
+import com.samsung.android.sdk.health.data.data.HealthDataPoint
+import com.samsung.android.sdk.health.data.request.DataType
 import researchstack.domain.model.healthConnect.Exercise
 import researchstack.data.datasource.local.pref.EnrollmentDatePref
 import researchstack.domain.model.shealth.SHealthDataType
@@ -140,9 +142,11 @@ suspend fun processExerciseData(
     record: ExerciseSessionRecord,
     sessionData: ExerciseSessionData,
     studyId: String,
-    enrollmentDatePref: EnrollmentDatePref
+    enrollmentDatePref: EnrollmentDatePref,
+    samsungRecord: HealthDataPoint?
 ): Exercise {
-
+    val exerciseType = samsungRecord?.getValue(DataType.ExerciseType.EXERCISE_TYPE)?.name
+    val exerciseOrdinal = samsungRecord?.getValue(DataType.ExerciseType.EXERCISE_TYPE)?.ordinal?.toLong()
     val name = EXERCISE_TYPE_INT_TO_STRING_MAP[record.exerciseType]
     val enrollmentDateStr = enrollmentDatePref.getEnrollmentDate(studyId)
     val weekNumber = enrollmentDateStr?.let { dateString ->
@@ -158,8 +162,8 @@ suspend fun processExerciseData(
         timestamp = record.startTime.toEpochMilli(),
         startTime = record.startTime.toEpochMilli(),
         endTime = record.endTime.toEpochMilli(),
-        exerciseType = record.exerciseType.toLong(),
-        exerciseName = name ?: "",
+        exerciseType = exerciseOrdinal ?: record.exerciseType.toLong(),
+        exerciseName = exerciseType ?: name ?: "",
         calorie = (sessionData.totalEnergyBurned?.inCalories ?: 0.0).toInt()/1000*1.0,
         duration = sessionData.totalActiveTime?.toMillis() ?: 0,
         timeOffset = getCurrentTimeOffset(),
@@ -170,8 +174,47 @@ suspend fun processExerciseData(
         distance = sessionData.totalDistance?.inMeters ?: 0.00,
         maxSpeed = sessionData.maxSpeed ?: 0.00,
         meanSpeed = sessionData.meanSpeed ?: 0.00,
+        isResistance = isResistance(exerciseOrdinal?.toInt()?:0)
     )
     return exercise
+}
+
+private fun isResistance(exerciseOrdinal: Int): Boolean {
+    when (exerciseOrdinal) {
+        DataType.ExerciseType.PredefinedExerciseType.ARCHERY.ordinal,
+        DataType.ExerciseType.PredefinedExerciseType.ARM_CURLS.ordinal,
+        DataType.ExerciseType.PredefinedExerciseType.ARM_EXTENSIONS.ordinal,
+        DataType.ExerciseType.PredefinedExerciseType.BACK_EXTENSIONS.ordinal,
+        DataType.ExerciseType.PredefinedExerciseType.BALLET.ordinal,
+        DataType.ExerciseType.PredefinedExerciseType.BENCH_PRESS.ordinal,
+        DataType.ExerciseType.PredefinedExerciseType.CIRCUIT_TRAINING.ordinal,
+        DataType.ExerciseType.PredefinedExerciseType.CRUNCH.ordinal,
+        DataType.ExerciseType.PredefinedExerciseType.DEADLIFTS.ordinal,
+        DataType.ExerciseType.PredefinedExerciseType.STAIR_CLIMBING_MACHINE.ordinal,
+        DataType.ExerciseType.PredefinedExerciseType.FLYING_DISC.ordinal,
+        DataType.ExerciseType.PredefinedExerciseType.FRONT_RAISES.ordinal,
+        DataType.ExerciseType.PredefinedExerciseType.HIGH_KNEES.ordinal,
+        DataType.ExerciseType.PredefinedExerciseType.LAT_PULLDOWNS.ordinal,
+        DataType.ExerciseType.PredefinedExerciseType.LATERAL_RAISES.ordinal,
+        DataType.ExerciseType.PredefinedExerciseType.LEG_CURLS.ordinal,
+        DataType.ExerciseType.PredefinedExerciseType.LEG_EXTENSIONS.ordinal,
+        DataType.ExerciseType.PredefinedExerciseType.LEG_PRESSES.ordinal,
+        DataType.ExerciseType.PredefinedExerciseType.LEG_RAISES.ordinal,
+        DataType.ExerciseType.PredefinedExerciseType.LUNGES.ordinal,
+        DataType.ExerciseType.PredefinedExerciseType.PILATES.ordinal,
+        DataType.ExerciseType.PredefinedExerciseType.PLANK.ordinal,
+        DataType.ExerciseType.PredefinedExerciseType.PULL_UPS.ordinal,
+        DataType.ExerciseType.PredefinedExerciseType.PUSH_UPS.ordinal,
+        DataType.ExerciseType.PredefinedExerciseType.SHOULDER_PRESSES.ordinal,
+        DataType.ExerciseType.PredefinedExerciseType.SIT_UPS.ordinal,
+        DataType.ExerciseType.PredefinedExerciseType.SKATERS.ordinal,
+        DataType.ExerciseType.PredefinedExerciseType.SQUATS.ordinal,
+        DataType.ExerciseType.PredefinedExerciseType.STRETCHING.ordinal,
+        DataType.ExerciseType.PredefinedExerciseType.WEIGHT_MACHINE.ordinal,
+        DataType.ExerciseType.PredefinedExerciseType.YOGA.ordinal->
+            return true
+        else -> return false
+    }
 }
 
 fun getLocalDateStartTime(time: Instant): Long {

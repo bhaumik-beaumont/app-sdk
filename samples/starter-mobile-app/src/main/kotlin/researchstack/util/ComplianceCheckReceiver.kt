@@ -107,13 +107,13 @@ class ComplianceCheckReceiver : DaggerBroadcastReceiver() {
     }
 
     private fun isActivityCompliant(exercises: List<Exercise>): Boolean {
-        val minutes = exercises.filter { !isResistance(it.exerciseType.toInt()) }
+        val minutes = exercises.filter { !it.isResistance }
             .sumOf { TimeUnit.MILLISECONDS.toMinutes(it.endTime - it.startTime) }
         return minutes >= WEEKLY_ACTIVITY_GOAL_MINUTES
     }
 
     private fun isResistanceCompliant(exercises: List<Exercise>): Boolean {
-        val sessions = exercises.count { isResistance(it.exerciseType.toInt()) }
+        val sessions = exercises.count { it.isResistance }
         return sessions >= WEEKLY_RESISTANCE_SESSION_COUNT
     }
 
@@ -157,18 +157,6 @@ class ComplianceCheckReceiver : DaggerBroadcastReceiver() {
             resistance -> "Time to train! You haven’t completed any resistance training this week."
             bia -> "Please log your BIA or weight. Baseline measurements are due this week."
             else -> ""
-        }
-    }
-
-    private fun isResistance(exerciseType: Int): Boolean {
-        return when (exerciseType) {
-            androidx.health.connect.client.records.ExerciseSessionRecord.EXERCISE_TYPE_STRENGTH_TRAINING,
-            androidx.health.connect.client.records.ExerciseSessionRecord.EXERCISE_TYPE_HIGH_INTENSITY_INTERVAL_TRAINING,
-            androidx.health.connect.client.records.ExerciseSessionRecord.EXERCISE_TYPE_PILATES,
-            androidx.health.connect.client.records.ExerciseSessionRecord.EXERCISE_TYPE_STRETCHING,
-            androidx.health.connect.client.records.ExerciseSessionRecord.EXERCISE_TYPE_YOGA,
-            androidx.health.connect.client.records.ExerciseSessionRecord.EXERCISE_TYPE_CALISTHENICS -> true
-            else -> false
         }
     }
 }

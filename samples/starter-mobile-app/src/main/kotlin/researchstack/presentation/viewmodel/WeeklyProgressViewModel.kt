@@ -43,6 +43,7 @@ class WeeklyProgressViewModel @Inject constructor(
 
     companion object {
         const val ACTIVITY_GOAL_MINUTES = 150
+        const val RESISTANCE_SESSION_GOAL = 2
     }
 
     private val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.getDefault())
@@ -151,8 +152,8 @@ class WeeklyProgressViewModel @Inject constructor(
             launch {
                 exerciseDao.getExercisesFrom(startMillis).collect { list ->
                     val weekList = list.filter { it.startTime < endMillis }
-                    val resistanceList = weekList.filter { isResistance(it.exerciseType.toInt()) }
-                    val activityList = weekList.filterNot { isResistance(it.exerciseType.toInt()) }
+                    val resistanceList = weekList.filter { it.isResistance }
+                    val activityList = weekList.filterNot { it.isResistance }
 
                     _activityDetails.value = activityList
                         .sortedBy { it.startTime }
@@ -177,7 +178,7 @@ class WeeklyProgressViewModel @Inject constructor(
                     _activityProgressPercent.value =
                         ((minutes * 100f) / ACTIVITY_GOAL_MINUTES).coerceAtMost(100f).toInt()
                     _resistanceProgressPercent.value =
-                        ((resistanceMinutes * 100f) / ACTIVITY_GOAL_MINUTES).coerceAtMost(100f).toInt()
+                        ((resistanceList.size * 100f) / RESISTANCE_SESSION_GOAL).coerceAtMost(100f).toInt()
 
                     _daysWithExercise.value = weekList.map {
                         Instant.ofEpochMilli(it.startTime).atZone(ZoneId.systemDefault()).toLocalDate()
@@ -214,9 +215,7 @@ class WeeklyProgressViewModel @Inject constructor(
         val start = startInstant.toLocalTime().format(timeFormatter)
         val end = endInstant.toLocalTime().format(timeFormatter)
         val date = startInstant.toLocalDate().format(dateFormatter)
-        val name = exerciseName.ifBlank {
-            EXERCISE_TYPE_INT_TO_STRING_MAP[exerciseType.toInt()] ?: ""
-        }
+        val name = exerciseName
         val duration = TimeUnit.MILLISECONDS.toMinutes(endTime - startTime).toInt()
         return ExerciseDetailUi(
             name = name,
@@ -228,19 +227,6 @@ class WeeklyProgressViewModel @Inject constructor(
             minHeartRate = minHeartRate.toInt(),
             maxHeartRate = maxHeartRate.toInt(),
         )
-    }
-
-    private fun isResistance(exerciseType: Int): Boolean {
-        return when (exerciseType) {
-            ExerciseSessionRecord.EXERCISE_TYPE_STRENGTH_TRAINING,
-            ExerciseSessionRecord.EXERCISE_TYPE_HIGH_INTENSITY_INTERVAL_TRAINING,
-            ExerciseSessionRecord.EXERCISE_TYPE_PILATES,
-            ExerciseSessionRecord.EXERCISE_TYPE_STRETCHING,
-            ExerciseSessionRecord.EXERCISE_TYPE_YOGA,
-            ExerciseSessionRecord.EXERCISE_TYPE_CALISTHENICS -> true
-
-            else -> false
-        }
     }
 
     private fun UserProfile.toDetailUi(isMetric: Boolean): WeightDetailUi {
@@ -260,14 +246,14 @@ class WeeklyProgressViewModel @Inject constructor(
         val date = instant.toLocalDate().format(dateFormatter)
         val time = instant.toLocalTime().format(timeFormatter)
         val unit = if (!isMetric) "lbs" else "kg"
+        val fatMass = bodyFatMass.kgToLbs(isMetric).toDecimalFormat(2)
+        val fatFree = fatFreeMass.kgToLbs(isMetric).toDecimalFormat(2)
         val muscle = skeletalMuscleMass.kgToLbs(isMetric).toDecimalFormat(2)
-        val water = totalBodyWater.kgToLbs(isMetric).toDecimalFormat(2)
         return BiaDetailUi(
             timestamp = "$date $time",
+            bodyFatMass = "$fatMass $unit",
+            fatFreeMass = "$fatFree $unit",
             skeletalMuscleMass = "$muscle $unit",
-            bodyFatPercent = bodyFatRatio.toDecimalFormat(2),
-            totalBodyWater = "$water $unit",
-            basalMetabolicRate = basalMetabolicRate.toDecimalFormat(2)
         )
     }
 }
@@ -290,9 +276,8 @@ data class WeightDetailUi(
 
 data class BiaDetailUi(
     val timestamp: String,
+    val bodyFatMass: String,
+    val fatFreeMass: String,
     val skeletalMuscleMass: String,
-    val bodyFatPercent: Float,
-    val totalBodyWater: String,
-    val basalMetabolicRate: Float,
 )
 

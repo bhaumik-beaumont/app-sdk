@@ -2,6 +2,8 @@ package researchstack.config.provider
 
 import android.content.Context
 import androidx.health.connect.client.HealthConnectClient
+import com.samsung.android.sdk.health.data.HealthDataService
+import com.samsung.android.sdk.health.data.HealthDataStore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -32,7 +34,13 @@ class HealthConnectProvider {
     @Singleton
     @Provides
     fun provideHealthConnectDataSource(@ApplicationContext context: Context): HealthConnectDataSource =
-        HealthConnectDataSource(HealthConnectClient.getOrCreate(context))
+        HealthConnectDataSource(HealthConnectClient.getOrCreate(context),HealthDataService.getStore(context))
+
+    @Provides
+    @Singleton
+    fun provideHealthDataStore(@ApplicationContext context: Context): HealthDataStore {
+        return HealthDataService.getStore(context)
+    }
 
     @Singleton
     @Provides

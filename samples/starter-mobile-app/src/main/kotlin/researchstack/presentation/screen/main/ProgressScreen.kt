@@ -98,13 +98,13 @@ fun ProgressScreen(viewModel: ProgressViewModel = hiltViewModel()) {
                 Instant.ofEpochMilli(it.timestamp).atZone(ZoneId.systemDefault()).toLocalDate()
                     .format(dayFormatter) to it.skeletalMuscleMass.kgToLbs(isMetric)
             }
-            val fatData = bia.map {
+            val fatMassData = bia.map {
                 Instant.ofEpochMilli(it.timestamp).atZone(ZoneId.systemDefault()).toLocalDate()
-                    .format(dayFormatter) to it.bodyFatRatio
+                    .format(dayFormatter) to it.bodyFatMass.kgToLbs(isMetric)
             }
-            val waterData = bia.map {
+            val fatFreeData = bia.map {
                 Instant.ofEpochMilli(it.timestamp).atZone(ZoneId.systemDefault()).toLocalDate()
-                    .format(dayFormatter) to it.totalBodyWater.kgToLbs(isMetric)
+                    .format(dayFormatter) to it.fatFreeMass.kgToLbs(isMetric)
             }
             BiaMetricChart(
                 title = stringResource(R.string.skeletal_muscle_mass) + " ($unit)",
@@ -114,15 +114,15 @@ fun ProgressScreen(viewModel: ProgressViewModel = hiltViewModel()) {
             )
             Spacer(Modifier.height(16.dp))
             BiaMetricChart(
-                title = stringResource(R.string.body_fat_percent),
-                data = fatData,
-                unit = stringResource(R.string.percent_symbol),
+                title = stringResource(R.string.body_fat_mass) + " ($unit)",
+                data = fatMassData,
+                unit = unit,
                 lineColor = Color(0xFFE57373)
             )
             Spacer(Modifier.height(16.dp))
             BiaMetricChart(
-                title = stringResource(R.string.total_body_water) + " ($unit)",
-                data = waterData,
+                title = stringResource(R.string.fat_free_mass) + " ($unit)",
+                data = fatFreeData,
                 unit = unit,
                 lineColor = Color(0xFF64B5F6)
             )

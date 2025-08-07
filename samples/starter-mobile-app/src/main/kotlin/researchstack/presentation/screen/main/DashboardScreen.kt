@@ -1,5 +1,7 @@
 package researchstack.presentation.screen.main
 
+import android.app.Activity
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.background
@@ -55,6 +57,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.samsung.android.sdk.health.data.HealthDataStore
+import com.samsung.android.sdk.health.data.error.HealthDataException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import researchstack.R
 import researchstack.presentation.LocalNavController
@@ -64,6 +70,8 @@ import researchstack.presentation.screen.notification.NotificationViewModel
 import researchstack.presentation.viewmodel.HealthConnectPermissionViewModel
 import researchstack.presentation.viewmodel.DashboardViewModel
 import java.time.format.DateTimeFormatter
+import javax.inject.Inject
+import kotlin.coroutines.cancellation.CancellationException
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -110,16 +118,20 @@ fun DashboardScreen(
     }
 
     val resistanceDurationDisplay = remember(resistanceDuration) {
-        val hours = resistanceDuration / 60
-        val minutes = resistanceDuration % 60
-        if (hours > 0) "${hours}h ${minutes}m" else "${minutes}m"
+        if (resistanceExercises.size <= 1) {
+            "${resistanceExercises.size} Session"
+        } else {
+            "${resistanceExercises.size} Sessions"
+        }
     }
 
     val permissionsLauncher =
         rememberLauncherForActivityResult(healthConnectPermissionViewModel.permissionsLauncher) { granted ->
             val missing = healthConnectPermissionViewModel.allPermissions - granted
             if (missing.isEmpty()) {
-                healthConnectPermissionViewModel.initialLoad()
+                (context as? Activity)?.let {
+                    healthConnectPermissionViewModel.checkSamsungPermissions(it)
+                }
                 Toast.makeText(
                     context,
                     context.getString(R.string.sync_request_submitted),
@@ -173,7 +185,9 @@ fun DashboardScreen(
                         coroutineScope.launch {
                             val missing = healthConnectPermissionViewModel.getMissingPermissions()
                             if (missing.isEmpty()) {
-                                healthConnectPermissionViewModel.initialLoad()
+                                (context as? Activity)?.let {
+                                    healthConnectPermissionViewModel.checkSamsungPermissions(it)
+                                }
                                 Toast.makeText(
                                     context,
                                     context.getString(R.string.sync_request_submitted),

@@ -26,8 +26,8 @@ import researchstack.presentation.initiate.route.Router
 import researchstack.presentation.theme.AppTheme
 import researchstack.presentation.viewmodel.SplashLoadingViewModel
 import researchstack.util.NotificationUtil
-import researchstack.util.setAlarm
 import researchstack.util.scheduleComplianceCheck
+import researchstack.util.setAlarm
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {

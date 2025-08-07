@@ -3,6 +3,13 @@ package researchstack.data.repository.healthConnect
 import android.content.Context
 import android.util.Log
 import androidx.health.connect.client.records.ExerciseSessionRecord
+import com.samsung.android.sdk.health.data.HealthDataStore
+import com.samsung.android.sdk.health.data.data.HealthDataPoint
+import com.samsung.android.sdk.health.data.error.HealthDataException
+import com.samsung.android.sdk.health.data.request.DataType
+import com.samsung.android.sdk.health.data.request.DataTypes
+import com.samsung.android.sdk.health.data.request.LocalTimeFilter
+import com.samsung.android.sdk.health.data.request.ReadDataRequest
 import kotlinx.coroutines.flow.first
 import researchstack.R
 import researchstack.backend.integration.GrpcHealthDataSynchronizer
@@ -29,6 +36,7 @@ import researchstack.domain.usecase.profile.GetProfileUseCase
 import researchstack.presentation.util.toStringResourceId
 import researchstack.util.NotificationUtil
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -55,11 +63,10 @@ class HealthConnectDataSyncRepositoryImpl @Inject constructor(
             getRequiredHealthDataTypes().forEach { dataType ->
                 val result: List<TimestampMapData>? = when (dataType) {
                     SHealthDataType.EXERCISE -> {
-
                         val exerciseRecords = healthConnectDataSource.getData(
                             ExerciseSessionRecord::class
                         ).filterIsInstance<ExerciseSessionRecord>()
-
+                        val samsungRecords = healthConnectDataSource.getExerciseData()
                         val studyId = studyRepository.getActiveStudies().first().firstOrNull()?.id ?: ""
                         val enrollmentMillis = enrollmentDatePref.getEnrollmentDate(studyId)?.let { dateString ->
                             LocalDate.parse(dateString)
@@ -67,7 +74,6 @@ class HealthConnectDataSyncRepositoryImpl @Inject constructor(
                                 .toInstant()
                                 .toEpochMilli()
                         }
-
                         val items = mutableListOf<Exercise>()
                         exerciseRecords.forEach { record ->
                             val recordStartTime = record.startTime.toEpochMilli()
@@ -75,7 +81,11 @@ class HealthConnectDataSyncRepositoryImpl @Inject constructor(
                                 Log.d(TAG, "Ignore exercise ${record.metadata.id} before enrollment date")
                             } else {
                                 val sessionData = healthConnectDataSource.getAggregateData(record.metadata.id)
-                                val exercise = processExerciseData(record, sessionData, studyId, enrollmentDatePref)
+                                val matchingSamsungRecord = samsungRecords.firstOrNull { samsung ->
+                                    samsung.startTime.toEpochMilli() == record.startTime.toEpochMilli() &&
+                                        samsung.endTime?.toEpochMilli() == record.endTime.toEpochMilli()
+                                }
+                                val exercise = processExerciseData(record, sessionData, studyId, enrollmentDatePref,matchingSamsungRecord)
                                 items.add(exercise)
                             }
                         }
@@ -152,6 +162,19 @@ class HealthConnectDataSyncRepositoryImpl @Inject constructor(
 //            }
 
 
+    }
+
+    @Throws(HealthDataException::class)
+    fun getExerciseAggregateRequestBuilder(
+        startTime: LocalDateTime,
+        endTime: LocalDateTime
+    ): ReadDataRequest<HealthDataPoint> {
+        val localTimeFilter = LocalTimeFilter.of(startTime, endTime)
+
+        val aggregateRequest = DataTypes.EXERCISE.readDataRequestBuilder
+            .setLocalTimeFilter(localTimeFilter)
+            .build()
+        return aggregateRequest
     }
 
     private suspend fun uploadDataToServer(
