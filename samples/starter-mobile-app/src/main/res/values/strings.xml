@@ -237,4 +237,12 @@
     <string name="weekly_message_resistance_one">You’ve completed 1 resistance training session. Aim for 2 sessions each week.</string>
     <string name="weekly_message_bia_none">Don’t forget to record your body composition this week.</string>
     <string name="weekly_message_weight_none">Update your weight once this week to track your progress.</string>
+    <string name="rewards">Rewards</string>
+    <string name="activity_rewards">Activity Rewards</string>
+    <string name="resistance_rewards">Resistance Rewards</string>
+    <string name="bia_rewards">BIA Rewards</string>
+    <string name="weight_rewards">Weight Rewards</string>
+    <string name="champion_rewards">Champion Rewards</string>
+    <string name="view_rewards">View Rewards</string>
+    <string name="week_label">Week - %1$d</string>
 </resources>

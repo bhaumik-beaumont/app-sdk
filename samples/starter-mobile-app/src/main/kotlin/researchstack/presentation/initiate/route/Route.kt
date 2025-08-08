@@ -16,6 +16,7 @@ enum class Route {
     Intro,
     Progress,
     WeeklyProgress,
+    Rewards,
 }
 
 enum class MainPage {
