@@ -5,7 +5,9 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.os.Build
+import android.graphics.Color
+import android.view.View
+import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
@@ -105,7 +107,7 @@ class ComplianceCheckReceiver : DaggerBroadcastReceiver() {
             }
 
             if (messages.isNotEmpty()) {
-                showNotification(context, " ⚠\uFE0F Alert: "+messages.joinToString("\n")+" Please complete this as soon as possible to stay on track!")
+                showNotification(context, messages)
             }
         }
     }
@@ -114,7 +116,7 @@ class ComplianceCheckReceiver : DaggerBroadcastReceiver() {
 
     private fun isWeightCompliant(count: Int) = count >= MINIMUM_WEIGHT_ENTRIES_PER_WEEK
 
-    private fun showNotification(context: Context, message: String) {
+    private fun showNotification(context: Context, messages: List<String>) {
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         manager.createNotificationChannel(
             NotificationChannel(CHANNEL_ID, CHANNEL_ID, NotificationManager.IMPORTANCE_HIGH)
@@ -128,11 +130,39 @@ class ComplianceCheckReceiver : DaggerBroadcastReceiver() {
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
+
+        val message = " ⚠\uFE0F Alert: " +
+            messages.joinToString("\n") +
+            " Please complete this as soon as possible to stay on track!"
+
+        val isYellow = messages.size == 1
+        val bgRes = if (isYellow) {
+            R.drawable.notification_bg_yellow
+        } else {
+            R.drawable.notification_bg_red
+        }
+        val textColor = if (isYellow) Color.BLACK else Color.WHITE
+
+        val collapsed = RemoteViews(context.packageName, R.layout.notification_compliance).apply {
+            setTextViewText(R.id.notification_title, "Weekly Progress Reminder")
+            setViewVisibility(R.id.notification_text, View.GONE)
+            setInt(R.id.notification_root, "setBackgroundResource", bgRes)
+            setTextColor(R.id.notification_title, textColor)
+        }
+        val expanded = RemoteViews(context.packageName, R.layout.notification_compliance).apply {
+            setTextViewText(R.id.notification_title, "Weekly Progress Reminder")
+            setViewVisibility(R.id.notification_text, View.VISIBLE)
+            setTextViewText(R.id.notification_text, message)
+            setInt(R.id.notification_root, "setBackgroundResource", bgRes)
+            setTextColor(R.id.notification_title, textColor)
+            setTextColor(R.id.notification_text, textColor)
+        }
+
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.flexed_biceps_red)
-            .setContentTitle("Weekly Progress Reminder")
-            .setContentText(message)
-            .setStyle(NotificationCompat.BigTextStyle().bigText(message))
+            .setSmallIcon(R.drawable.flexed_biceps)
+            .setStyle(NotificationCompat.DecoratedCustomViewStyle())
+            .setCustomContentView(collapsed)
+            .setCustomBigContentView(expanded)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setContentIntent(pi)
             .setAutoCancel(true)
