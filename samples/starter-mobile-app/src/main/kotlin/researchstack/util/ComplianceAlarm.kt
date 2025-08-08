@@ -9,7 +9,7 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 
 private const val COMPLIANCE_REQUEST_CODE = 1000
-private const val CHECK_HOUR = 18
+private const val CHECK_HOUR = 9
 
 fun scheduleComplianceCheck(context: Context) {
     val manager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager

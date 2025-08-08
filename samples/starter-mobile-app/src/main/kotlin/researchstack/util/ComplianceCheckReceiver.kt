@@ -89,15 +89,15 @@ class ComplianceCheckReceiver : DaggerBroadcastReceiver() {
             val todayStr = today.toString()
             val messages = mutableListOf<String>()
 
-            if (dayOfWeek >= 3 && !activityCompliant && reminderPref.getLastReminderDate(Type.ACTIVITY) != "todayStr") {
+            if (dayOfWeek >= 3 && !activityCompliant && reminderPref.getLastReminderDate(Type.ACTIVITY) != todayStr) {
                 reminderPref.saveReminderDate(Type.ACTIVITY, todayStr)
                 messages += getActivityMessage()
             }
-            if (dayOfWeek >= 4 && !resistanceCompliant && reminderPref.getLastReminderDate(Type.RESISTANCE) != "todayStr") {
+            if (dayOfWeek >= 4 && !resistanceCompliant && reminderPref.getLastReminderDate(Type.RESISTANCE) != todayStr) {
                 reminderPref.saveReminderDate(Type.RESISTANCE, todayStr)
                 messages += getResistanceMessage()
             }
-            if (dayOfWeek == 7 && reminderPref.getLastReminderDate(Type.BIA) != "todayStr") {
+            if (dayOfWeek == 7 && reminderPref.getLastReminderDate(Type.BIA) != todayStr) {
                 val biaMissing = !biaCompliant
                 val weightMissing = !weightCompliant
                 if (biaMissing || weightMissing) {
