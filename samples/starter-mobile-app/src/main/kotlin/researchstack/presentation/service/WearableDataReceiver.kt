@@ -14,17 +14,24 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import researchstack.HEALTH_DATA_FOLDER_NAME
+import researchstack.data.datasource.local.pref.EnrollmentDatePref
+import researchstack.data.datasource.local.pref.dataStore
 import researchstack.domain.model.log.DataSyncLog
 import researchstack.domain.model.priv.PrivDataType
 import researchstack.domain.usecase.log.AppLogger
 import researchstack.domain.usecase.wearable.PassiveDataStatusUseCase
 import researchstack.domain.usecase.wearable.SaveWearableDataUseCase
 import researchstack.domain.usecase.wearable.WearablePassiveDataStatusSenderUseCase
+import researchstack.domain.repository.StudyRepository
 import java.io.File
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 import org.apache.commons.io.input.ReaderInputStream
 import javax.inject.Inject
 
@@ -38,6 +45,11 @@ class WearableDataReceiver : WearableListenerService() {
 
     @Inject
     lateinit var passiveDataStatusUseCase: PassiveDataStatusUseCase
+
+    @Inject
+    lateinit var studyRepository: StudyRepository
+
+    private val enrollmentDatePref by lazy { EnrollmentDatePref(applicationContext.dataStore) }
 
     override fun onCapabilityChanged(capabilityInfo: CapabilityInfo) {
         if (capabilityInfo.nodes.size == 1) {
@@ -83,7 +95,23 @@ class WearableDataReceiver : WearableListenerService() {
                                 completedFile.inputStream().use { inputStream ->
                                     val reader = BufferedReader(InputStreamReader(inputStream))
                                     val dataType = PrivDataType.valueOf(reader.readLine())
-                                    saveWearableDataUseCase(dataType, ReaderInputStream(reader))
+                                    val header = reader.readLine()
+                                    val csvBuilder = StringBuilder()
+                                    csvBuilder.appendLine("$header|weekNumber")
+                                    val studyId = studyRepository.getActiveStudies().first().firstOrNull()?.id
+                                    val enrollmentDate = studyId?.let { enrollmentDatePref.getEnrollmentDate(it) }?.let { LocalDate.parse(it) }
+                                    reader.lineSequence().forEach { line ->
+                                        if (line.isNotBlank()) {
+                                            val columns = line.split('|')
+                                            val timestamp = columns.firstOrNull()?.toLongOrNull()
+                                            val week = if (timestamp != null && enrollmentDate != null) {
+                                                val date = Instant.ofEpochMilli(timestamp).atZone(ZoneId.systemDefault()).toLocalDate()
+                                                ChronoUnit.WEEKS.between(enrollmentDate, date).toInt() + 1
+                                            } else 0
+                                            csvBuilder.appendLine("$line|$week")
+                                        }
+                                    }
+                                    saveWearableDataUseCase(dataType, csvBuilder.toString().byteInputStream())
                                 }
                             }
                             AppLogger.saveLog(DataSyncLog("wear->mobile ${channel.path} success"))
