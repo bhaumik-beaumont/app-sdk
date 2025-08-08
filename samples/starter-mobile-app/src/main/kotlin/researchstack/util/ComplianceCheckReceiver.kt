@@ -159,7 +159,7 @@ class ComplianceCheckReceiver : DaggerBroadcastReceiver() {
         }
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.flexed_biceps_red)
+            .setSmallIcon(R.drawable.flexed_biceps)
             .setStyle(NotificationCompat.DecoratedCustomViewStyle())
             .setCustomContentView(collapsed)
             .setCustomBigContentView(expanded)
