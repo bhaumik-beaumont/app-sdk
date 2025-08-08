@@ -171,15 +171,12 @@
     <string name="exercise_permission_required">Exercise read permissions are required to sync.</string>
     <string name="background_permission_required">Background health data permission is required to sync.</string>
     <string name="activity_tab">Activity</string>
-  <string name="notifications">Notifications</string>
   <string name="weekly_progress">Weekly Progress</string>
   <string name="swipe_to_change_week">Swipe left or right to change week</string>
   <string name="mark_as_read">Mark as read</string>
     <string name="enable_notifications">Enable notifications</string>
     <string name="enable_dark_mode">Enable dark mode</string>
     <string name="bank">Bank</string>
-    <string name="bell">Bell</string>
-    <string name="almost_there">Almost there! You\'re just shy of your 150-minute weekly exercise goal. Keep going!</string>
     <string name="compliance_summary">Compliance Summary</string>
     <string name="activity">Activity</string>
     <string name="resistance">Resistance</string>

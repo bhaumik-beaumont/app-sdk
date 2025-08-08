@@ -26,7 +26,6 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -49,6 +48,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -62,7 +62,6 @@ import researchstack.R
 import researchstack.presentation.LocalNavController
 import researchstack.presentation.component.ComplianceSummaryCard
 import researchstack.presentation.initiate.route.Route
-import researchstack.presentation.screen.notification.NotificationViewModel
 import researchstack.presentation.viewmodel.HealthConnectPermissionViewModel
 import researchstack.presentation.viewmodel.DashboardViewModel
 import java.time.format.DateTimeFormatter
@@ -81,8 +80,6 @@ fun DashboardScreen(
     val scrollState = rememberScrollState()
     val navController = LocalNavController.current
     val coroutineScope = rememberCoroutineScope()
-    val notificationViewModel: NotificationViewModel = hiltViewModel()
-    val hasUnread by notificationViewModel.hasUnread.collectAsState()
     val exercises by dashboardViewModel.exercises.collectAsState()
     val resistanceExercises by dashboardViewModel.resistanceExercises.collectAsState()
     val totalDuration by dashboardViewModel.totalDurationMinutes.collectAsState()
@@ -94,6 +91,7 @@ fun DashboardScreen(
     val biaProgressPercent by dashboardViewModel.biaProgressPercent.collectAsState()
     val weightProgressPercent by dashboardViewModel.weightProgressPercent.collectAsState()
     val weekStart by dashboardViewModel.weekStart.collectAsState()
+    val complianceMessages by dashboardViewModel.complianceMessages.collectAsState()
     val rangeFormatter = DateTimeFormatter.ofPattern("MMM d")
 
     var refreshing by remember { mutableStateOf(false) }
@@ -205,9 +203,6 @@ fun DashboardScreen(
                             modifier = Modifier.size(24.dp)
                         )
                     }
-                    NotificationBell(hasUnread) {
-                        navController.navigate(Route.Notifications.name)
-                    }
                 }
             }
 
@@ -223,19 +218,33 @@ fun DashboardScreen(
                         .verticalScroll(scrollState)
                         .padding(vertical = 16.dp)
                 ) {
-                    Card(
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 24.dp, vertical = 0.dp),
-                        colors = CardDefaults.cardColors(Color(0xFFFFA500)),
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
-                        Text(
-                            stringResource(id = R.string.almost_there),
-                            Modifier.padding(16.dp),
-                            color = Color.Black,
-                            fontWeight = FontWeight.Medium
-                        )
+                    if (complianceMessages.isNotEmpty()) {
+                        val isYellow = complianceMessages.size == 1
+                        val gradientColors = if (isYellow) {
+                            listOf(Color(0xFFFFF9C4), Color(0xFFFFEB3B))
+                        } else {
+                            listOf(Color(0xFFE73747), Color(0xFFE57373))
+                        }
+                        val textColor = if (isYellow) Color.Black else Color.White
+                        Card(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 24.dp, vertical = 0.dp),
+                            colors = CardDefaults.cardColors(Color.Transparent),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Box(
+                                Modifier
+                                    .background(Brush.verticalGradient(gradientColors))
+                                    .padding(16.dp)
+                            ) {
+                                Text(
+                                    complianceMessages.joinToString("\n"),
+                                    color = textColor,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                        }
                     }
 
                     // Compliance Summary Cards (Refactored)
@@ -472,28 +481,6 @@ fun ProgressBarItem(label: String, progressPercent: Int, color: Color) {
                     .fillMaxHeight()
                     .fillMaxWidth(progressFraction)
                     .background(color, RoundedCornerShape(50))
-            )
-        }
-    }
-}
-
-@Composable
-fun NotificationBell(hasUnread: Boolean, onClick: () -> Unit) {
-    Box {
-        IconButton(onClick = onClick) {
-            Icon(
-                Icons.Default.Notifications,
-                contentDescription = stringResource(id = R.string.bell),
-                tint = Color.White,
-                modifier = Modifier.size(24.dp)
-            )
-        }
-        if (hasUnread) {
-            Box(
-                Modifier
-                    .size(12.dp)
-                    .background(Color.Red, CircleShape)
-                    .align(Alignment.TopEnd)
             )
         }
     }
