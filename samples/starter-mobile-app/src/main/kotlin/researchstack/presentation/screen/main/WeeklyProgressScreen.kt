@@ -28,6 +28,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.EventBusy
 import androidx.compose.material.icons.filled.Insights
+import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -175,15 +176,21 @@ fun WeeklyProgressScreen(
                     fontSize = 20.sp,
                     modifier = Modifier.align(Alignment.Center)
                 )
-                IconButton(
-                    onClick = { navController.navigate(Route.Progress.name) },
-                    modifier = Modifier.align(Alignment.CenterEnd)
-                ) {
-                    Icon(
-                        Icons.Filled.Insights,
-                        contentDescription = stringResource(id = R.string.view_progress),
-                        tint = Color.White
-                    )
+                Row(modifier = Modifier.align(Alignment.CenterEnd)) {
+                    IconButton(onClick = { navController.navigate(Route.Rewards.name) }) {
+                        Icon(
+                            Icons.Filled.EmojiEvents,
+                            contentDescription = stringResource(id = R.string.view_rewards),
+                            tint = Color.White
+                        )
+                    }
+                    IconButton(onClick = { navController.navigate(Route.Progress.name) }) {
+                        Icon(
+                            Icons.Filled.Insights,
+                            contentDescription = stringResource(id = R.string.view_progress),
+                            tint = Color.White
+                        )
+                    }
                 }
             }
         }
