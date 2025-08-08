@@ -83,12 +83,6 @@ abstract class ResearchAppDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: ResearchAppDatabase? = null
 
-        private val MIGRATION_8_9 = object : Migration(8, 9) {
-            override fun migrate(db: SupportSQLiteDatabase) {
-                db.execSQL("ALTER TABLE $COMPLIANCE_ENTRY_TABLE_NAME ADD COLUMN avgWeight REAL NOT NULL DEFAULT 0")
-            }
-        }
-
         fun getDatabase(
             context: Context,
         ): ResearchAppDatabase =
@@ -98,7 +92,6 @@ abstract class ResearchAppDatabase : RoomDatabase() {
                     ResearchAppDatabase::class.java,
                     "research_app_db"
                 )
-                    .addMigrations(MIGRATION_8_9)
                     .fallbackToDestructiveMigration()
                     .addTypeConverter(EligibilityConverter())
                     .addTypeConverter(LocalDateTimeConverter())

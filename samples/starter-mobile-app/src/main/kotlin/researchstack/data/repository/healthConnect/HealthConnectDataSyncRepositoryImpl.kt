@@ -5,6 +5,8 @@ import android.util.Log
 import androidx.health.connect.client.records.ExerciseSessionRecord
 import kotlinx.coroutines.flow.first
 import researchstack.R
+import researchstack.auth.data.datasource.local.pref.BasicAuthenticationPref
+import researchstack.auth.data.datasource.local.pref.dataStore
 import researchstack.backend.integration.GrpcHealthDataSynchronizer
 import researchstack.data.datasource.healthConnect.HealthConnectDataSource
 import researchstack.data.datasource.healthConnect.processExerciseData
@@ -50,7 +52,10 @@ class HealthConnectDataSyncRepositoryImpl @Inject constructor(
     private val enrollmentDatePref: EnrollmentDatePref,
     private val grpcHealthDataSynchronizer: GrpcHealthDataSynchronizer<HealthDataModel>
 ) : HealthConnectDataSyncRepository {
+    private val authenticationPref = BasicAuthenticationPref(context.dataStore)
+
     override suspend fun syncHealthData() {
+
         getProfileUseCase().onSuccess { profile ->
             getRequiredHealthDataTypes().forEach { dataType ->
                 val result: List<TimestampMapData>? = when (dataType) {
@@ -77,7 +82,13 @@ class HealthConnectDataSyncRepositoryImpl @Inject constructor(
                                     samsung.startTime.toEpochMilli() == record.startTime.toEpochMilli() &&
                                         samsung.endTime?.toEpochMilli() == record.endTime.toEpochMilli()
                                 }
-                                val exercise = processExerciseData(record, sessionData, studyId, enrollmentDatePref,matchingSamsungRecord)
+                                val exercise = processExerciseData(
+                                    record,
+                                    sessionData,
+                                    studyId,
+                                    enrollmentDatePref,
+                                    matchingSamsungRecord
+                                )
                                 items.add(exercise)
                             }
                         }
@@ -233,7 +244,7 @@ class HealthConnectDataSyncRepositoryImpl @Inject constructor(
             val biaCount = biaDao.countBetween(startMillis, endMillis).first()
             val weightEntries = userProfileDao.getBetween(startMillis, endMillis).first()
             val weightCount = weightEntries.size
-            val avgWeight = if (weightEntries.isEmpty()) 0f else weightEntries.map { it.weight }.average().toFloat()
+            val avgWeight = if (weightEntries.isEmpty()) 0f else weightEntries.map { it.weight }.first()
             entries.add(
                 ComplianceEntry(
                     weekNumber = weekNumber,
@@ -245,6 +256,7 @@ class HealthConnectDataSyncRepositoryImpl @Inject constructor(
                     biaRecordCount = biaCount,
                     weightRecordCount = weightCount,
                     avgWeight = avgWeight,
+                    id = authenticationPref.getAuthInfo()?.id + weekNumber.toString()
                 )
             )
             weekStart = weekStart.plusWeeks(1)

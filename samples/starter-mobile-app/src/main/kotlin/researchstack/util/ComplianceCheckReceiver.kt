@@ -87,26 +87,25 @@ class ComplianceCheckReceiver : DaggerBroadcastReceiver() {
             val todayStr = today.toString()
             val messages = mutableListOf<String>()
 
-            if (dayOfWeek >= 3 && !activityCompliant && reminderPref.getLastReminderDate(Type.ACTIVITY) != todayStr) {
+            if (dayOfWeek >= 3 && !activityCompliant && reminderPref.getLastReminderDate(Type.ACTIVITY) != "todayStr") {
                 reminderPref.saveReminderDate(Type.ACTIVITY, todayStr)
-                messages += getActivityMessage(context, activityMinutes)
+                messages += getActivityMessage()
             }
-            if (dayOfWeek >= 4 && !resistanceCompliant && reminderPref.getLastReminderDate(Type.RESISTANCE) != todayStr) {
+            if (dayOfWeek >= 4 && !resistanceCompliant && reminderPref.getLastReminderDate(Type.RESISTANCE) != "todayStr") {
                 reminderPref.saveReminderDate(Type.RESISTANCE, todayStr)
-                messages += getResistanceMessage(context, resistanceSessions)
+                messages += getResistanceMessage()
             }
-            if (dayOfWeek == 7 && reminderPref.getLastReminderDate(Type.BIA) != todayStr) {
+            if (dayOfWeek == 7 && reminderPref.getLastReminderDate(Type.BIA) != "todayStr") {
                 val biaMissing = !biaCompliant
                 val weightMissing = !weightCompliant
                 if (biaMissing || weightMissing) {
                     reminderPref.saveReminderDate(Type.BIA, todayStr)
-                    if (biaMissing) messages += getBiaMessage(context, biaCount)
-                    if (weightMissing) messages += getWeightMessage(context, weightCount)
+                    messages += getBiaMessage()
                 }
             }
 
             if (messages.isNotEmpty()) {
-                showNotification(context, messages.joinToString("\n"))
+                showNotification(context, " ⚠\uFE0F Alert: "+messages.joinToString("\n")+" Please complete this as soon as possible to stay on track!")
             }
         }
     }
@@ -130,7 +129,7 @@ class ComplianceCheckReceiver : DaggerBroadcastReceiver() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.flexed_biceps)
+            .setSmallIcon(R.drawable.flexed_biceps_red)
             .setContentTitle("Weekly Progress Reminder")
             .setContentText(message)
             .setStyle(NotificationCompat.BigTextStyle().bigText(message))
@@ -142,39 +141,15 @@ class ComplianceCheckReceiver : DaggerBroadcastReceiver() {
         manager.notify(notificationId, notification)
     }
 
-    private fun getActivityMessage(context: Context, minutes: Long): String {
-        return when {
-            minutes == 0L -> context.getString(R.string.weekly_message_activity_none)
-            minutes < WEEKLY_ACTIVITY_GOAL_MINUTES -> context.getString(
-                R.string.weekly_message_activity_partial,
-                minutes,
-                WEEKLY_ACTIVITY_GOAL_MINUTES
-            )
-            else -> ""
-        }
+    private fun getActivityMessage(): String {
+        return "It looks like you may not be on track to complete your weekly goal of 150 minutes of moderate-intensity exercise."
     }
 
-    private fun getResistanceMessage(context: Context, count: Int): String {
-        return when (count) {
-            0 -> context.getString(R.string.weekly_message_resistance_none)
-            1 -> context.getString(R.string.weekly_message_resistance_one)
-            else -> ""
-        }
+    private fun getResistanceMessage(): String {
+        return "It looks like you may not be on track to complete your weekly goal of 2 sessions of resistance training."
     }
 
-    private fun getBiaMessage(context: Context, count: Int): String {
-        return if (count == 0) {
-            context.getString(R.string.weekly_message_bia_none)
-        } else {
-            ""
-        }
-    }
-
-    private fun getWeightMessage(context: Context, count: Int): String {
-        return if (count == 0) {
-            context.getString(R.string.weekly_message_weight_none)
-        } else {
-            ""
-        }
+    private fun getBiaMessage(): String {
+        return "It looks like you may not be on track to complete your weekly goal of 1 weight + BIA measurement."
     }
 }
