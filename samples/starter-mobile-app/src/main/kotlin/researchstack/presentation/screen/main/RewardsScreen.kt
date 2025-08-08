@@ -130,12 +130,13 @@ private fun RewardSection(
             text = title,
             color = Color.White,
             fontSize = 18.sp,
-            fontWeight = FontWeight.SemiBold
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(vertical = 16.dp)
         )
-        Spacer(Modifier.height(8.dp))
         LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             items(weeks) { week ->
                 Card(
+                    modifier = Modifier.size(width = 80.dp, height = 100.dp),
                     shape = RoundedCornerShape(8.dp),
                     colors = CardDefaults.cardColors(containerColor = Color(0xFF2A2A2A)),
                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
@@ -143,8 +144,8 @@ private fun RewardSection(
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier
+                            .fillMaxSize()
                             .padding(8.dp)
-                            .size(width = 80.dp, height = 100.dp)
                     ) {
                         Text(
                             text = stringResource(id = R.string.week_label, week),
