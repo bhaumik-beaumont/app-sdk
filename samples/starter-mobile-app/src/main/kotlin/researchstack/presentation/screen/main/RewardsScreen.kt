@@ -91,6 +91,11 @@ fun RewardsScreen(
             verticalArrangement = Arrangement.spacedBy(32.dp)
         ) {
             RewardSection(
+                title = stringResource(id = R.string.champion_rewards),
+                weeks = championWeeks,
+                badgeRes = R.drawable.champion
+            )
+            RewardSection(
                 title = stringResource(id = R.string.activity_rewards),
                 weeks = activityWeeks,
                 badgeRes = R.drawable.activity
@@ -110,60 +115,58 @@ fun RewardsScreen(
                 weeks = weightWeeks,
                 badgeRes = R.drawable.bia
             )
-            RewardSection(
-                title = stringResource(id = R.string.champion_rewards),
-                weeks = championWeeks,
-                badgeRes = R.drawable.champion
-            )
         }
     }
 }
 
 @Composable
-private fun RewardSection(
+fun RewardSection(
     title: String,
     weeks: List<Int>,
-    @DrawableRes badgeRes: Int,
+    @DrawableRes badgeRes: Int
 ) {
     if (weeks.isEmpty()) return
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = title,
-            color = Color.White,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
 
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.fillMaxWidth()
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 4.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF2B2B2B)), // lighter than background
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
         ) {
-            items(weeks) { week ->
-                Card(
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF2A2A2A)),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-                    modifier = Modifier.size(width = 90.dp, height = 120.dp)
-                ) {
+            Text(
+                text = title.uppercase(),
+                color = Color(0xFFB0B0B0),
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                items(weeks) { week ->
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(8.dp)
                     ) {
-                        Text(
-                            text = stringResource(id = R.string.week_label, week),
-                            color = Color.White,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
+
+
                         Image(
                             painter = painterResource(id = badgeRes),
                             contentDescription = null,
-                            modifier = Modifier.size(48.dp)
+                            modifier = Modifier.size(90.dp)
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Week $week",
+                            color = Color.White,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold
                         )
                     }
                 }
@@ -171,3 +174,4 @@ private fun RewardSection(
         }
     }
 }
+
