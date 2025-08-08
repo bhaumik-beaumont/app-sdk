@@ -123,24 +123,28 @@ fun WeeklyProgressScreen(
                         exercises = exercises
                     )
                 }
+
                 detailType == DetailType.Resistance -> {
                     ExerciseDetailSheet(
                         title = stringResource(R.string.resistance_details),
                         exercises = resistanceDetails
                     )
                 }
+
                 detailType == DetailType.Activity -> {
                     ExerciseDetailSheet(
                         title = stringResource(R.string.activity_details),
                         exercises = activityDetails
                     )
                 }
+
                 detailType == DetailType.Weight -> {
                     WeightDetailSheet(
                         title = stringResource(R.string.weight_details),
                         entries = weightDetails
                     )
                 }
+
                 detailType == DetailType.Bia -> {
                     BiaDetailSheet(
                         title = stringResource(R.string.bia_details),
@@ -572,10 +576,8 @@ private fun BinaryProgressCard(
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     VerticalProgressBar(progressPercent, color, modifier = Modifier.fillMaxHeight())
-                    Row(
+                    Column(
                         modifier = Modifier.weight(1f),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                         Text("${progressPercent}%", color = Color.White, fontSize = 14.sp)
