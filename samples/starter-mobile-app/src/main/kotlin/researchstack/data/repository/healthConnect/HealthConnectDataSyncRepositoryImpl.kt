@@ -28,6 +28,7 @@ import researchstack.domain.repository.StudyRepository
 import researchstack.domain.repository.healthConnect.HealthConnectDataSyncRepository
 import researchstack.domain.usecase.file.UploadFileUseCase
 import researchstack.domain.usecase.profile.GetProfileUseCase
+import researchstack.domain.usecase.profile.UpdateProfileUseCase
 import researchstack.presentation.util.toStringResourceId
 import researchstack.util.NotificationUtil
 import java.time.LocalDate
@@ -50,13 +51,16 @@ class HealthConnectDataSyncRepositoryImpl @Inject constructor(
     private val biaDao: BiaDao,
     private val userProfileDao: UserProfileDao,
     private val enrollmentDatePref: EnrollmentDatePref,
-    private val grpcHealthDataSynchronizer: GrpcHealthDataSynchronizer<HealthDataModel>
+    private val grpcHealthDataSynchronizer: GrpcHealthDataSynchronizer<HealthDataModel>,
+    private val updateProfileUseCase: UpdateProfileUseCase,
 ) : HealthConnectDataSyncRepository {
     private val authenticationPref = BasicAuthenticationPref(context.dataStore)
 
     override suspend fun syncHealthData() {
 
         getProfileUseCase().onSuccess { profile ->
+            val wearableProfile = userProfileDao.getLatest().first()
+            updateProfileUseCase(profile.copy(gender = wearableProfile?.gender?.ordinal ?: 2))
             getRequiredHealthDataTypes().forEach { dataType ->
                 val result: List<TimestampMapData>? = when (dataType) {
                     SHealthDataType.EXERCISE -> {
