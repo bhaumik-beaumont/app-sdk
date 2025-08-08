@@ -3,8 +3,10 @@
     android:id="@+id/notification_root"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:layout_margin="8dp"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:background="@drawable/notification_bg_yellow">
 
     <TextView
         android:id="@+id/notification_text"

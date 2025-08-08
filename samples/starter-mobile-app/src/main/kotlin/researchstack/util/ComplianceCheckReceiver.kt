@@ -5,7 +5,6 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.graphics.Color
 import android.os.Build
 import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
@@ -137,8 +136,12 @@ class ComplianceCheckReceiver : DaggerBroadcastReceiver() {
 
         val remoteViews = RemoteViews(context.packageName, R.layout.notification_compliance).apply {
             setTextViewText(R.id.notification_text, message)
-            val bgColor = if (messages.size == 1) Color.YELLOW else Color.RED
-            setInt(R.id.notification_root, "setBackgroundColor", bgColor)
+            val bgRes = if (messages.size == 1) {
+                R.drawable.notification_bg_yellow
+            } else {
+                R.drawable.notification_bg_red
+            }
+            setInt(R.id.notification_root, "setBackgroundResource", bgRes)
         }
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
