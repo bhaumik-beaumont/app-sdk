@@ -51,7 +51,7 @@ class RewardsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            val studyId = studyRepository.getActiveStudies().firstOrNull()?.firstOrNull()?.id
+            val studyId = studyRepository.getActiveStudies().first().firstOrNull()?.id
             if (studyId != null) {
                 enrollmentDatePref.getEnrollmentDate(studyId)?.let { startStr ->
                     val startDate = LocalDate.parse(startStr)

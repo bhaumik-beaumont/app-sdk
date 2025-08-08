@@ -51,6 +51,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -120,7 +121,7 @@ fun WeeklyProgressScreen(
                     ExerciseDetailSheet(
                         title = stringResource(R.string.exercises_on_date, formatted),
                         exercises = exercises
-) {
+                    )
                 }
                 detailType == DetailType.Resistance -> {
                     ExerciseDetailSheet(
@@ -149,6 +150,7 @@ fun WeeklyProgressScreen(
             }
         }
     }
+
 
     Scaffold(
         containerColor = Color(0xFF222222),
@@ -349,7 +351,7 @@ fun WeeklyProgressScreen(
                         title = stringResource(id = R.string.weight),
                         progressPercent = weightProgress,
                         color = Color(0xFFFF6347),
-                        badgeRes = if (weightProgress >= 100) R.drawable.weight else null,
+                        badgeRes = if (weightProgress >= 100) R.drawable.bia else null,
                         onClick = {
                             detailType = DetailType.Weight
                             selectedDay = null
@@ -511,6 +513,7 @@ private fun ProgressCard(
             Image(
                 painter = painterResource(id = badgeRes),
                 contentDescription = null,
+                contentScale = ContentScale.Fit, // or Crop, FillBounds, Inside, etc.
                 modifier = Modifier
                     .size(width = 50.dp, height = 100.dp)
                     .align(Alignment.TopEnd)
@@ -595,6 +598,7 @@ private fun BinaryProgressCard(
                 painter = painterResource(id = badgeRes),
                 contentDescription = null,
                 modifier = Modifier
+                    .padding(8.dp)
                     .size(width = 50.dp, height = 100.dp)
                     .align(Alignment.TopEnd)
             )

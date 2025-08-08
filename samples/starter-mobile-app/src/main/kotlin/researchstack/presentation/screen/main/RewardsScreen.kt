@@ -107,7 +107,7 @@ fun RewardsScreen(
             RewardSection(
                 title = stringResource(id = R.string.weight_rewards),
                 weeks = weightWeeks,
-                badgeRes = R.drawable.weight
+                badgeRes = R.drawable.bia
             )
             RewardSection(
                 title = stringResource(id = R.string.champion_rewards),
