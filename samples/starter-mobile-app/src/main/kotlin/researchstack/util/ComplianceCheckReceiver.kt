@@ -5,7 +5,8 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.os.Build
+import android.graphics.Color
+import android.view.View
 import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
 import dagger.hilt.android.AndroidEntryPoint
@@ -134,22 +135,34 @@ class ComplianceCheckReceiver : DaggerBroadcastReceiver() {
             messages.joinToString("\n") +
             " Please complete this as soon as possible to stay on track!"
 
-        val remoteViews = RemoteViews(context.packageName, R.layout.notification_compliance).apply {
-            setTextViewText(R.id.notification_text, message)
-            val bgRes = if (messages.size == 1) {
-                R.drawable.notification_bg_yellow
-            } else {
-                R.drawable.notification_bg_red
-            }
+        val isYellow = messages.size == 1
+        val bgRes = if (isYellow) {
+            R.drawable.notification_bg_yellow
+        } else {
+            R.drawable.notification_bg_red
+        }
+        val textColor = if (isYellow) Color.BLACK else Color.WHITE
+
+        val collapsed = RemoteViews(context.packageName, R.layout.notification_compliance).apply {
+            setTextViewText(R.id.notification_title, "Weekly Progress Reminder")
+            setViewVisibility(R.id.notification_text, View.GONE)
             setInt(R.id.notification_root, "setBackgroundResource", bgRes)
+            setTextColor(R.id.notification_title, textColor)
+        }
+        val expanded = RemoteViews(context.packageName, R.layout.notification_compliance).apply {
+            setTextViewText(R.id.notification_title, "Weekly Progress Reminder")
+            setViewVisibility(R.id.notification_text, View.VISIBLE)
+            setTextViewText(R.id.notification_text, message)
+            setInt(R.id.notification_root, "setBackgroundResource", bgRes)
+            setTextColor(R.id.notification_title, textColor)
+            setTextColor(R.id.notification_text, textColor)
         }
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.flexed_biceps_red)
-            .setContentTitle("Weekly Progress Reminder")
             .setStyle(NotificationCompat.DecoratedCustomViewStyle())
-            .setCustomContentView(remoteViews)
-            .setCustomBigContentView(remoteViews)
+            .setCustomContentView(collapsed)
+            .setCustomBigContentView(expanded)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setContentIntent(pi)
             .setAutoCancel(true)
