@@ -85,8 +85,8 @@ fun ProgressScreen(viewModel: ProgressViewModel = hiltViewModel()) {
                 .padding(16.dp)
         ) {
             Text(text = stringResource(id = R.string.calorie_burn_over_time), color = Color.White, fontSize = 18.sp)
-            Spacer(Modifier.height(8.dp))
-            CalorieChart(calories)
+//            Spacer(Modifier.height(8.dp))
+//            CalorieChart(calories)
             Spacer(Modifier.height(24.dp))
             Text(text = stringResource(id = R.string.bia_progress), color = Color.White, fontSize = 18.sp)
             Spacer(Modifier.height(8.dp))
@@ -112,14 +112,14 @@ fun ProgressScreen(viewModel: ProgressViewModel = hiltViewModel()) {
                 lineColor = Color(0xFF64B5F6)
             )
             Spacer(Modifier.height(24.dp))
-            Text(text = stringResource(id = R.string.weight_progress), color = Color.White, fontSize = 18.sp)
-            Spacer(Modifier.height(8.dp))
-            BiaMetricChart(
-                title = stringResource(R.string.weight) + " ($unit)",
-                data = weight,
-                unit = unit,
-                lineColor = Color(0xFFFFB74D)
-            )
+//            Text(text = stringResource(id = R.string.weight_progress), color = Color.White, fontSize = 18.sp)
+//            Spacer(Modifier.height(8.dp))
+//            BiaMetricChart(
+//                title = stringResource(R.string.weight) + " ($unit)",
+//                data = weight,
+//                unit = unit,
+//                lineColor = Color(0xFFFFB74D)
+//            )
         }
     }
 }

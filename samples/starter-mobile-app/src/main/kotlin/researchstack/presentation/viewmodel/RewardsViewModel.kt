@@ -88,17 +88,17 @@ class RewardsViewModel @Inject constructor(
             if (weightCount > 0) weight.add(i + 1)
         }
 
-        _activityRewardWeeks.value = activity
-        _resistanceRewardWeeks.value = resistance
-        _biaRewardWeeks.value = bia
-        _weightRewardWeeks.value = weight
+        _activityRewardWeeks.value = activity.sortedDescending()
+        _resistanceRewardWeeks.value = resistance.sortedDescending()
+        _biaRewardWeeks.value = bia.sortedDescending()
+        _weightRewardWeeks.value = weight.sortedDescending()
 
         val champion = activity.toSet()
             .intersect(resistance.toSet())
             .intersect(bia.toSet())
             .intersect(weight.toSet())
             .toList()
-            .sorted()
+            .sortedDescending()
         _championRewardWeeks.value = champion
     }
 }

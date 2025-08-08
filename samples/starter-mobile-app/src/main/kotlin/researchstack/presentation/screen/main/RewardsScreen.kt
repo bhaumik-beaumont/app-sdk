@@ -86,8 +86,9 @@ fun RewardsScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(innerPadding)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
+                .padding(vertical = 16.dp)
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(32.dp)
         ) {
             RewardSection(
                 title = stringResource(id = R.string.activity_rewards),
@@ -131,18 +132,23 @@ private fun RewardSection(
             color = Color.White,
             fontSize = 18.sp,
             fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(vertical = 16.dp)
+            modifier = Modifier.padding(bottom = 16.dp)
         )
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
             items(weeks) { week ->
                 Card(
-                    modifier = Modifier.size(width = 80.dp, height = 100.dp),
-                    shape = RoundedCornerShape(8.dp),
+                    shape = RoundedCornerShape(12.dp),
                     colors = CardDefaults.cardColors(containerColor = Color(0xFF2A2A2A)),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+                    modifier = Modifier.size(width = 90.dp, height = 120.dp)
                 ) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center,
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(8.dp)
@@ -153,11 +159,11 @@ private fun RewardSection(
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium
                         )
-                        Spacer(Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
                         Image(
                             painter = painterResource(id = badgeRes),
                             contentDescription = null,
-                            modifier = Modifier.size(64.dp)
+                            modifier = Modifier.size(48.dp)
                         )
                     }
                 }
@@ -165,4 +171,3 @@ private fun RewardSection(
         }
     }
 }
-
