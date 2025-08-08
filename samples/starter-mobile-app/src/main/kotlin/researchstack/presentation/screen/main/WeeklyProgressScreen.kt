@@ -1,6 +1,7 @@
 package researchstack.presentation.screen.main
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -49,6 +50,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -117,7 +119,7 @@ fun WeeklyProgressScreen(
                     ExerciseDetailSheet(
                         title = stringResource(R.string.exercises_on_date, formatted),
                         exercises = exercises
-                    )
+) {
                 }
                 detailType == DetailType.Resistance -> {
                     ExerciseDetailSheet(
@@ -314,6 +316,7 @@ fun WeeklyProgressScreen(
                         calories = activityCalories,
                         progressPercent = activityProgress,
                         color = Color(0xFF00A86B),
+                        badgeRes = if (activityProgress >= 100) R.drawable.activity else null,
                         onClick = {
                             detailType = DetailType.Activity
                             selectedDay = null
@@ -329,6 +332,7 @@ fun WeeklyProgressScreen(
                         calories = resistanceCalories,
                         progressPercent = resistanceProgress,
                         color = Color(0xFF3B82F6),
+                        badgeRes = if (resistanceProgress >= 100) R.drawable.resistance else null,
                         onClick = {
                             detailType = DetailType.Resistance
                             selectedDay = null
@@ -338,6 +342,7 @@ fun WeeklyProgressScreen(
                         title = stringResource(id = R.string.weight),
                         progressPercent = weightProgress,
                         color = Color(0xFFFF6347),
+                        badgeRes = if (weightProgress >= 100) R.drawable.weight else null,
                         onClick = {
                             detailType = DetailType.Weight
                             selectedDay = null
@@ -347,6 +352,7 @@ fun WeeklyProgressScreen(
                         title = stringResource(id = R.string.bia),
                         progressPercent = biaProgress,
                         color = Color(0xFFFFA500),
+                        badgeRes = if (biaProgress >= 100) R.drawable.bia else null,
                         onClick = {
                             detailType = DetailType.Bia
                             selectedDay = null
@@ -432,64 +438,76 @@ private fun ProgressCard(
     calories: Int,
     progressPercent: Int,
     color: Color,
+    badgeRes: Int? = null,
     onClick: () -> Unit
 ) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() },
-        colors = CardDefaults.cardColors(Color(0xFF333333)),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Column(
+    Box {
+        Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .clickable { onClick() },
+            colors = CardDefaults.cardColors(Color(0xFF333333)),
+            shape = RoundedCornerShape(16.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
         ) {
-            Row(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(IntrinsicSize.Min),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    .padding(horizontal = 16.dp, vertical = 20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                VerticalProgressBar(progressPercent, color, modifier = Modifier.fillMaxHeight())
-                Column(
-                    modifier = Modifier.weight(1f)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(IntrinsicSize.Min),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Text(title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                    Spacer(Modifier.height(12.dp))
-                    Text(
-                        subTitle,
-                        color = Color.White,
-                        fontSize = 14.sp
-                    )
-                    Spacer(Modifier.height(12.dp))
-                    Text(
-                        "${stringResource(id = R.string.calories)}: $calories ${stringResource(id = R.string.kcal_unit)}",
-                        color = Color.White,
-                        fontSize = 14.sp
-                    )
-                    Text(
-                        text = stringResource(id = R.string.weekly_summary_helper),
-                        color = Color.LightGray,
-                        fontSize = 12.sp,
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
+                    VerticalProgressBar(progressPercent, color, modifier = Modifier.fillMaxHeight())
+                    Column(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        Spacer(Modifier.height(12.dp))
+                        Text(
+                            subTitle,
+                            color = Color.White,
+                            fontSize = 14.sp
+                        )
+                        Spacer(Modifier.height(12.dp))
+                        Text(
+                            "${stringResource(id = R.string.calories)}: $calories ${stringResource(id = R.string.kcal_unit)}",
+                            color = Color.White,
+                            fontSize = 14.sp
+                        )
+                        Text(
+                            text = stringResource(id = R.string.weekly_summary_helper),
+                            color = Color.LightGray,
+                            fontSize = 12.sp,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    }
+                }
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    Button(
+                        onClick = onClick,
+                        colors = ButtonDefaults.buttonColors(containerColor = color),
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.align(Alignment.BottomEnd)
+                    ) {
+                        Text(stringResource(id = R.string.show_details), color = Color.White)
+                    }
                 }
             }
-            Box(modifier = Modifier.fillMaxWidth()) {
-                Button(
-                    onClick = onClick,
-                    colors = ButtonDefaults.buttonColors(containerColor = color),
-                    shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.align(Alignment.BottomEnd)
-                ) {
-                    Text(stringResource(id = R.string.show_details), color = Color.White)
-                }
-            }
+        }
+        if (badgeRes != null) {
+            Image(
+                painter = painterResource(id = badgeRes),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(width = 50.dp, height = 100.dp)
+                    .align(Alignment.TopEnd)
+            )
         }
     }
 }
@@ -518,49 +536,61 @@ private fun BinaryProgressCard(
     title: String,
     progressPercent: Int,
     color: Color,
+    badgeRes: Int? = null,
     onClick: () -> Unit,
 ) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() },
-        colors = CardDefaults.cardColors(Color(0xFF333333)),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Column(
+    Box {
+        Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .clickable { onClick() },
+            colors = CardDefaults.cardColors(Color(0xFF333333)),
+            shape = RoundedCornerShape(16.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
         ) {
-            Row(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(72.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    .padding(horizontal = 16.dp, vertical = 20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                VerticalProgressBar(progressPercent, color, modifier = Modifier.fillMaxHeight())
                 Row(
-                    modifier = Modifier.weight(1f),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(72.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Text(title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                    Text("${progressPercent}%", color = Color.White, fontSize = 14.sp)
+                    VerticalProgressBar(progressPercent, color, modifier = Modifier.fillMaxHeight())
+                    Row(
+                        modifier = Modifier.weight(1f),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        Text("${progressPercent}%", color = Color.White, fontSize = 14.sp)
+                    }
+                }
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    Button(
+                        onClick = onClick,
+                        colors = ButtonDefaults.buttonColors(containerColor = color),
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.align(Alignment.BottomEnd)
+                    ) {
+                        Text(stringResource(id = R.string.show_details), color = Color.White)
+                    }
                 }
             }
-            Box(modifier = Modifier.fillMaxWidth()) {
-                Button(
-                    onClick = onClick,
-                    colors = ButtonDefaults.buttonColors(containerColor = color),
-                    shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.align(Alignment.BottomEnd)
-                ) {
-                    Text(stringResource(id = R.string.show_details), color = Color.White)
-                }
-            }
+        }
+        if (badgeRes != null) {
+            Image(
+                painter = painterResource(id = badgeRes),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(width = 50.dp, height = 100.dp)
+                    .align(Alignment.TopEnd)
+            )
         }
     }
 }
