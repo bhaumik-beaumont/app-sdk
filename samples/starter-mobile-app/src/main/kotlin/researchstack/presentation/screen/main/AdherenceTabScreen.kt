@@ -8,6 +8,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import researchstack.presentation.viewmodel.DashboardViewModel
 import researchstack.util.WEEKLY_ACTIVITY_GOAL_MINUTES
 import researchstack.util.WEEKLY_RESISTANCE_SESSION_COUNT
+import researchstack.util.MINIMUM_BIA_ENTRIES_PER_WEEK
+import researchstack.util.MINIMUM_WEIGHT_ENTRIES_PER_WEEK
 
 @Composable
 fun AdherenceTabScreen(
@@ -18,26 +20,57 @@ fun AdherenceTabScreen(
     val biaCount by dashboardViewModel.biaCount.collectAsState()
     val weightCount by dashboardViewModel.weightCount.collectAsState()
     val currentWeek by dashboardViewModel.currentWeek.collectAsState()
-    val currentDay by dashboardViewModel.currentDay.collectAsState()
 
     val messages = remember(
-        activityMinutes, resistanceSessions, biaCount, weightCount, currentWeek, currentDay
+        activityMinutes, resistanceSessions, biaCount, weightCount, currentWeek
     ) {
-        val list = mutableListOf<String>()
-        if (activityMinutes < WEEKLY_ACTIVITY_GOAL_MINUTES) {
-            list.add("You’ve logged $activityMinutes minutes of activity. Target: $WEEKLY_ACTIVITY_GOAL_MINUTES minutes per week.")
+        data class ComplianceMessage(val order: Int, val compliant: Boolean, val message: String)
+
+        val items = mutableListOf<ComplianceMessage>()
+
+        val activityMessage =
+            "You’ve logged $activityMinutes minutes of activity. Target: $WEEKLY_ACTIVITY_GOAL_MINUTES minutes per week."
+        items += ComplianceMessage(
+            order = 1,
+            compliant = activityMinutes >= WEEKLY_ACTIVITY_GOAL_MINUTES,
+            message = activityMessage
+        )
+
+        val resistanceMessage =
+            "You’ve completed ${resistanceSessions.size} resistance session(s). Goal: $WEEKLY_RESISTANCE_SESSION_COUNT sessions per week."
+        items += ComplianceMessage(
+            order = 2,
+            compliant = resistanceSessions.size >= WEEKLY_RESISTANCE_SESSION_COUNT,
+            message = resistanceMessage
+        )
+
+        val biaMessage =
+            "You’ve logged $biaCount BIA measurement(s). Goal: $MINIMUM_BIA_ENTRIES_PER_WEEK per week."
+        items += ComplianceMessage(
+            order = 3,
+            compliant = biaCount >= MINIMUM_BIA_ENTRIES_PER_WEEK,
+            message = biaMessage
+        )
+
+        val weightMessage =
+            "You’ve logged $weightCount weight entry(ies). Goal: $MINIMUM_WEIGHT_ENTRIES_PER_WEEK per week."
+        items += ComplianceMessage(
+            order = 4,
+            compliant = weightCount >= MINIMUM_WEIGHT_ENTRIES_PER_WEEK,
+            message = weightMessage
+        )
+
+        if (currentWeek == 1 && biaCount == 0 && weightCount == 0) {
+            items += ComplianceMessage(
+                order = 0,
+                compliant = false,
+                message = "Reminder: Complete BIA or weight reading by Day 7 as part of your clinic baseline requirement."
+            )
         }
-        if (resistanceSessions.size < WEEKLY_RESISTANCE_SESSION_COUNT) {
-            list.add("You’ve completed ${resistanceSessions.size} resistance session(s). Goal: $WEEKLY_RESISTANCE_SESSION_COUNT sessions per week.")
-        }
-        val showBaseline = currentWeek == 1 && biaCount == 0 && weightCount == 0
-        if (showBaseline) {
-            list.add("Reminder: Complete BIA or weight reading by Day 7 as part of your clinic baseline requirement.")
-        }
-        if (list.isEmpty()) {
-            list.add("You're all set for this week. Keep up the great work!")
-        }
-        list
+
+        items
+            .sortedWith(compareBy<ComplianceMessage> { it.compliant }.thenBy { it.order })
+            .map { it.message }
     }
 
     Column(
