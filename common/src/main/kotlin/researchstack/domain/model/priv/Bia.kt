@@ -23,6 +23,7 @@ data class Bia(
     val totalBodyWater: Float = 0f,
     val measurementProgress: Float = 0f,
     val status: Int = 0,
+    val weekNumber: Int = 0,
     override val timeOffset: Int = getCurrentTimeOffset(),
 ) : TimestampMapData {
     override fun toDataMap(): Map<String, Any> =
@@ -38,6 +39,7 @@ data class Bia(
             ::totalBodyWater.name to totalBodyWater,
             ::measurementProgress.name to measurementProgress,
             ::status.name to status,
+            ::weekNumber.name to weekNumber,
             ::timeOffset.name to timeOffset,
         )
 }

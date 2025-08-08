@@ -25,6 +25,7 @@ class BiaTest {
         val measurementProgress = 80f
         val status = 0
         val timeOffset = getCurrentTimeOffset()
+        val weekNumber = 1
         val expectedMap = mapOf(
             "timestamp" to timestamp,
             "basalMetabolicRate" to basalMetabolicRate,
@@ -37,6 +38,7 @@ class BiaTest {
             "totalBodyWater" to totalBodyWater,
             "measurementProgress" to measurementProgress,
             "status" to status,
+            "weekNumber" to weekNumber,
             "timeOffset" to timeOffset,
         )
 
@@ -52,6 +54,7 @@ class BiaTest {
             totalBodyWater,
             measurementProgress,
             status,
+            weekNumber,
             timeOffset
         )
         val dataMap = bia.toDataMap()
