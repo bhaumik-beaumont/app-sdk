@@ -1,7 +1,6 @@
 package researchstack.presentation.viewmodel
 
 import android.app.Application
-import androidx.health.connect.client.records.ExerciseSessionRecord
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,8 +19,13 @@ import researchstack.domain.model.healthConnect.Exercise
 import researchstack.domain.repository.StudyRepository
 import researchstack.presentation.util.kgToLbs
 import researchstack.presentation.util.toDecimalFormat
+import researchstack.util.MINIMUM_BIA_ENTRIES_PER_WEEK
+import researchstack.util.MINIMUM_WEIGHT_ENTRIES_PER_WEEK
 import researchstack.util.WEEKLY_ACTIVITY_GOAL_MINUTES
 import researchstack.util.WEEKLY_RESISTANCE_SESSION_COUNT
+import researchstack.util.getActivityMessage
+import researchstack.util.getBiaMessage
+import researchstack.util.getResistanceMessage
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
@@ -80,6 +84,9 @@ class DashboardViewModel @Inject constructor(
     private val _weightCount = MutableStateFlow(0)
     val weightCount: StateFlow<Int> = _weightCount
 
+    private val _complianceMessages = MutableStateFlow<List<String>>(emptyList())
+    val complianceMessages: StateFlow<List<String>> = _complianceMessages
+
     init {
         refreshData()
     }
@@ -99,12 +106,14 @@ class DashboardViewModel @Inject constructor(
                     val daysSinceEnrollment = ChronoUnit.DAYS.between(enrollmentLocalDate, LocalDate.now()).toInt()
                     _currentWeek.value = daysSinceEnrollment / 7 + 1
                     _currentDay.value = daysSinceEnrollment % 7 + 1
+                    updateComplianceMessages()
 
                     launch {
                         biaDao.countBetween(startMillis, endMillis).collect { count ->
                             _biaCount.value = count
                             val progress = if (count > 0) 100 else 0
                             _biaProgressPercent.value = progress
+                            updateComplianceMessages()
                         }
                     }
                     launch {
@@ -112,6 +121,7 @@ class DashboardViewModel @Inject constructor(
                             val progress = if (count > 0) 100 else 0
                             _weightProgressPercent.value = progress
                             _weightCount.value = count
+                            updateComplianceMessages()
                         }
                     }
                     viewModelScope.launch(Dispatchers.IO) {
@@ -146,10 +156,29 @@ class DashboardViewModel @Inject constructor(
                         } else {
                             resistanceProgress
                         }
+                        updateComplianceMessages()
                     }
                 }
             }
         }
+    }
+
+    private fun updateComplianceMessages() {
+        val messages = mutableListOf<String>()
+        if (_currentDay.value >= 3 && _totalDurationMinutes.value < WEEKLY_ACTIVITY_GOAL_MINUTES) {
+            messages += getActivityMessage()
+        }
+        if (_currentDay.value >= 4 && _resistanceExercises.value.size < WEEKLY_RESISTANCE_SESSION_COUNT) {
+            messages += getResistanceMessage()
+        }
+        if (
+            _currentDay.value == 7 &&
+            (_biaCount.value < MINIMUM_BIA_ENTRIES_PER_WEEK ||
+                _weightCount.value < MINIMUM_WEIGHT_ENTRIES_PER_WEEK)
+        ) {
+            messages += getBiaMessage()
+        }
+        _complianceMessages.value = messages
     }
 
     private fun calculateCurrentWeekStart(enrollmentDate: LocalDate): LocalDate {
