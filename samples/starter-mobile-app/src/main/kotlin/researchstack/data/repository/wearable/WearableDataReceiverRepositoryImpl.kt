@@ -47,6 +47,7 @@ import researchstack.domain.usecase.log.AppLogger
 import java.io.IOException
 import java.io.InputStream
 import java.lang.reflect.Type
+import java.util.UUID
 import javax.inject.Inject
 
 class WearableDataReceiverRepositoryImpl @Inject constructor(
@@ -181,18 +182,28 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
         runCatching { fromJson<ArrayList<T>>(this, object : TypeToken<ArrayList<T>>() {}.type) }.getOrNull() != null
 
     private inline fun <reified T : Timestamp> saveData(jsonObject: JsonObject, privDao: PrivDao<T>) {
-        if (jsonObject.isArrayItem<T>()) privDao.insertAll(
-            fromJson(
+        if (jsonObject.isArrayItem<T>()) {
+            val data: List<T> = fromJson(
                 jsonObject,
                 object : TypeToken<ArrayList<T>>() {}.type
             )
-        )
-        else privDao.insert(fromJson(jsonObject, object : TypeToken<T>() {}.type))
+            privDao.insertAll(data.map { ensureId(it) })
+        } else {
+            val data: T = fromJson(jsonObject, object : TypeToken<T>() {}.type)
+            privDao.insert(ensureId(data))
+        }
     }
 
     private inline fun <reified T : Timestamp> saveData(data: List<T>, privDao: PrivDao<T>) {
-        privDao.insertAll(data)
+        privDao.insertAll(data.map { ensureId(it) })
     }
+
+    private inline fun <reified T : Timestamp> ensureId(data: T): T =
+        if (data is Bia && data.id.isBlank()) {
+            data.copy(id = UUID.randomUUID().toString()) as T
+        } else {
+            data
+        }
 
     override suspend fun syncWearableData() {
         studyRepository.getActiveStudies().first()

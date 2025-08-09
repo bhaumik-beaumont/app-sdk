@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import researchstack.domain.model.TimestampMapData
 import researchstack.util.getCurrentTimeOffset
+import java.util.UUID
 
 const val BIA_TABLE_NAME = "bia"
 
@@ -11,7 +12,6 @@ const val BIA_TABLE_NAME = "bia"
     tableName = BIA_TABLE_NAME
 )
 data class Bia(
-    @PrimaryKey
     override val timestamp: Long = 0,
     val basalMetabolicRate: Float = 0f,
     val bodyFatMass: Float = 0f,
@@ -25,6 +25,7 @@ data class Bia(
     val status: Int = 0,
     val weekNumber: Int = 0,
     override val timeOffset: Int = getCurrentTimeOffset(),
+    @PrimaryKey val id: String = UUID.randomUUID().toString(),
 ) : TimestampMapData {
     override fun toDataMap(): Map<String, Any> =
         mapOf(
@@ -41,6 +42,7 @@ data class Bia(
             ::status.name to status,
             ::weekNumber.name to weekNumber,
             ::timeOffset.name to timeOffset,
+            ::id.name to id,
         )
 }
 

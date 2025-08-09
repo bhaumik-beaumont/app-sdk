@@ -26,6 +26,7 @@ class BiaTest {
         val status = 0
         val timeOffset = getCurrentTimeOffset()
         val weekNumber = 1
+        val id = "test-id"
         val expectedMap = mapOf(
             "timestamp" to timestamp,
             "basalMetabolicRate" to basalMetabolicRate,
@@ -40,6 +41,7 @@ class BiaTest {
             "status" to status,
             "weekNumber" to weekNumber,
             "timeOffset" to timeOffset,
+            "id" to id,
         )
 
         val bia = Bia(
@@ -55,7 +57,8 @@ class BiaTest {
             measurementProgress,
             status,
             weekNumber,
-            timeOffset
+            timeOffset,
+            id
         )
         val dataMap = bia.toDataMap()
         assertEquals(expectedMap, dataMap)
