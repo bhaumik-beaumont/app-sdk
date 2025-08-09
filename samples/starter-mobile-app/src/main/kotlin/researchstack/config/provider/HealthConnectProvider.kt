@@ -26,6 +26,7 @@ import researchstack.domain.usecase.file.UploadFileUseCase
 import researchstack.domain.usecase.profile.GetProfileUseCase
 import researchstack.data.datasource.local.pref.EnrollmentDatePref
 import researchstack.data.datasource.local.pref.dataStore
+import researchstack.domain.usecase.profile.UpdateProfileUseCase
 import javax.inject.Singleton
 
 @Module
@@ -50,7 +51,7 @@ class HealthConnectProvider {
         shareAgreementDao: ShareAgreementDao,
         studyRepository: StudyRepository,
         shareAgreementRepository: ShareAgreementRepository,
-        uploadFileUseCase: UploadFileUseCase,
+        updateProfileUseCase: UpdateProfileUseCase,
         getProfileUseCase: GetProfileUseCase,
         studyDao: StudyDao,
         exerciseDao: ExerciseDao,
@@ -64,7 +65,7 @@ class HealthConnectProvider {
         shareAgreementDao,
         studyRepository,
         shareAgreementRepository,
-        uploadFileUseCase,
+        updateProfileUseCase,
         getProfileUseCase,
         studyDao,
         exerciseDao,

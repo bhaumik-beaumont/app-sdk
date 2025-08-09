@@ -9,4 +9,5 @@ data class UserProfileModel(
     val email: String,
     val phoneNumber: String,
     val address: String,
+    val gender: Int = 2,
 )
