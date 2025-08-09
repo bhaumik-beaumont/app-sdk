@@ -5,6 +5,8 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import researchstack.data.local.room.converter.ECGConverter
 import researchstack.data.local.room.converter.HeartRateConverter
 import researchstack.data.local.room.dao.AccelerometerDao
@@ -29,9 +31,10 @@ import researchstack.domain.model.priv.PpgRed
 import researchstack.domain.model.priv.SpO2
 import researchstack.domain.model.priv.SweatLoss
 import researchstack.domain.model.UserProfile
+import researchstack.domain.model.priv.BIA_TABLE_NAME
 
 @Database(
-    version = 3,
+    version = 4,
     exportSchema = false,
 
     entities = [
@@ -71,6 +74,12 @@ abstract class WearableAppDataBase : RoomDatabase() {
         @Volatile
         private var INSTANCE: WearableAppDataBase? = null
 
+        private val MIGRATION_3_4 = object : Migration(8, 9) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE $BIA_TABLE_NAME ADD COLUMN weekNumber int NOT NULL DEFAULT 0")
+            }
+        }
+
         fun getDatabase(
             context: Context,
         ): WearableAppDataBase =
@@ -80,6 +89,7 @@ abstract class WearableAppDataBase : RoomDatabase() {
                     WearableAppDataBase::class.java,
                     "wearable_app_db"
                 )
+                    .addMigrations(MIGRATION_3_4)
                     .fallbackToDestructiveMigration()
                     .enableMultiInstanceInvalidation()
                     .addTypeConverter(ECGConverter())

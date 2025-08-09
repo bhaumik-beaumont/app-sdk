@@ -103,7 +103,7 @@ class WearableDataReceiver : WearableListenerService() {
                                     reader.lineSequence().forEach { line ->
                                         if (line.isNotBlank()) {
                                             val columns = line.split('|')
-                                            val timestamp = columns.firstOrNull()?.toLongOrNull()
+                                            val timestamp = columns[10].toLongOrNull()
                                             val week = if (timestamp != null && enrollmentDate != null) {
                                                 val date = Instant.ofEpochMilli(timestamp).atZone(ZoneId.systemDefault()).toLocalDate()
                                                 ChronoUnit.WEEKS.between(enrollmentDate, date).toInt() + 1
