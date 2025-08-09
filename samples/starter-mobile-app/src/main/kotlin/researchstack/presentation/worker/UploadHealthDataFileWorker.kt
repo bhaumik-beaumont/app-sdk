@@ -73,11 +73,11 @@ class UploadHealthDataFileWorker @AssistedInject constructor(
     }
 
     private suspend fun syncHealthDataToServer(studyIds: List<String>, file: File) {
-        FileInputStream(file).use { inputStream ->
-            val reader = BufferedReader(InputStreamReader(inputStream))
-            val dataType = PrivDataType.valueOf(reader.readLine())
-            syncWearableDataUseCase(studyIds, dataType, ReaderInputStream(reader))
-        }
+//        FileInputStream(file).use { inputStream ->
+//            val reader = BufferedReader(InputStreamReader(inputStream))
+//            val dataType = PrivDataType.valueOf(reader.readLine())
+//            syncWearableDataUseCase(studyIds, dataType, ReaderInputStream(reader))
+//        }
     }
 
     private suspend fun sendSignal(studyId: String, filePath: String, fileName: String) =
