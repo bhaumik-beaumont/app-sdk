@@ -34,7 +34,7 @@ import researchstack.domain.model.UserProfile
 import researchstack.domain.model.priv.BIA_TABLE_NAME
 
 @Database(
-    version = 4,
+    version = 5,
     exportSchema = false,
 
     entities = [
@@ -80,6 +80,12 @@ abstract class WearableAppDataBase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE $BIA_TABLE_NAME ADD COLUMN id TEXT NOT NULL DEFAULT ''")
+            }
+        }
+
         fun getDatabase(
             context: Context,
         ): WearableAppDataBase =
@@ -89,7 +95,7 @@ abstract class WearableAppDataBase : RoomDatabase() {
                     WearableAppDataBase::class.java,
                     "wearable_app_db"
                 )
-                    .addMigrations(MIGRATION_3_4)
+                    .addMigrations(MIGRATION_3_4, MIGRATION_4_5)
                     .fallbackToDestructiveMigration()
                     .enableMultiInstanceInvalidation()
                     .addTypeConverter(ECGConverter())
