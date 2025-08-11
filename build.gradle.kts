@@ -21,6 +21,7 @@ plugins {
     kotlin("kapt") version Versions.KOTLIN apply false
     id("com.google.protobuf") version Versions.GRPC.PROTOBUF apply false
     id("org.jetbrains.kotlin.android") version Versions.KOTLIN apply false
+    id("org.jetbrains.kotlin.plugin.compose") version Versions.KOTLIN apply false
     id("nl.neotech.plugin.rootcoverage") version Versions.ROOT_COVERAGE
 }
 
