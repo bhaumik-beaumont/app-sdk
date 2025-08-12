@@ -84,4 +84,8 @@ rootCoverage {
     includeAndroidTestResults = false
     includeUnitTestResults = true
     includeNoLocationClasses = false
+    buildVariantOverrides = mapOf(
+        ":samples:starter-mobile-app" to "devDebug",
+        ":samples:starter-wearable-app" to "devDebug",
+    )
 }

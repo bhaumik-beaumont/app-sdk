@@ -31,7 +31,7 @@ android {
     defaultConfig {
         applicationId = "com.mgb.beaumont.glp1activitytracking"
         minSdk = 29
-        targetSdk = 34
+        targetSdk = 35
         versionCode = Versions.APP_VERSION_CODE * 2 - 1
         versionName = Versions.APP_VERSION_NAME
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -43,7 +43,6 @@ android {
 
         buildConfigField("String", "SA_CLIENT_ID", getPropertyOrDefault("SA_CLIENT_ID", "\"\""))
         buildConfigField("String", "SA_CLIENT_SECRET", getPropertyOrDefault("SA_CLIENT_SECRET", "\"\""))
-        buildConfigField("String", "SERVER_ADDRESS", getProperty("SERVER_ADDRESS"))
         buildConfigField("int", "SERVER_PORT", getProperty("SERVER_PORT"))
         buildConfigField("String", "COGNITO_CLIENT_ID", getPropertyOrDefault("COGNITO_CLIENT_ID", "\"\""))
         buildConfigField("String", "COGNITO_CLIENT_REGION", getPropertyOrDefault("COGNITO_CLIENT_REGION", "\"\""))
@@ -67,6 +66,22 @@ android {
             getPropertyOrDefault("ENABLE_UPLOAD_WEARABLE_DATA_BY_FILE", "false")
         )
         buildConfigField("long", "DATA_SPLIT_INTERVAL_IN_MILLIS", getPropertyOrDefault("DATA_SPLIT_INTERVAL_IN_MILLIS", "3600000"))
+    }
+
+    flavorDimensions += "env"
+    productFlavors {
+        create("dev") {
+            dimension = "env"
+            applicationId = "com.mgb.beaumont.glp1activitytracking.dev"
+            buildConfigField("String", "SERVER_ADDRESS", "\"192.168.1.20\"")
+            resValue("string","app_name","MGH BICEP (Dev)")
+        }
+        create("prod") {
+            dimension = "env"
+            applicationId = "com.mgb.beaumont.glp1activitytracking"
+            buildConfigField("String", "SERVER_ADDRESS", "\"13.60.148.115\"")
+            resValue("string","app_name","MGH BICEP (Dev)")
+        }
     }
 
     buildTypes {
