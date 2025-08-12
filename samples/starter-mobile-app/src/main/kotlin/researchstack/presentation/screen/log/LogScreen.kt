@@ -23,6 +23,7 @@ import researchstack.presentation.component.TopBar
 import researchstack.presentation.theme.AppTheme
 import researchstack.presentation.viewmodel.log.AppLogViewModel
 import android.content.Intent
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.core.content.FileProvider
 import java.io.File
 
@@ -33,6 +34,7 @@ fun LogScreen(
     val logs = appLogViewModel.appLogs.collectAsState().value
 
     Scaffold(
+        contentWindowInsets = androidx.compose.foundation.layout.WindowInsets.safeDrawing,
         modifier = Modifier.fillMaxSize(1f),
         topBar = {
             val context = LocalContext.current

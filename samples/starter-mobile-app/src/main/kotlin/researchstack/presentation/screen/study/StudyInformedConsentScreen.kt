@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.ClickableText
@@ -145,6 +146,7 @@ fun UserAgreement(
     var allChecked by remember { mutableStateOf(false) }
 
     Scaffold(
+        contentWindowInsets = androidx.compose.foundation.layout.WindowInsets.safeDrawing,
         topBar = {
             TopBar(title = stringResource(id = string.agreement)) { }
         },
@@ -372,6 +374,7 @@ private fun ConsentInformWebView(url: String, onClick: () -> Unit) {
     BackHandler(onBack = onClick)
 
     Scaffold(
+        contentWindowInsets = androidx.compose.foundation.layout.WindowInsets.safeDrawing,
         bottomBar = {
             Row(modifier = Modifier.padding(20.dp)) {
                 AppTextButton(text = stringResource(id = string.confirm), onClick = onClick)

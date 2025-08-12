@@ -14,9 +14,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.ui.graphics.Color.Companion.White
-import androidx.compose.ui.graphics.toArgb
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
@@ -39,11 +38,10 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
-
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         initSplashLoadingViewModel()
 
         setContent {
-            this.window.statusBarColor = White.toArgb()
             val startDestination: Route? by splashLoadingViewModel.routeDestination.observeAsState()
             val page by splashLoadingViewModel.startMainPage.observeAsState(0)
             val openWeeklyProgress = intent.getBooleanExtra("openWeeklyProgress", false)

@@ -20,7 +20,7 @@ fun TopBar(
     TopAppBar(
         modifier = Modifier
             .height(74.dp)
-            .padding(start = 8.dp),
+            .padding(all = 16.dp),
         title = {
             Text(
                 text = title,

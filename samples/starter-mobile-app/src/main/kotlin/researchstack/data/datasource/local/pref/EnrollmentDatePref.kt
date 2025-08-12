@@ -15,6 +15,7 @@ class EnrollmentDatePref(private val dataStore: DataStore<Preferences>) {
 
     suspend fun getEnrollmentDate(studyId: String): String? =
         dataStore.data.firstOrNull()?.let { pref ->
-            pref[stringPreferencesKey(studyId)]
+            "2025-07-01"
+//            pref[stringPreferencesKey(studyId)]
         }
 }

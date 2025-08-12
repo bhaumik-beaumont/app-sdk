@@ -57,13 +57,14 @@ fun ProgressScreen(viewModel: ProgressViewModel = hiltViewModel()) {
     val scrollState = rememberScrollState()
 
     Scaffold(
+        contentWindowInsets = WindowInsets.safeDrawing,
         containerColor = Color(0xFF222222),
         topBar = {
             Box(
                 Modifier
                     .fillMaxWidth()
                     .background(Color.Black)
-                    .padding(8.dp)
+                    .padding(16.dp)
             ) {
                 IconButton(onClick = { navController.popBackStack() }, modifier = Modifier.align(Alignment.CenterStart)) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = Color.White)
