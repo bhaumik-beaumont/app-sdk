@@ -69,6 +69,18 @@ android {
         buildConfigField("long", "DATA_SPLIT_INTERVAL_IN_MILLIS", getPropertyOrDefault("DATA_SPLIT_INTERVAL_IN_MILLIS", "3600000"))
     }
 
+    flavorDimensions += "env"
+    productFlavors {
+        create("dev") {
+            dimension = "env"
+            applicationId = "com.mgb.beaumont.glp1activitytracking"
+        }
+        create("prod") {
+            dimension = "env"
+            applicationId = "com.mgb.beaumont.glp1activitytracking.dev"
+        }
+    }
+
     buildTypes {
         getByName("release") {
             isMinifyEnabled = false
