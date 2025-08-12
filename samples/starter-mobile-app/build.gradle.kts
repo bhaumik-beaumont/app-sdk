@@ -80,7 +80,7 @@ android {
             dimension = "env"
             applicationId = "com.mgb.beaumont.glp1activitytracking"
             buildConfigField("String", "SERVER_ADDRESS", "\"13.60.148.115\"")
-            resValue("string","app_name","MGH BICEP (Dev)")
+            resValue("string","app_name","MGH BICEP")
         }
     }
 
