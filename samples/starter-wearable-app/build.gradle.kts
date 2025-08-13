@@ -58,11 +58,13 @@ android {
     productFlavors {
         create("dev") {
             dimension = "env"
-            applicationId = "com.mgb.beaumont.glp1activitytracking"
+            applicationId = "com.mgb.beaumont.glp1activitytracking.dev"
+            resValue("string","app_name","MGH BICEP (Dev)")
         }
         create("prod") {
             dimension = "env"
-            applicationId = "com.mgb.beaumont.glp1activitytracking.dev"
+            applicationId = "com.mgb.beaumont.glp1activitytracking"
+            resValue("string","app_name","MGH BICEP")
         }
     }
 
