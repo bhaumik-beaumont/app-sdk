@@ -10,7 +10,8 @@ fun GrpcSubjectProfile.toDomain(): UserProfileModel = UserProfileModel(
     email = email,
     phoneNumber = phoneNumber,
     address = address,
-    gender = gender
+    gender = gender,
+    enrolmentDate = enrolmentDate
 )
 
 fun UserProfileModel.toData(): GrpcSubjectProfile = GrpcSubjectProfile.newBuilder()
@@ -21,4 +22,5 @@ fun UserProfileModel.toData(): GrpcSubjectProfile = GrpcSubjectProfile.newBuilde
     .setEmail(email)
     .setAddress(address)
     .setGender(gender)
+    .setEnrolmentDate(enrolmentDate)
     .build()

@@ -55,10 +55,11 @@ class HealthConnectDataSyncRepositoryImpl @Inject constructor(
     private val authenticationPref = BasicAuthenticationPref(context.dataStore)
 
     override suspend fun syncHealthData() {
-
+        val studyId = studyRepository.getActiveStudies().first().firstOrNull()?.id ?: ""
         getProfileUseCase().onSuccess { profile ->
             val wearableProfile = userProfileDao.getLatest().first()
             updateProfileUseCase(profile.copy(gender = wearableProfile?.gender?.ordinal ?: 2))
+            enrollmentDatePref.saveEnrollmentDate(studyId, profile.enrolmentDate ?: LocalDate.now().toString())
             getRequiredHealthDataTypes().forEach { dataType ->
                 val result: List<TimestampMapData>? = when (dataType) {
                     SHealthDataType.EXERCISE -> {
@@ -66,7 +67,7 @@ class HealthConnectDataSyncRepositoryImpl @Inject constructor(
                             ExerciseSessionRecord::class
                         ).filterIsInstance<ExerciseSessionRecord>()
                         val samsungRecords = healthConnectDataSource.getExerciseData()
-                        val studyId = studyRepository.getActiveStudies().first().firstOrNull()?.id ?: ""
+
                         val enrollmentMillis = enrollmentDatePref.getEnrollmentDate(studyId)?.let { dateString ->
                             LocalDate.parse(dateString)
                                 .atStartOfDay(ZoneId.systemDefault())

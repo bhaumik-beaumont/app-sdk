@@ -24,9 +24,11 @@ import researchstack.auth.domain.usecase.CheckSignInUseCase
 import researchstack.auth.domain.usecase.ClearAccountUseCase
 import researchstack.auth.domain.usecase.GetAccountUseCase
 import researchstack.auth.domain.usecase.SignInUseCase
+import researchstack.data.datasource.local.pref.EnrollmentDatePref
 import researchstack.domain.exception.AlreadyExistedUserException
 import researchstack.domain.model.UserProfileModel
 import researchstack.domain.usecase.ReLoginUseCase
+import researchstack.domain.usecase.profile.GetProfileUseCase
 import researchstack.domain.usecase.profile.RegisterProfileUseCase
 import researchstack.domain.validator.EmailValidator
 import researchstack.domain.validator.PasswordValidator
@@ -69,6 +71,7 @@ class WelcomeViewModel @Inject constructor(
     private val clearAccountUseCase: ClearAccountUseCase,
     private val getAccountUseCase: GetAccountUseCase,
     private val checkSignInUseCase: CheckSignInUseCase,
+    private val getProfileUseCase: GetProfileUseCase,
 ) : AndroidViewModel(application) {
     sealed class RegisterState
     object None : RegisterState()
@@ -158,12 +161,25 @@ class WelcomeViewModel @Inject constructor(
             signInUseCase(auth)
                 .mapCatching {
                     val email = _uiState.value.email
-                    registerProfileUseCase(
-                        anonymousUser.copy(
-                            firstName = email.substringBefore("@"),
-                            email = email,
-                        )
-                    )
+                    getProfileUseCase().mapCatching { profile->
+                        if (profile.enrolmentDate.isNullOrEmpty()) {
+                            registerProfileUseCase(
+                                anonymousUser.copy(
+                                    firstName = email.substringBefore("@"),
+                                    email = email,
+                                        enrolmentDate = LocalDate.now().toString()
+                                )
+                            )
+                        } else {
+                            registerProfileUseCase(
+                                anonymousUser.copy(
+                                    firstName = email.substringBefore("@"),
+                                    email = email,
+                                    enrolmentDate = profile.enrolmentDate
+                                )
+                            )
+                        }
+                    }
                 }.onSuccess {
                     _registerState.value = Success
                     fetchStudy()

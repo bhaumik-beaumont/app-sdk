@@ -10,4 +10,5 @@ data class UserProfileModel(
     val phoneNumber: String,
     val address: String,
     val gender: Int = 2,
+    val enrolmentDate: String? = null
 )
