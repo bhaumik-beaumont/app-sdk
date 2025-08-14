@@ -6,7 +6,8 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import researchstack.presentation.screen.insight.SettingScreen
+import androidx.compose.ui.platform.LocalContext
+import researchstack.presentation.screen.settings.AppSettingsScreen
 import researchstack.presentation.screen.insight.StudyPermissionSettingScreen
 import researchstack.presentation.screen.insight.StudyStatusScreen
 import researchstack.presentation.screen.main.MainScreen
@@ -22,6 +23,7 @@ import researchstack.presentation.screen.task.TaskScreen
 import researchstack.presentation.screen.welcome.AppIntroScreen
 import researchstack.presentation.screen.welcome.LoginScreen
 import researchstack.presentation.screen.welcome.WelcomeScreen
+import researchstack.presentation.util.openUrl
 
 private val mainRouteName = "${Route.Main.name}/{page}"
 
@@ -99,7 +101,12 @@ fun Router(navController: NavHostController, startRoute: Route, askedPage: Int) 
             }
         }
         composable(Route.Settings.name) {
-            SettingScreen()
+            val context = LocalContext.current
+            AppSettingsScreen(
+                onBack = { navController.popBackStack() },
+                onOpenUrl = { openUrl(context, it) },
+                showBackButton = true
+            )
         }
     }
 }

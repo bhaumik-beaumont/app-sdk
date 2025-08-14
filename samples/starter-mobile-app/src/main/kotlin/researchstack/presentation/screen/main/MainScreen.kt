@@ -17,6 +17,8 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -36,7 +38,9 @@ import researchstack.presentation.PermissionChecker
 import researchstack.presentation.screen.log.LogScreen
 import researchstack.presentation.screen.study.StudyListScreen
 import researchstack.presentation.screen.task.TaskListScreen
+import researchstack.presentation.screen.settings.AppSettingsScreen
 import researchstack.presentation.theme.AppTheme
+import researchstack.presentation.util.openUrl
 import researchstack.presentation.util.checkAlarmPermission
 import researchstack.presentation.util.ignoreBatteryOptimization
 import researchstack.presentation.viewmodel.UISettingViewModel
@@ -45,6 +49,7 @@ enum class BottomPager(@StringRes val titleId: Int, val imageVectorId: Int) {
     Data(R.string.home_data, R.drawable.home_data),
     StudyList(R.string.home_study_list, R.drawable.home_study_list),
     TaskList(R.string.home_task_list, R.drawable.home_task_list),
+    Settings(R.string.settings, 0),
     Log(R.string.log_page, R.drawable.ic_walk)
 }
 
@@ -98,11 +103,12 @@ fun MainScreen(
         ) { page ->
             when (page) {
                 BottomPager.TaskList.ordinal -> TaskListScreen()
-
                 BottomPager.StudyList.ordinal -> StudyListScreen()
-
                 BottomPager.Data.ordinal -> DashboardScreen()
-
+                BottomPager.Settings.ordinal -> AppSettingsScreen(
+                    onBack = {},
+                    onOpenUrl = { openUrl(context, it) }
+                )
                 BottomPager.Log.ordinal -> LogScreen()
             }
         }
@@ -117,8 +123,13 @@ private fun RowScope.BottomPageItem(
 ) {
     BottomNavigationItem(
         icon = {
+            val image = if (page == BottomPager.Settings) {
+                Icons.Default.Settings
+            } else {
+                ImageVector.vectorResource(page.imageVectorId)
+            }
             Icon(
-                imageVector = ImageVector.vectorResource(page.imageVectorId),
+                imageVector = image,
                 contentDescription = "",
                 modifier = Modifier.size(24.dp)
             )
