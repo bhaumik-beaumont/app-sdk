@@ -106,7 +106,6 @@ fun MainScreen(
                 BottomPager.StudyList.ordinal -> StudyListScreen()
                 BottomPager.Data.ordinal -> DashboardScreen()
                 BottomPager.Settings.ordinal -> AppSettingsScreen(
-                    onBack = {},
                     onOpenUrl = { openUrl(context, it) }
                 )
                 BottomPager.Log.ordinal -> LogScreen()

@@ -103,9 +103,7 @@ fun Router(navController: NavHostController, startRoute: Route, askedPage: Int) 
         composable(Route.Settings.name) {
             val context = LocalContext.current
             AppSettingsScreen(
-                onBack = { navController.popBackStack() },
                 onOpenUrl = { openUrl(context, it) },
-                showBackButton = true
             )
         }
     }

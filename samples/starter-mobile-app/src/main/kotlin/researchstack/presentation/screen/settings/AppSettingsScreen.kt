@@ -1,7 +1,9 @@
 package researchstack.presentation.screen.settings
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -9,16 +11,15 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -27,7 +28,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -36,21 +36,25 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.sp
 import researchstack.BuildConfig
+import researchstack.R
+import researchstack.presentation.LocalNavController
 import researchstack.presentation.util.ABOUT_URL
 import researchstack.presentation.util.PRIVACY_URL
 import researchstack.presentation.util.contactSupport
 
 @Composable
 fun AppSettingsScreen(
-    onBack: () -> Unit,
     onOpenUrl: (String) -> Unit,
-    showBackButton: Boolean = false
 ) {
+    val navController = LocalNavController.current
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -64,20 +68,22 @@ fun AppSettingsScreen(
 
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text(text = "Settings") },
-                navigationIcon = {
-                    if (showBackButton) {
-                        IconButton(onClick = onBack) {
-                            Icon(
-                                imageVector = Icons.Default.ArrowBack,
-                                contentDescription = "Back"
-                            )
-                        }
-                    }
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors()
-            )
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .background(Color.Black)
+                    .padding(16.dp)
+            ) {
+                IconButton(onClick = { navController.popBackStack() }, modifier = Modifier.align(Alignment.CenterStart)) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = Color.White)
+                }
+                Text(
+                    text = stringResource(id = R.string.insights),
+                    color = Color.White,
+                    fontSize = 20.sp,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { inner ->
@@ -192,17 +198,5 @@ private fun KeyValueRow(key: String, value: String) {
             )
         )
     }
-}
-
-@Preview
-@Composable
-private fun AppSettingsScreenPreview() {
-    AppSettingsScreen(onBack = {}, onOpenUrl = {})
-}
-
-@Preview(uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
-@Composable
-private fun AppSettingsScreenDarkPreview() {
-    AppSettingsScreen(onBack = {}, onOpenUrl = {})
 }
 
