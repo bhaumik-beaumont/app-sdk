@@ -157,7 +157,13 @@ class WelcomeViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             signInUseCase(auth)
                 .mapCatching {
-                    registerProfileUseCase(anonymousUser)
+                    val email = _uiState.value.email
+                    registerProfileUseCase(
+                        anonymousUser.copy(
+                            firstName = email.substringBefore("@"),
+                            email = email,
+                        )
+                    )
                 }.onSuccess {
                     _registerState.value = Success
                     fetchStudy()
