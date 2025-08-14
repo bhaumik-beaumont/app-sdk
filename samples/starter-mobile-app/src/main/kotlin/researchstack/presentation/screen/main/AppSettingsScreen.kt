@@ -74,7 +74,7 @@ fun AppSettingsScreen() {
             modifier = Modifier
                 .background(Color.Black)
                 .fillMaxWidth()
-                .padding(all = 5.dp),
+                .padding(all = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(

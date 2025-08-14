@@ -1,4 +1,5 @@
 import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+import org.gradle.kotlin.dsl.wearApp
 
 plugins {
     id("com.android.application")
@@ -74,7 +75,7 @@ android {
             dimension = "env"
             applicationId = "com.mgb.beaumont.glp1activitytracking.dev"
             buildConfigField("String", "SERVER_ADDRESS", "\"192.168.1.20\"")
-            resValue("string","app_name","MGH BICEP (Dev)")
+            resValue("string","app_name","MGH BICEP")
         }
         create("prod") {
             dimension = "env"
@@ -152,6 +153,7 @@ dependencies {
     implementation(AppDependencies.JACKSON_MODULE_KOTLIN)
     implementation(AppDependencies.COMMONS_MATH)
     implementation(AppDependencies.GOOGLE_HEALTH_CONNECT)
+    implementation("androidx.browser:browser:1.9.0")
     kapt(AppDependencies.hiltKaptLibs)
     implementation(AppDependencies.ACCOMPANIST_PAGER)
     implementation(AppDependencies.COIL_COMPOSE)
