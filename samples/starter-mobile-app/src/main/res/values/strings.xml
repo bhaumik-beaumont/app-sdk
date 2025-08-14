@@ -58,6 +58,13 @@
   <string name="registered_study_title">등록된 연구</string>
   <string name="study_permission_title">데이터 정보</string>
   <string name="settings">설정</string>
+  <string name="about_us">회사 소개</string>
+  <string name="privacy_policy">개인정보 처리방침</string>
+  <string name="contact_us">문의하기</string>
+  <string name="build_info">빌드 정보</string>
+  <string name="build_number">빌드 번호</string>
+  <string name="build_code">빌드 코드</string>
+  <string name="no_app_found">이 작업을 처리할 앱이 없습니다.</string>
   <string name="data_permission">데이터 권한</string>
   <string name="samsung_health">삼성 헬스</string>
   <string name="sensor">모바일 센서 데이터</string>
