@@ -1,6 +1,13 @@
 <resources>
   <!-- need to localize -->
   <string name="settings">Settings</string>
+  <string name="about_us">About Us</string>
+  <string name="privacy_policy">Privacy Policy</string>
+  <string name="contact_us">Contact Us</string>
+  <string name="build_info">Build Info</string>
+  <string name="build_number">Build Number</string>
+  <string name="build_code">Build Code</string>
+  <string name="no_app_found">No application found to handle this action.</string>
   <string name="join_a_study">Join a study</string>
   <string name="join_in_study_message">Go to Join In to join a study</string>
   <string name="no_registered_message">You have no registered studies</string>
