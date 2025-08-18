@@ -49,7 +49,7 @@ import researchstack.R
 import researchstack.presentation.LocalNavController
 import researchstack.presentation.initiate.route.Route
 
-private const val PRIVACY_URL = "https://example.com/privacy"
+private const val PRIVACY_URL = "https://www.massgeneralbrigham.org/en/notices/hipaa"
 
 @Composable
 fun AppSettingsScreen() {

@@ -222,5 +222,7 @@
     <string name="weekly_message_resistance_one">You’ve completed 1 resistance training session. Aim for 2 sessions each week.</string>
     <string name="weekly_message_bia_none">Don’t forget to record your body composition this week.</string>
     <string name="weekly_message_weight_none">Update your weight once this week to track your progress.</string>
+    <string name="about_us_paragraph">This is the exercise tracking app for the MGH BICEP Study. Our goal is to study if smartwatches and health technology can help retain muscle mass when starting GLP-1-like medications. Thank you so much for participating! If you have any questions, please reach out to the study team.</string>
+    <string name="developed_by_beaumont">App developed by Beaumont Solutions llc.</string>
 
 </resources>
