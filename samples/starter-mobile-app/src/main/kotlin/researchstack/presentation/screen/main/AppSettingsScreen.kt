@@ -46,13 +46,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import researchstack.R
+import researchstack.presentation.LocalNavController
+import researchstack.presentation.initiate.route.Route
 
-private const val ABOUT_URL = "https://example.com/about"
 private const val PRIVACY_URL = "https://example.com/privacy"
 
 @Composable
 fun AppSettingsScreen() {
     val context = LocalContext.current
+    val navController = LocalNavController.current
     val scrollState = rememberScrollState()
     val packageInfo = remember {
         context.packageManager.getPackageInfo(context.packageName, 0)
@@ -115,7 +117,7 @@ fun AppSettingsScreen() {
                     SettingsRow(
                         icon = Icons.Filled.Info,
                         label = stringResource(id = R.string.about_us),
-                        onClick = { launchUrl(context, ABOUT_URL) }
+                        onClick = { navController.navigate(Route.AboutUs.name) }
                     )
                     Divider(color = Color(0xFF3D3D3D))
                     SettingsRow(

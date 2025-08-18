@@ -9,6 +9,7 @@ import androidx.navigation.navArgument
 import researchstack.presentation.screen.insight.SettingScreen
 import researchstack.presentation.screen.insight.StudyPermissionSettingScreen
 import researchstack.presentation.screen.insight.StudyStatusScreen
+import researchstack.presentation.screen.main.AboutUsScreen
 import researchstack.presentation.screen.main.MainScreen
 import researchstack.presentation.screen.main.ProgressScreen
 import researchstack.presentation.screen.main.RewardsScreen
@@ -100,6 +101,9 @@ fun Router(navController: NavHostController, startRoute: Route, askedPage: Int) 
         }
         composable(Route.Settings.name) {
             SettingScreen()
+        }
+        composable(Route.AboutUs.name) {
+            AboutUsScreen()
         }
     }
 }
