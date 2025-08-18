@@ -61,6 +61,8 @@
   <string name="about_us">회사 소개</string>
   <string name="privacy_policy">개인정보 처리방침</string>
   <string name="contact_us">문의하기</string>
+  <string name="about_us_paragraph">This is the exercise tracking app for the MGH BICEP Study. Our goal is to study if smartwatches and health technology can help retain muscle mass when starting GLP-1-like medications. Thank you so much for participating! If you have any questions, please reach out to the study team.</string>
+  <string name="developed_by_beaumont">App developed by Beaumont.</string>
   <string name="build_info">빌드 정보</string>
   <string name="build_number">빌드 번호</string>
   <string name="build_code">빌드 코드</string>

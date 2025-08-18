@@ -12,6 +12,7 @@ enum class Route {
     StudyStatus,
     Settings,
     Task,
+    AboutUs,
     Login,
     Intro,
     Progress,
