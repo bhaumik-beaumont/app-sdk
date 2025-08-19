@@ -32,7 +32,7 @@ import com.patrykandpatrick.vico.compose.component.lineComponent
 import com.patrykandpatrick.vico.compose.component.shapeComponent
 import com.patrykandpatrick.vico.compose.component.textComponent
 import com.patrykandpatrick.vico.compose.component.marker.markerComponent
-import com.patrykandpatrick.vico.compose.cartesian.rememberVicoScrollState
+import com.patrykandpatrick.vico.compose.chart.scroll.rememberChartScrollSpec
 import com.patrykandpatrick.vico.core.axis.AxisPosition
 import com.patrykandpatrick.vico.core.axis.formatter.AxisValueFormatter
 import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
@@ -155,7 +155,7 @@ private fun CalorieChart(data: List<ChartEntry>) {
         startAxis = rememberStartAxis(title = stringResource(R.string.kcal_unit)),
         bottomAxis = rememberBottomAxis(valueFormatter = formatter, labelRotationDegrees = 90f),
         marker = marker,
-        scrollState = rememberVicoScrollState(scrollEnabled = false),
+        chartScrollSpec = rememberChartScrollSpec(isScrollEnabled = false),
     )
 }
 
@@ -194,7 +194,7 @@ private fun BiaMetricChart(title: String, data: List<ChartEntry>, unit: String, 
                     startAxis = rememberStartAxis(title = unit),
                     bottomAxis = rememberBottomAxis(valueFormatter = formatter, labelRotationDegrees = 90f),
                     marker = marker,
-                    scrollState = rememberVicoScrollState(scrollEnabled = false),
+                    chartScrollSpec = rememberChartScrollSpec(isScrollEnabled = false),
                 )
             }
         }
