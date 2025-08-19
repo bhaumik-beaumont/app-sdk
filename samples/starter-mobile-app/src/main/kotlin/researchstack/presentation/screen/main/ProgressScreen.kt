@@ -136,8 +136,16 @@ private fun CalorieChart(data: List<ChartEntry>) {
     LaunchedEffect(data) {
         modelProducer.setEntries(data.mapIndexed { index, entry -> entryOf(index.toFloat(), entry.value) })
     }
+    val labelIndices = remember(data) {
+        val maxLabels = 6
+        if (data.isEmpty()) emptySet() else {
+            val step = (data.size - 1) / maxLabels + 1
+            data.indices.filter { it % step == 0 || it == data.lastIndex }.toSet()
+        }
+    }
     val formatter = AxisValueFormatter<AxisPosition.Horizontal.Bottom> { value, _ ->
-        data.getOrNull(value.toInt())?.label ?: ""
+        val index = value.toInt()
+        if (index in labelIndices) data.getOrNull(index)?.label ?: "" else ""
     }
     val lineColor = Color(0xFF64B5F6)
     Chart(
@@ -167,8 +175,16 @@ private fun BiaMetricChart(title: String, data: List<ChartEntry>, unit: String, 
                 LaunchedEffect(data) {
                     modelProducer.setEntries(data.mapIndexed { index, entry -> entryOf(index.toFloat(), entry.value) })
                 }
+                val labelIndices = remember(data) {
+                    val maxLabels = 6
+                    if (data.isEmpty()) emptySet() else {
+                        val step = (data.size - 1) / maxLabels + 1
+                        data.indices.filter { it % step == 0 || it == data.lastIndex }.toSet()
+                    }
+                }
                 val formatter = AxisValueFormatter<AxisPosition.Horizontal.Bottom> { value, _ ->
-                    data.getOrNull(value.toInt())?.label ?: ""
+                    val index = value.toInt()
+                    if (index in labelIndices) data.getOrNull(index)?.label ?: "" else ""
                 }
                 Chart(
                     chart = lineChart(lines = listOf(lineSpec(lineColor, point = shapeComponent(Shapes.pillShape, lineColor)))),
