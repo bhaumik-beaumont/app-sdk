@@ -147,6 +147,12 @@ class WeeklyProgressViewModel @Inject constructor(
             val endMillis = start.plusDays(7).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
             isMetricUnit = userProfileDao.getLatest().firstOrNull()?.isMetricUnit != false
 
+            _activityDetails.value = emptyList()
+            _resistanceDetails.value = emptyList()
+            _weightDetails.value = emptyList()
+            _biaDetails.value = emptyList()
+            _hasData.value = false
+
             launch {
                 exerciseDao.getExercisesFrom(startMillis).collect { list ->
                     val weekList = list.filter { it.startTime < endMillis }
@@ -182,7 +188,7 @@ class WeeklyProgressViewModel @Inject constructor(
                         Instant.ofEpochMilli(it.startTime).atZone(ZoneId.systemDefault()).toLocalDate()
                     }.toSet()
 
-                    _hasData.value = weekList.isNotEmpty()
+                    recomputeHasData()
                 }
             }
 
@@ -190,6 +196,7 @@ class WeeklyProgressViewModel @Inject constructor(
                 biaDao.getBetween(startMillis, endMillis).collect { list ->
                     _biaDetails.value = list.sortedBy { it.timestamp }.map { it.toDetailUi(isMetricUnit) }
                     _biaProgressPercent.value = if (list.isNotEmpty()) 100 else 0
+                    recomputeHasData()
                 }
             }
 
@@ -197,9 +204,18 @@ class WeeklyProgressViewModel @Inject constructor(
                 userProfileDao.getBetween(startMillis, endMillis).collect { list ->
                     _weightDetails.value = list.sortedBy { it.timestamp }.map { it.toDetailUi(isMetricUnit) }
                     _weightProgressPercent.value = if (list.isNotEmpty()) 100 else 0
+                    recomputeHasData()
                 }
             }
         }
+    }
+
+    private fun recomputeHasData() {
+        _hasData.value =
+            _activityDetails.value.isNotEmpty() ||
+                _resistanceDetails.value.isNotEmpty() ||
+                _weightDetails.value.isNotEmpty() ||
+                _biaDetails.value.isNotEmpty()
     }
 
     private fun updateNavigationButtons() {

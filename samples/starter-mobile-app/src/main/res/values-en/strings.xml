@@ -207,6 +207,7 @@
 
     <string name="weight_details">Weight Details</string>
     <string name="bia_details">BIA Details</string>
+    <string name="no_data_this_week">No data available this week.</string>
     <string name="no_weight_data_week">No weight data for this week.</string>
     <string name="no_bia_data_week">No BIA data for this week.</string>
     <string name="timestamp_label">Timestamp</string>
