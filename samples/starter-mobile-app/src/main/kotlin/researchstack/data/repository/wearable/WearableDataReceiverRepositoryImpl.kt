@@ -21,6 +21,7 @@ import com.google.gson.JsonObject
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.runBlocking
 import researchstack.BuildConfig
 import researchstack.backend.integration.GrpcHealthDataSynchronizer
 import researchstack.data.local.room.WearableAppDataBase
@@ -105,7 +106,7 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
             PrivDataType.WEAR_SPO2 -> saveData<SpO2>(jsonObject, wearableAppDataBase.spO2Dao())
             PrivDataType.WEAR_SWEAT_LOSS -> saveData<SweatLoss>(jsonObject, wearableAppDataBase.sweatLossDao())
             PrivDataType.WEAR_HEART_RATE -> saveData<HeartRate>(jsonObject, wearableAppDataBase.heartRateDao())
-            PrivDataType.WEAR_USER_PROFILE -> saveData<UserProfile>(jsonObject, wearableAppDataBase.userProfileDao())
+            PrivDataType.WEAR_USER_PROFILE -> saveUserProfile(jsonObject)
         }
     }
 
@@ -141,9 +142,8 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
                 wearableAppDataBase.heartRateDao()
             )
 
-            PrivDataType.WEAR_USER_PROFILE -> saveData<UserProfile>(
+            PrivDataType.WEAR_USER_PROFILE -> saveUserProfiles(
                 readCsv<UserProfile>(csvInputStream),
-                wearableAppDataBase.userProfileDao()
             )
         }
     }
@@ -196,6 +196,35 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
 
     private inline fun <reified T : Timestamp> saveData(data: List<T>, privDao: PrivDao<T>) {
         privDao.insertAll(data.map { ensureId(it) })
+    }
+
+    private fun saveUserProfile(jsonObject: JsonObject) {
+        val profiles: List<UserProfile> =
+            if (jsonObject.isArrayItem<UserProfile>()) {
+                fromJson(jsonObject, object : TypeToken<ArrayList<UserProfile>>() {}.type)
+            } else {
+                listOf(fromJson(jsonObject, object : TypeToken<UserProfile>() {}.type))
+            }
+        saveUserProfiles(profiles)
+    }
+
+    private fun saveUserProfiles(profiles: List<UserProfile>) {
+        val userProfileDao = wearableAppDataBase.userProfileDao()
+        var lastWeight = runBlocking { userProfileDao.getLatest().first()?.weight }
+        val validProfiles = profiles.filter { profile ->
+            val weight = profile.weight
+            if (weight <= 0f) {
+                return@filter false
+            }
+            if (lastWeight != null && weight == lastWeight) {
+                return@filter false
+            }
+            lastWeight = weight
+            true
+        }
+        if (validProfiles.isNotEmpty()) {
+            userProfileDao.insertAll(validProfiles)
+        }
     }
 
     private inline fun <reified T : Timestamp> ensureId(data: T): T =
