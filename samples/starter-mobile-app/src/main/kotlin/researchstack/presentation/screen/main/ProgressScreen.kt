@@ -32,6 +32,7 @@ import com.patrykandpatrick.vico.compose.component.lineComponent
 import com.patrykandpatrick.vico.compose.component.shapeComponent
 import com.patrykandpatrick.vico.compose.component.textComponent
 import com.patrykandpatrick.vico.compose.component.marker.markerComponent
+import com.patrykandpatrick.vico.compose.chart.scroll.rememberChartScrollSpec
 import com.patrykandpatrick.vico.core.axis.AxisPosition
 import com.patrykandpatrick.vico.core.axis.formatter.AxisValueFormatter
 import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
@@ -136,8 +137,16 @@ private fun CalorieChart(data: List<ChartEntry>) {
     LaunchedEffect(data) {
         modelProducer.setEntries(data.mapIndexed { index, entry -> entryOf(index.toFloat(), entry.value) })
     }
+    val labelIndices = remember(data) {
+        val maxLabels = 6
+        if (data.isEmpty()) emptySet() else {
+            val step = (data.size - 1) / maxLabels + 1
+            data.indices.filter { it % step == 0 || it == data.lastIndex }.toSet()
+        }
+    }
     val formatter = AxisValueFormatter<AxisPosition.Horizontal.Bottom> { value, _ ->
-        data.getOrNull(value.toInt())?.label ?: ""
+        val index = value.toInt()
+        if (index in labelIndices) data.getOrNull(index)?.label ?: "" else ""
     }
     val lineColor = Color(0xFF64B5F6)
     Chart(
@@ -146,6 +155,7 @@ private fun CalorieChart(data: List<ChartEntry>) {
         startAxis = rememberStartAxis(title = stringResource(R.string.kcal_unit)),
         bottomAxis = rememberBottomAxis(valueFormatter = formatter, labelRotationDegrees = 90f),
         marker = marker,
+        chartScrollSpec = rememberChartScrollSpec(isScrollEnabled = false),
     )
 }
 
@@ -167,8 +177,16 @@ private fun BiaMetricChart(title: String, data: List<ChartEntry>, unit: String, 
                 LaunchedEffect(data) {
                     modelProducer.setEntries(data.mapIndexed { index, entry -> entryOf(index.toFloat(), entry.value) })
                 }
+                val labelIndices = remember(data) {
+                    val maxLabels = 6
+                    if (data.isEmpty()) emptySet() else {
+                        val step = (data.size - 1) / maxLabels + 1
+                        data.indices.filter { it % step == 0 || it == data.lastIndex }.toSet()
+                    }
+                }
                 val formatter = AxisValueFormatter<AxisPosition.Horizontal.Bottom> { value, _ ->
-                    data.getOrNull(value.toInt())?.label ?: ""
+                    val index = value.toInt()
+                    if (index in labelIndices) data.getOrNull(index)?.label ?: "" else ""
                 }
                 Chart(
                     chart = lineChart(lines = listOf(lineSpec(lineColor, point = shapeComponent(Shapes.pillShape, lineColor)))),
@@ -176,6 +194,7 @@ private fun BiaMetricChart(title: String, data: List<ChartEntry>, unit: String, 
                     startAxis = rememberStartAxis(title = unit),
                     bottomAxis = rememberBottomAxis(valueFormatter = formatter, labelRotationDegrees = 90f),
                     marker = marker,
+                    chartScrollSpec = rememberChartScrollSpec(isScrollEnabled = false),
                 )
             }
         }
