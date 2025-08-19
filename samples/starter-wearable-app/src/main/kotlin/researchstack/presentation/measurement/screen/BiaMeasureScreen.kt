@@ -48,6 +48,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.wear.compose.material.CircularProgressIndicator
 import androidx.wear.compose.material.Text
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import kotlinx.coroutines.launch
 import researchstack.R
 import researchstack.domain.model.Gender
@@ -81,6 +83,7 @@ import researchstack.presentation.theme.Teal300
 import researchstack.presentation.theme.TitleGray
 import researchstack.presentation.theme.Typography
 import researchstack.presentation.theme.UnitColor
+import researchstack.presentation.worker.SyncPrivDataWorker
 import java.util.Calendar
 
 enum class HelpPage {
@@ -503,6 +506,9 @@ fun BiaCompleted(biaMeasureViewModel: BiaMeasureViewModel, navController: NavHos
         }
         Spacer(modifier = Modifier.height(8.dp))
         AppButton(bgColor = ItemHomeColor, stringResource(id = R.string.ok)) {
+            WorkManager.getInstance(biaMeasureViewModel.getApplication()).enqueue(
+                OneTimeWorkRequestBuilder<SyncPrivDataWorker>().build()
+            )
             navController.navigate(Route.Main.name) {
                 popUpTo(Route.Main.name) { inclusive = true }
             }
