@@ -28,6 +28,7 @@ import com.patrykandpatrick.vico.compose.axis.vertical.rememberStartAxis
 import com.patrykandpatrick.vico.compose.chart.Chart
 import com.patrykandpatrick.vico.compose.chart.line.lineChart
 import com.patrykandpatrick.vico.compose.chart.line.lineSpec
+import com.patrykandpatrick.vico.compose.chart.scroll.rememberChartScrollSpec
 import com.patrykandpatrick.vico.compose.component.lineComponent
 import com.patrykandpatrick.vico.compose.component.shapeComponent
 import com.patrykandpatrick.vico.compose.component.textComponent
@@ -146,6 +147,7 @@ private fun CalorieChart(data: List<ChartEntry>) {
         startAxis = rememberStartAxis(title = stringResource(R.string.kcal_unit)),
         bottomAxis = rememberBottomAxis(valueFormatter = formatter, labelRotationDegrees = 90f),
         marker = marker,
+        chartScrollSpec = rememberChartScrollSpec(isScrollEnabled = false),
     )
 }
 
@@ -176,6 +178,7 @@ private fun BiaMetricChart(title: String, data: List<ChartEntry>, unit: String, 
                     startAxis = rememberStartAxis(title = unit),
                     bottomAxis = rememberBottomAxis(valueFormatter = formatter, labelRotationDegrees = 90f),
                     marker = marker,
+                    chartScrollSpec = rememberChartScrollSpec(isScrollEnabled = false),
                 )
             }
         }
