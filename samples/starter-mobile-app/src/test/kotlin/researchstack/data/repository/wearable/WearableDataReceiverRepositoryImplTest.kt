@@ -1,6 +1,12 @@
 package researchstack.data.repository.wearable
 
+import com.google.gson.Gson
+import com.google.gson.JsonObject
+import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
+import io.mockk.match
+import kotlinx.coroutines.flow.flowOf
 import org.apache.commons.io.input.ReaderInputStream
 import org.junit.Assert.assertEquals
 import org.junit.jupiter.api.Tag
@@ -11,6 +17,8 @@ import researchstack.POSITIVE_TEST
 import researchstack.data.datasource.grpc.GrpcHealthDataSynchronizerImpl
 import researchstack.data.local.room.WearableAppDataBase
 import researchstack.domain.model.TimestampMapData
+import researchstack.domain.model.Gender
+import researchstack.domain.model.UserProfile
 import researchstack.domain.model.priv.Accelerometer
 import researchstack.domain.model.priv.Bia
 import researchstack.domain.model.priv.Ecg
@@ -24,6 +32,7 @@ import researchstack.domain.model.priv.SpO2
 import researchstack.domain.model.priv.SweatLoss
 import researchstack.domain.repository.ShareAgreementRepository
 import researchstack.domain.repository.StudyRepository
+import researchstack.data.local.room.dao.UserProfileDao
 import java.io.BufferedReader
 import java.io.InputStream
 import java.io.InputStreamReader
@@ -64,6 +73,89 @@ internal class WearableDataReceiverRepositoryImplTest {
                 assertEquals(expectedDataType, dataType)
                 assertEquals(expectedResult, result)
             }
+    }
+
+    @Tag(POSITIVE_TEST)
+    @org.junit.jupiter.api.Test
+    fun `saveWearableData should ignore non positive weight`() {
+        val userProfileDao = mockk<UserProfileDao>(relaxed = true)
+        every { userProfileDao.getLatest() } returns flowOf(null)
+        val db = mockk<WearableAppDataBase> {
+            every { userProfileDao() } returns userProfileDao
+        }
+
+        val repo = WearableDataReceiverRepositoryImpl(
+            mockk<StudyRepository>(),
+            mockk<ShareAgreementRepository>(),
+            db,
+            mockk<GrpcHealthDataSynchronizerImpl>(),
+        )
+
+        val profile = UserProfile(170f, 0f, 1990, Gender.MALE, true, 1)
+        val json = JsonObject().apply {
+            addProperty("dataType", PrivDataType.WEAR_USER_PROFILE.name)
+            add("data", Gson().toJsonTree(profile))
+        }
+
+        repo.saveWearableData(json)
+
+        verify(exactly = 0) { userProfileDao.insertAll(any()) }
+    }
+
+    @Tag(POSITIVE_TEST)
+    @org.junit.jupiter.api.Test
+    fun `saveWearableData should ignore duplicate weight`() {
+        val lastProfile = UserProfile(170f, 70f, 1990, Gender.MALE, true, 0)
+        val userProfileDao = mockk<UserProfileDao>(relaxed = true)
+        every { userProfileDao.getLatest() } returns flowOf(lastProfile)
+        val db = mockk<WearableAppDataBase> {
+            every { userProfileDao() } returns userProfileDao
+        }
+
+        val repo = WearableDataReceiverRepositoryImpl(
+            mockk<StudyRepository>(),
+            mockk<ShareAgreementRepository>(),
+            db,
+            mockk<GrpcHealthDataSynchronizerImpl>(),
+        )
+
+        val profile = lastProfile.copy(timestamp = 1)
+        val json = JsonObject().apply {
+            addProperty("dataType", PrivDataType.WEAR_USER_PROFILE.name)
+            add("data", Gson().toJsonTree(profile))
+        }
+
+        repo.saveWearableData(json)
+
+        verify(exactly = 0) { userProfileDao.insertAll(any()) }
+    }
+
+    @Tag(POSITIVE_TEST)
+    @org.junit.jupiter.api.Test
+    fun `saveWearableData should save weight when different and positive`() {
+        val lastProfile = UserProfile(170f, 70f, 1990, Gender.MALE, true, 0)
+        val userProfileDao = mockk<UserProfileDao>(relaxed = true)
+        every { userProfileDao.getLatest() } returns flowOf(lastProfile)
+        val db = mockk<WearableAppDataBase> {
+            every { userProfileDao() } returns userProfileDao
+        }
+
+        val repo = WearableDataReceiverRepositoryImpl(
+            mockk<StudyRepository>(),
+            mockk<ShareAgreementRepository>(),
+            db,
+            mockk<GrpcHealthDataSynchronizerImpl>(),
+        )
+
+        val profile = lastProfile.copy(weight = 75f, timestamp = 1)
+        val json = JsonObject().apply {
+            addProperty("dataType", PrivDataType.WEAR_USER_PROFILE.name)
+            add("data", Gson().toJsonTree(profile))
+        }
+
+        repo.saveWearableData(json)
+
+        verify(exactly = 1) { userProfileDao.insertAll(match { it.size == 1 && it[0].weight == 75f }) }
     }
 
     companion object {
