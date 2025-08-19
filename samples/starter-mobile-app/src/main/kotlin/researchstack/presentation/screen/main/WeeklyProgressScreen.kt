@@ -431,7 +431,7 @@ private fun EmptyState() {
                 modifier = Modifier.size(72.dp)
             )
             Text(
-                text = stringResource(id = R.string.no_activities_this_week),
+                text = stringResource(id = R.string.no_data_this_week),
                 color = Color.White,
                 textAlign = TextAlign.Center,
                 fontSize = 16.sp
