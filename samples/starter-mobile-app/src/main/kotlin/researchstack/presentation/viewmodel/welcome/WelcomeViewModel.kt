@@ -161,25 +161,34 @@ class WelcomeViewModel @Inject constructor(
             signInUseCase(auth)
                 .mapCatching {
                     val email = _uiState.value.email
-                    getProfileUseCase().mapCatching { profile->
-                        if (profile.enrolmentDate.isNullOrEmpty()) {
+                    getProfileUseCase()
+                        .mapCatching { profile ->
+                            val enrolDate = if (profile.enrolmentDate.isNullOrEmpty()) {
+                                LocalDate.now().toString()
+                            } else {
+                                profile.enrolmentDate
+                            }
+
                             registerProfileUseCase(
                                 anonymousUser.copy(
                                     firstName = email.substringBefore("@"),
                                     email = email,
-                                        enrolmentDate = LocalDate.now().toString()
-                                )
-                            )
-                        } else {
-                            registerProfileUseCase(
-                                anonymousUser.copy(
-                                    firstName = email.substringBefore("@"),
-                                    email = email,
-                                    enrolmentDate = profile.enrolmentDate
+                                    enrolmentDate = enrolDate
                                 )
                             )
                         }
-                    }
+                        .onFailure { exception ->
+                            // This block is called if getProfileUseCase() returned Result.Failure
+                            // For example: first-time user, or profile fetch error
+
+                            registerProfileUseCase(
+                                anonymousUser.copy(
+                                    firstName = email.substringBefore("@"),
+                                    email = email,
+                                    enrolmentDate = LocalDate.now().toString()
+                                )
+                            )
+                        }
                 }.onSuccess {
                     _registerState.value = Success
                     fetchStudy()
