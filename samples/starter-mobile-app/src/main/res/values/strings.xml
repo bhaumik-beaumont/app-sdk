@@ -73,6 +73,7 @@
   <string name="priv_data">워치 센서 데이터</string>
   <string name="device_stats">디바이스 정보</string>
   <string name="email">이메일</string>
+  <string name="userName">Username</string>
   <string name="password">비밀번호</string>
   <string name="login">로그인</string>
   <string name="joined_study_message">%s 연구에 참여하였습니다</string>

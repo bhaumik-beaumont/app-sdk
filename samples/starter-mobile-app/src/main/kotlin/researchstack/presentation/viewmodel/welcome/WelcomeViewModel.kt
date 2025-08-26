@@ -120,7 +120,7 @@ class WelcomeViewModel @Inject constructor(
 
     private fun validateAndLogin() {
         val normalizedEmail = LoginInputNormalizer.normalize(_uiState.value.email)
-        _uiState.update { it.copy(email = normalizedEmail) }
+//        _uiState.update { it.copy(email = normalizedEmail) }
 
         val emailResult = EmailValidator.validate(normalizedEmail)
         val passwordResult = PasswordValidator.validate(_uiState.value.password)
