@@ -3,13 +3,13 @@ import org.gradle.kotlin.dsl.wearApp
 
 plugins {
     id("com.android.application")
-    id("kotlin-android")
+    id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.plugin.compose")
+    id("kotlin-kapt")
     id("dagger.hilt.android.plugin")
     id("com.google.protobuf")
     id("io.gitlab.arturbosch.detekt")
     id("de.mannodermaus.android-junit5")
-    id("org.jetbrains.kotlin.android")
-    id("kotlin-kapt")
 }
 
 fun getProperty(key: String): String {
@@ -109,9 +109,7 @@ android {
         compose = true
     }
 
-    composeOptions {
-        kotlinCompilerExtensionVersion = Versions.Compose.COMPILER
-    }
+
 
     packaging {
         resources.excludes.add("META-INF/*")
