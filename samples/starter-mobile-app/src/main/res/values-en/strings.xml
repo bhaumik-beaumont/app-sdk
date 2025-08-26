@@ -69,6 +69,7 @@
   <string name="priv_data">Wearable sensor data</string>
   <string name="device_stats">Device Status</string>
   <string name="email">Email</string>
+  <string name="userName">Username</string>
   <string name="password">Password</string>
   <string name="login">Login</string>
   <string name="joined_study_message">Participated in %s</string>

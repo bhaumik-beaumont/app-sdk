@@ -103,7 +103,8 @@ private fun WelcomeView(
             Spacer(modifier = Modifier.height(50.dp))
 
             Column(
-                Modifier.fillMaxWidth(),
+                Modifier.fillMaxWidth()
+                    .padding(innerPadding),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Image(

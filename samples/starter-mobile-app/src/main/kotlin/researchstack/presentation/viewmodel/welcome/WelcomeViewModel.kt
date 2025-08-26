@@ -31,6 +31,7 @@ import researchstack.domain.usecase.ReLoginUseCase
 import researchstack.domain.usecase.profile.GetProfileUseCase
 import researchstack.domain.usecase.profile.RegisterProfileUseCase
 import researchstack.domain.validator.EmailValidator
+import researchstack.domain.validator.LoginInputNormalizer
 import researchstack.domain.validator.PasswordValidator
 import researchstack.presentation.worker.FetchStudyWorker
 import researchstack.presentation.worker.WorkerRegistrar.registerAllPeriodicWorkers
@@ -118,7 +119,10 @@ class WelcomeViewModel @Inject constructor(
     }
 
     private fun validateAndLogin() {
-        val emailResult = EmailValidator.validate(_uiState.value.email)
+        val normalizedEmail = LoginInputNormalizer.normalize(_uiState.value.email)
+//        _uiState.update { it.copy(email = normalizedEmail) }
+
+        val emailResult = EmailValidator.validate(normalizedEmail)
         val passwordResult = PasswordValidator.validate(_uiState.value.password)
 
         _uiState.update {
@@ -130,7 +134,7 @@ class WelcomeViewModel @Inject constructor(
 
         val firstError = emailResult.errorMessage ?: passwordResult.errorMessage
         if (firstError == null) {
-            registerUser(BasicAuthentication(_uiState.value.email, _uiState.value.password))
+            registerUser(BasicAuthentication(normalizedEmail, _uiState.value.password))
         }
     }
 

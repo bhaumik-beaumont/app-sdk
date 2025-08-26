@@ -45,6 +45,7 @@ fun AppIntroScreen() {
         Column(
             Modifier
                 .fillMaxSize()
+                .padding(vertical = 32.dp)
         ) {
             Column(
                 Modifier

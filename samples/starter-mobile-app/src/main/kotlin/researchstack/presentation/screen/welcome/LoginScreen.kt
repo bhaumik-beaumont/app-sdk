@@ -69,7 +69,7 @@ fun LoginScreen(viewModel: WelcomeViewModel = hiltViewModel()) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(horizontal = 16.dp, vertical = 48.dp),
                 horizontalArrangement = Arrangement.Center
             ) {
                 AppTextButton(
@@ -95,7 +95,7 @@ fun LoginScreen(viewModel: WelcomeViewModel = hiltViewModel()) {
                 OutlinedTextField(
                     value = state.email,
                     onValueChange = { viewModel.onEvent(LoginEvent.EmailChanged(it)) },
-                    label = { Text(stringResource(id = R.string.email), color = Color.White) },
+                    label = { Text(stringResource(id = R.string.userName), color = Color.White) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     textStyle = TextStyle(color = Color.White),   // ⬅ text colour
