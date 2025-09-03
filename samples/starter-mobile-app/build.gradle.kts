@@ -10,6 +10,8 @@ plugins {
     id("de.mannodermaus.android-junit5")
     id("org.jetbrains.kotlin.android")
     id("kotlin-kapt")
+    id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
 }
 
 fun getProperty(key: String): String {
@@ -163,6 +165,7 @@ dependencies {
     implementation("com.patrykandpatrick.vico:compose-m3:1.16.0")
     implementation("com.patrykandpatrick.vico:core:1.16.0")
 
+
     // Room
     implementation(AppDependencies.roomLibs)
     kapt(listOf(AppDependencies.ANDROIDX_ROOM_COMPILER))
@@ -174,6 +177,17 @@ dependencies {
 
     // Android Test
     androidTestImplementation(AppDependencies.androidTestImplLibs)
+
+    // Import the BoM for the Firebase platform
+    implementation(platform("com.google.firebase:firebase-bom:32.7.1"))
+
+    // Add the dependencies for the Crashlytics NDK and Analytics libraries
+    // When using the BoM, you don't specify versions in Firebase library dependencies
+    // Temporarily avoid BoM for Analytics and pin an older version:
+    implementation("com.google.firebase:firebase-analytics:21.5.0")
+    implementation("com.google.firebase:firebase-crashlytics-ktx")
+    implementation("com.google.firebase:firebase-crashlytics-ndk:18.6.2") // example; align others as needed
+
 }
 
 jacoco {

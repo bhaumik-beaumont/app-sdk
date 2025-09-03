@@ -13,6 +13,7 @@ buildscript {
         classpath("org.jetbrains.dokka:dokka-gradle-plugin:${Versions.DOKKA}")
         classpath("com.google.gms:google-services:${Versions.Google.GMS}")
         classpath("com.google.protobuf:protobuf-gradle-plugin:${Versions.GRPC.PROTOBUF}")
+        classpath("com.google.firebase:firebase-crashlytics-gradle:2.9.9") // Or the specific version you need
     }
 }
 
