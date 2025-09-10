@@ -21,6 +21,12 @@ data class ComplianceEntry(
     val weightRecordCount: Int,
     @ColumnInfo(defaultValue = "0")
     val avgWeight: Float = 0F,
+    @ColumnInfo(defaultValue = "0")
+    val height: Float = 0F,
+    @ColumnInfo(defaultValue = "0")
+    val age: Int = 0,
+    @ColumnInfo(defaultValue = "2")
+    val gender: Int = 2,
     override val timeOffset: Int = getCurrentTimeOffset(),
 ) : TimestampMapData {
     override fun toDataMap(): Map<String, Any> = mapOf(
@@ -34,6 +40,9 @@ data class ComplianceEntry(
         ::biaRecordCount.name to biaRecordCount,
         ::weightRecordCount.name to weightRecordCount,
         ::avgWeight.name to avgWeight,
+        ::height.name to height,
+        ::age.name to age,
+        ::gender.name to gender,
         ::timeOffset.name to timeOffset,
     )
 }
