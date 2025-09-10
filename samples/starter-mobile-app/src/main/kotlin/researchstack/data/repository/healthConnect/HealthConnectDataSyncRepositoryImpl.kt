@@ -21,7 +21,6 @@ import researchstack.domain.model.Study
 import researchstack.domain.model.TimestampMapData
 import researchstack.domain.model.healthConnect.Exercise
 import researchstack.domain.model.ComplianceEntry
-import researchstack.domain.model.Gender
 import researchstack.domain.model.shealth.HealthDataModel
 import researchstack.domain.model.shealth.SHealthDataType
 import researchstack.domain.repository.ShareAgreementRepository
@@ -29,6 +28,7 @@ import researchstack.domain.repository.StudyRepository
 import researchstack.domain.repository.healthConnect.HealthConnectDataSyncRepository
 import researchstack.domain.usecase.profile.GetProfileUseCase
 import researchstack.domain.usecase.profile.UpdateProfileUseCase
+import researchstack.presentation.util.toDecimalFormat
 import researchstack.presentation.util.toStringResourceId
 import researchstack.util.NotificationUtil
 import java.time.LocalDate
@@ -248,14 +248,14 @@ class HealthConnectDataSyncRepositoryImpl @Inject constructor(
             val biaCount = biaDao.countBetween(startMillis, endMillis).first()
             val weightEntries = userProfileDao.getBetween(startMillis, endMillis).first()
             val weightCount = weightEntries.size
-            val avgWeight = if (weightEntries.isEmpty()) 0f else weightEntries.map { it.weight }.first()
-            val height = if (weightEntries.isEmpty()) 0f else weightEntries.map { it.height }.first()
+            val avgWeight = if (weightEntries.isEmpty()) 0f else weightEntries.map { it.weight.toDecimalFormat(2) }.first()
+            val height = if (weightEntries.isEmpty()) 0f else weightEntries.map { it.height.toInt() }.first()
             val age = if (weightEntries.isEmpty()) 0 else {
                 val yearBirth = weightEntries.map { it.yearBirth }.first()
                 val calculated = today.year - yearBirth
                 if (calculated < 0) 0 else calculated
             }
-            val gender = if (weightEntries.isEmpty()) Gender.UNKNOWN.ordinal else weightEntries.map { it.gender.ordinal }.first()
+            val gender = if (weightEntries.isEmpty()) 2 else weightEntries.map { it.gender.ordinal }.first()
             entries.add(
                 ComplianceEntry(
                     weekNumber = weekNumber,
@@ -267,7 +267,7 @@ class HealthConnectDataSyncRepositoryImpl @Inject constructor(
                     biaRecordCount = biaCount,
                     weightRecordCount = weightCount,
                     avgWeight = avgWeight,
-                    height = height,
+                    height = height.toFloat(),
                     age = age,
                     gender = gender,
                     id = authenticationPref.getAuthInfo()?.id + weekNumber.toString()
