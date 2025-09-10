@@ -39,7 +39,7 @@ import researchstack.domain.model.sensor.Accelerometer
 import researchstack.domain.model.sensor.Light
 
 @Database(
-    version = 9,
+    version = 10,
     exportSchema = false,
     entities = [
         StudyEntity::class,
@@ -83,6 +83,14 @@ abstract class ResearchAppDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: ResearchAppDatabase? = null
 
+        private val MIGRATION_9_10 = object : Migration(9, 10) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE $COMPLIANCE_ENTRY_TABLE_NAME ADD COLUMN height REAL NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE $COMPLIANCE_ENTRY_TABLE_NAME ADD COLUMN age INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE $COMPLIANCE_ENTRY_TABLE_NAME ADD COLUMN gender INTEGER NOT NULL DEFAULT 2")
+            }
+        }
+
         fun getDatabase(
             context: Context,
         ): ResearchAppDatabase =
@@ -92,6 +100,7 @@ abstract class ResearchAppDatabase : RoomDatabase() {
                     ResearchAppDatabase::class.java,
                     "research_app_db"
                 )
+                    .addMigrations(MIGRATION_9_10)
                     .fallbackToDestructiveMigration()
                     .addTypeConverter(EligibilityConverter())
                     .addTypeConverter(LocalDateTimeConverter())

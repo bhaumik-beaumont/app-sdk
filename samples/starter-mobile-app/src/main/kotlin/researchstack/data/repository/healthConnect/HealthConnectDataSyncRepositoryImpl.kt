@@ -21,6 +21,7 @@ import researchstack.domain.model.Study
 import researchstack.domain.model.TimestampMapData
 import researchstack.domain.model.healthConnect.Exercise
 import researchstack.domain.model.ComplianceEntry
+import researchstack.domain.model.Gender
 import researchstack.domain.model.shealth.HealthDataModel
 import researchstack.domain.model.shealth.SHealthDataType
 import researchstack.domain.repository.ShareAgreementRepository
@@ -248,6 +249,13 @@ class HealthConnectDataSyncRepositoryImpl @Inject constructor(
             val weightEntries = userProfileDao.getBetween(startMillis, endMillis).first()
             val weightCount = weightEntries.size
             val avgWeight = if (weightEntries.isEmpty()) 0f else weightEntries.map { it.weight }.first()
+            val height = if (weightEntries.isEmpty()) 0f else weightEntries.map { it.height }.first()
+            val age = if (weightEntries.isEmpty()) 0 else {
+                val yearBirth = weightEntries.map { it.yearBirth }.first()
+                val calculated = today.year - yearBirth
+                if (calculated < 0) 0 else calculated
+            }
+            val gender = if (weightEntries.isEmpty()) Gender.UNKNOWN.ordinal else weightEntries.map { it.gender.ordinal }.first()
             entries.add(
                 ComplianceEntry(
                     weekNumber = weekNumber,
@@ -259,6 +267,9 @@ class HealthConnectDataSyncRepositoryImpl @Inject constructor(
                     biaRecordCount = biaCount,
                     weightRecordCount = weightCount,
                     avgWeight = avgWeight,
+                    height = height,
+                    age = age,
+                    gender = gender,
                     id = authenticationPref.getAuthInfo()?.id + weekNumber.toString()
                 )
             )
