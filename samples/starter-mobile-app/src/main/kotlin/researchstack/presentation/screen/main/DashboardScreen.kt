@@ -95,11 +95,61 @@ fun DashboardScreen(
     val rangeFormatter = DateTimeFormatter.ofPattern("MMM d")
 
     var refreshing by remember { mutableStateOf(false) }
-    val pullRefreshState = rememberPullRefreshState(refreshing, onRefresh = {
-        refreshing = true
-        dashboardViewModel.refreshData()
-        refreshing = false
-    })
+
+    val permissionsLauncher =
+        rememberLauncherForActivityResult(healthConnectPermissionViewModel.permissionsLauncher) { granted ->
+            val missing = healthConnectPermissionViewModel.allPermissions - granted
+            if (missing.isEmpty()) {
+                (context as? Activity)?.let {
+                    healthConnectPermissionViewModel.checkSamsungPermissions(it)
+                }
+                dashboardViewModel.refreshData()
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.sync_request_submitted),
+                    Toast.LENGTH_SHORT
+                ).show()
+            } else {
+                Toast.makeText(
+                    context,
+                    healthConnectPermissionViewModel.getMissingPermissionsMessage(missing),
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+
+    val performSync = {
+        coroutineScope.launch {
+            refreshing = true
+            val missing = healthConnectPermissionViewModel.getMissingPermissions()
+            if (missing.isEmpty()) {
+                (context as? Activity)?.let {
+                    healthConnectPermissionViewModel.checkSamsungPermissions(it)
+                }
+                dashboardViewModel.refreshData()
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.sync_request_submitted),
+                    Toast.LENGTH_SHORT
+                ).show()
+            } else {
+                Toast.makeText(
+                    context,
+                    healthConnectPermissionViewModel.getMissingPermissionsMessage(missing),
+                    Toast.LENGTH_LONG
+                ).show()
+                permissionsLauncher.launch(healthConnectPermissionViewModel.allPermissions)
+                refreshing = false
+            }
+        }
+    }
+
+    val pullRefreshState = rememberPullRefreshState(refreshing, onRefresh = performSync)
+
+    LaunchedEffect(Unit) {
+        performSync()
+    }
+
     LaunchedEffect(exercises) {
         refreshing = false
     }
@@ -117,27 +167,6 @@ fun DashboardScreen(
             "${resistanceExercises.size} Sessions"
         }
     }
-
-    val permissionsLauncher =
-        rememberLauncherForActivityResult(healthConnectPermissionViewModel.permissionsLauncher) { granted ->
-            val missing = healthConnectPermissionViewModel.allPermissions - granted
-            if (missing.isEmpty()) {
-                (context as? Activity)?.let {
-                    healthConnectPermissionViewModel.checkSamsungPermissions(it)
-                }
-                Toast.makeText(
-                    context,
-                    context.getString(R.string.sync_request_submitted),
-                    Toast.LENGTH_SHORT
-                ).show()
-            } else {
-                Toast.makeText(
-                    context,
-                    healthConnectPermissionViewModel.getMissingPermissionsMessage(missing),
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-        }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -174,28 +203,7 @@ fun DashboardScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    IconButton(onClick = {
-                        coroutineScope.launch {
-                            val missing = healthConnectPermissionViewModel.getMissingPermissions()
-                            if (missing.isEmpty()) {
-                                (context as? Activity)?.let {
-                                    healthConnectPermissionViewModel.checkSamsungPermissions(it)
-                                }
-                                Toast.makeText(
-                                    context,
-                                    context.getString(R.string.sync_request_submitted),
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            } else {
-                                Toast.makeText(
-                                    context,
-                                    healthConnectPermissionViewModel.getMissingPermissionsMessage(missing),
-                                    Toast.LENGTH_LONG
-                                ).show()
-                                permissionsLauncher.launch(healthConnectPermissionViewModel.allPermissions)
-                            }
-                        }
-                    }) {
+                    IconButton(onClick = { performSync() }) {
                         Icon(
                             Icons.Default.Sync,
                             contentDescription = stringResource(id = R.string.sync),
@@ -410,7 +418,10 @@ fun DashboardScreen(
                             }
                             Spacer(Modifier.width(8.dp))
                             Button(
-                                onClick = { /* Handle Sync */ },
+                                onClick = {
+                                    performSync()
+                                    showSyncDialog = false
+                                },
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = Color(
                                         0xFF4169E1
