@@ -24,6 +24,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Adb
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.BugReport
@@ -135,9 +136,9 @@ fun AppSettingsScreen() {
                     )
                     Divider(color = Color(0xFF3D3D3D))
                     SettingsRow(
-                        icon = Icons.Filled.Insights,
-                        label = stringResource(id = R.string.weekly_progress),
-                        onClick = { navController.navigate(Route.WeeklyProgress.name) }
+                        icon = Icons.Filled.Adb,
+                        label = stringResource(id = R.string.home_data),
+                        onClick = { navController.navigate(Route.Log.name) }
                     )
                     Divider(color = Color(0xFF3D3D3D))
                     SettingsRow(

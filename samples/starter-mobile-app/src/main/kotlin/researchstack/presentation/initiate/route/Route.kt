@@ -19,6 +19,7 @@ enum class Route {
     WeeklyProgress,
     Rewards,
     Debug,
+    Log,
 }
 
 enum class MainPage {
