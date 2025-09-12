@@ -71,6 +71,8 @@
   <string name="debug_joined_studies">참여 중인 연구: %1$s</string>
   <string name="debug_granted_permissions">허용된 권한: %1$s</string>
   <string name="debug_not_granted_permissions">허용되지 않은 권한: %1$s</string>
+  <string name="grant_health_permissions">Android Health 권한 허용</string>
+  <string name="grant_samsung_health_permissions">Samsung Health 권한 허용</string>
   <string name="data_permission">데이터 권한</string>
   <string name="samsung_health">삼성 헬스</string>
   <string name="sensor">모바일 센서 데이터</string>
