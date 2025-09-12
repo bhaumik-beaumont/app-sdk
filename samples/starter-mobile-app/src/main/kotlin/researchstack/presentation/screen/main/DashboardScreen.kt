@@ -66,6 +66,8 @@ import researchstack.presentation.viewmodel.HealthConnectPermissionViewModel
 import researchstack.presentation.viewmodel.DashboardViewModel
 import java.time.format.DateTimeFormatter
 
+private var hasPerformedInitialSync = false
+
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun DashboardScreen(
@@ -148,7 +150,10 @@ fun DashboardScreen(
     val pullRefreshState = rememberPullRefreshState(refreshing, onRefresh = performSync)
 
     LaunchedEffect(Unit) {
-        performSync()
+        if (!hasPerformedInitialSync) {
+            hasPerformedInitialSync = true
+            performSync()
+        }
     }
 
     LaunchedEffect(exercises) {
