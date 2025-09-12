@@ -21,16 +21,19 @@ class DebugViewModel @Inject constructor(
     private val getJoinedStudiesUseCase: GetJoinedStudiesUseCase,
 ) : AndroidViewModel(application) {
 
-    private val _hasJoinedStudy = MutableStateFlow(false)
-    val hasJoinedStudy: StateFlow<Boolean> = _hasJoinedStudy
+    private val _joinedStudies = MutableStateFlow<List<String>>(emptyList())
+    val joinedStudies: StateFlow<List<String>> = _joinedStudies
 
-    private val _allPermissionsGranted = MutableStateFlow(false)
-    val allPermissionsGranted: StateFlow<Boolean> = _allPermissionsGranted
+    private val _grantedPermissions = MutableStateFlow<List<String>>(emptyList())
+    val grantedPermissions: StateFlow<List<String>> = _grantedPermissions
+
+    private val _notGrantedPermissions = MutableStateFlow<List<String>>(emptyList())
+    val notGrantedPermissions: StateFlow<List<String>> = _notGrantedPermissions
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
             getJoinedStudiesUseCase().collect { studies ->
-                _hasJoinedStudy.value = studies.isNotEmpty()
+                _joinedStudies.value = studies.map { it.name }
             }
         }
         checkPermissions()
@@ -57,9 +60,17 @@ class DebugViewModel @Inject constructor(
                 false
             }
         }
-        _allPermissionsGranted.value = dangerous.all { perm ->
-            ContextCompat.checkSelfPermission(context, perm) == PackageManager.PERMISSION_GRANTED
+        val granted = mutableListOf<String>()
+        val denied = mutableListOf<String>()
+        dangerous.forEach { perm ->
+            if (ContextCompat.checkSelfPermission(context, perm) == PackageManager.PERMISSION_GRANTED) {
+                granted.add(perm)
+            } else {
+                denied.add(perm)
+            }
         }
+        _grantedPermissions.value = granted
+        _notGrantedPermissions.value = denied
     }
 }
 
