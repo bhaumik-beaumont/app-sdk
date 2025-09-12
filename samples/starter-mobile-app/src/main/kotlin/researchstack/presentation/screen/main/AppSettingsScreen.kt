@@ -26,6 +26,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Insights
@@ -137,6 +138,12 @@ fun AppSettingsScreen() {
                         icon = Icons.Filled.Insights,
                         label = stringResource(id = R.string.weekly_progress),
                         onClick = { navController.navigate(Route.WeeklyProgress.name) }
+                    )
+                    Divider(color = Color(0xFF3D3D3D))
+                    SettingsRow(
+                        icon = Icons.Filled.BugReport,
+                        label = stringResource(id = R.string.debug),
+                        onClick = { navController.navigate(Route.Debug.name) }
                     )
                 }
             }

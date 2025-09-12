@@ -67,6 +67,9 @@
   <string name="build_number">빌드 번호</string>
   <string name="build_code">빌드 코드</string>
   <string name="no_app_found">이 작업을 처리할 앱이 없습니다.</string>
+  <string name="debug">디버그</string>
+  <string name="debug_registered_study">연구 등록 여부: %1$s</string>
+  <string name="debug_permissions_granted">권한 허용 여부: %1$s</string>
   <string name="data_permission">데이터 권한</string>
   <string name="samsung_health">삼성 헬스</string>
   <string name="sensor">모바일 센서 데이터</string>
