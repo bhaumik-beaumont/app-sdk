@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Insights
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
@@ -130,6 +131,12 @@ fun AppSettingsScreen() {
                         icon = Icons.Filled.Email,
                         label = stringResource(id = R.string.contact_us),
                         onClick = { sendEmail(context) }
+                    )
+                    Divider(color = Color(0xFF3D3D3D))
+                    SettingsRow(
+                        icon = Icons.Filled.Insights,
+                        label = stringResource(id = R.string.weekly_progress),
+                        onClick = { navController.navigate(Route.WeeklyProgress.name) }
                     )
                 }
             }
