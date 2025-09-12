@@ -124,6 +124,10 @@ class HealthConnectPermissionViewModel @Inject constructor(
         }
     }
 
+    suspend fun areSamsungPermissionsGranted(): Boolean {
+        return arePermissionsGrantedUseCase()
+    }
+
 
     /**
      * Provides permission check and error handling for Health Connect suspend function calls.
