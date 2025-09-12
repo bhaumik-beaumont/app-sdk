@@ -118,7 +118,7 @@ fun DashboardScreen(
             }
         }
 
-    val performSync = {
+    val performSync: () -> Unit = {
         coroutineScope.launch {
             refreshing = true
             val missing = healthConnectPermissionViewModel.getMissingPermissions()
@@ -132,6 +132,7 @@ fun DashboardScreen(
                     context.getString(R.string.sync_request_submitted),
                     Toast.LENGTH_SHORT
                 ).show()
+                refreshing = false
             } else {
                 Toast.makeText(
                     context,
