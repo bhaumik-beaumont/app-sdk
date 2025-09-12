@@ -30,8 +30,9 @@ import researchstack.presentation.viewmodel.DebugViewModel
 @Composable
 fun DebugScreen(viewModel: DebugViewModel = hiltViewModel()) {
     val navController = LocalNavController.current
-    val hasJoinedStudy = viewModel.hasJoinedStudy.collectAsState().value
-    val allPermissionsGranted = viewModel.allPermissionsGranted.collectAsState().value
+    val joinedStudies = viewModel.joinedStudies.collectAsState().value
+    val grantedPermissions = viewModel.grantedPermissions.collectAsState().value
+    val notGrantedPermissions = viewModel.notGrantedPermissions.collectAsState().value
 
     Scaffold(
         containerColor = Color(0xFF222222),
@@ -71,8 +72,8 @@ fun DebugScreen(viewModel: DebugViewModel = hiltViewModel()) {
             Spacer(modifier = Modifier.height(24.dp))
             Text(
                 text = stringResource(
-                    id = R.string.debug_registered_study,
-                    if (hasJoinedStudy) "Yes" else "No"
+                    id = R.string.debug_joined_studies,
+                    if (joinedStudies.isEmpty()) "None" else joinedStudies.joinToString()
                 ),
                 color = Color.White,
                 fontSize = 16.sp
@@ -80,8 +81,17 @@ fun DebugScreen(viewModel: DebugViewModel = hiltViewModel()) {
             Spacer(modifier = Modifier.height(12.dp))
             Text(
                 text = stringResource(
-                    id = R.string.debug_permissions_granted,
-                    if (allPermissionsGranted) "Yes" else "No"
+                    id = R.string.debug_granted_permissions,
+                    if (grantedPermissions.isEmpty()) "None" else grantedPermissions.joinToString()
+                ),
+                color = Color.White,
+                fontSize = 16.sp
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = stringResource(
+                    id = R.string.debug_not_granted_permissions,
+                    if (notGrantedPermissions.isEmpty()) "None" else notGrantedPermissions.joinToString()
                 ),
                 color = Color.White,
                 fontSize = 16.sp
