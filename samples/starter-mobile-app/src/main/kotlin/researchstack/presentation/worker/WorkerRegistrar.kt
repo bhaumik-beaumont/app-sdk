@@ -10,6 +10,11 @@ import androidx.work.OneTimeWorkRequest
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.time.delay
 import researchstack.BuildConfig
 import java.util.concurrent.TimeUnit
 
@@ -69,6 +74,15 @@ object WorkerRegistrar {
             "UploadHealthDataFileWorker",
             UploadHealthDataFileWorker::class.java
         )
+
+        CoroutineScope(Dispatchers.IO).launch {
+            delay(1 * 60 * 1000) // wait 2 minutes in background
+            registerUniqueOneTimeWorker(
+                context,
+                "SendLogWorker",
+                SendLogWorker::class.java
+            )
+        }
     }
 
     fun registerDataSyncWorker(context: Context) {

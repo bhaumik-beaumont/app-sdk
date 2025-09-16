@@ -298,11 +298,7 @@ class HealthConnectDataSyncRepositoryImpl @Inject constructor(
                         types.add(type)
                     }
                 } else {
-                    val error = typeResult.exceptionOrNull()
-                    logDataSync(
-                        "Failed to parse data type '${agreement.dataType}' for study $studyId",
-                        error
-                    )
+                    logDataSync("Failed to parse data type '${agreement.dataType}' for study $studyId")
                 }
             }
         }
