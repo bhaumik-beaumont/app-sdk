@@ -59,9 +59,17 @@ fun DebugScreen(
     }
 
     val permissionsLauncher =
-        rememberLauncherForActivityResult(healthConnectPermissionViewModel.permissionsLauncher) { granted ->
+        rememberLauncherForActivityResult(healthConnectPermissionViewModel.permissionsLauncher) {
             coroutineScope.launch {
-                missingHealthPermissions = healthConnectPermissionViewModel.getMissingPermissions()
+                val missing = healthConnectPermissionViewModel.getMissingPermissions()
+                missingHealthPermissions = missing
+                if (missing.isEmpty()) {
+                    (context as? Activity)?.let { activity ->
+                        healthConnectPermissionViewModel.checkSamsungPermissions(activity)
+                        samsungPermissionsGranted =
+                            healthConnectPermissionViewModel.areSamsungPermissionsGranted()
+                    }
+                }
             }
         }
 
@@ -139,7 +147,7 @@ fun DebugScreen(
                 Spacer(modifier = Modifier.height(12.dp))
                 Button(onClick = {
                     (context as? Activity)?.let { activity ->
-                        healthConnectPermissionViewModel.requestSamsungPermissions(activity)
+                        healthConnectPermissionViewModel.checkSamsungPermissions(activity)
                         coroutineScope.launch {
                             samsungPermissionsGranted = healthConnectPermissionViewModel.areSamsungPermissionsGranted()
                         }
