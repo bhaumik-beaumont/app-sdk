@@ -27,6 +27,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Sync
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -79,6 +80,7 @@ fun DashboardScreen(
     val adherenceTab = stringResource(id = R.string.adherence)
     var activeTab by remember { mutableStateOf(weeklyTab) }
     var showSyncDialog by remember { mutableStateOf(false) }
+    var showSessionExpiredDialog by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
     val navController = LocalNavController.current
     val coroutineScope = rememberCoroutineScope()
@@ -123,6 +125,13 @@ fun DashboardScreen(
     val performSync: () -> Unit = {
         coroutineScope.launch {
             refreshing = true
+            val isAuthenticated = dashboardViewModel.ensureAuthenticated()
+            if (!isAuthenticated) {
+                refreshing = false
+                showSessionExpiredDialog = true
+                return@launch
+            }
+
             val missing = healthConnectPermissionViewModel.getMissingPermissions()
             if (missing.isEmpty()) {
                 (context as? Activity)?.let {
@@ -375,6 +384,25 @@ fun DashboardScreen(
                     }
                 }
             }
+        }
+
+        if (showSessionExpiredDialog) {
+            val navigateToLogin = {
+                showSessionExpiredDialog = false
+                navController.navigate(Route.Login.name) {
+                    popUpTo(0)
+                }
+            }
+            AlertDialog(
+                onDismissRequest = navigateToLogin,
+                title = { Text(text = stringResource(id = R.string.session_expired_title)) },
+                text = { Text(text = stringResource(id = R.string.session_expired_message)) },
+                confirmButton = {
+                    TextButton(onClick = navigateToLogin) {
+                        Text(text = stringResource(id = android.R.string.ok))
+                    }
+                }
+            )
         }
 
         if (showSyncDialog) {

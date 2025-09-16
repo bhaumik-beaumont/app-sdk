@@ -147,6 +147,8 @@
   <string name="log_out">Logout</string>
   <string name="cancel">Cancel</string>
   <string name="log_out_notify">Logout will interrupt the studies you are participating in.</string>
+  <string name="session_expired_title">Session expired</string>
+  <string name="session_expired_message">Your session has expired. Please sign in again to continue.</string>
 
   <string name="deregister">Delete Account</string>
   <string name="deregister_notify">Are you sure you want to delete your account?</string>

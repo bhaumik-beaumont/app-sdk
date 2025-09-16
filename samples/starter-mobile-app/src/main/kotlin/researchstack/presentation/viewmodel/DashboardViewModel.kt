@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import researchstack.auth.data.repository.auth.AuthRepositoryWrapper
 import researchstack.data.datasource.local.pref.EnrollmentDatePref
 import researchstack.data.datasource.local.pref.dataStore
 import researchstack.data.datasource.local.room.dao.ExerciseDao
@@ -38,6 +39,7 @@ class DashboardViewModel @Inject constructor(
     private val exerciseDao: ExerciseDao,
     private val biaDao: BiaDao,
     private val userProfileDao: UserProfileDao,
+    private val authRepositoryWrapper: AuthRepositoryWrapper,
 ) : AndroidViewModel(application) {
 
     private val enrollmentDatePref = EnrollmentDatePref(application.dataStore)
@@ -90,6 +92,9 @@ class DashboardViewModel @Inject constructor(
     init {
         refreshData()
     }
+
+    suspend fun ensureAuthenticated(): Boolean =
+        authRepositoryWrapper.getIdToken().isSuccess
 
     fun refreshData(){
         viewModelScope.launch(Dispatchers.IO) {
