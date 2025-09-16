@@ -12,6 +12,8 @@
   <string name="debug_joined_studies">Joined studies: %1$s</string>
   <string name="debug_granted_permissions">Granted permissions: %1$s</string>
   <string name="debug_not_granted_permissions">Not granted permissions: %1$s</string>
+  <string name="debug_samsung_permissions_granted">Samsung Health permissions granted</string>
+  <string name="debug_samsung_permissions_not_granted">Samsung Health permissions not granted</string>
   <string name="join_a_study">Join a study</string>
   <string name="join_in_study_message">Go to Join In to join a study</string>
   <string name="no_registered_message">You have no registered studies</string>

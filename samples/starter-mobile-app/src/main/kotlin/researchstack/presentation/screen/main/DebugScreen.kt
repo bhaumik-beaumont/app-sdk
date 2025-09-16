@@ -51,7 +51,7 @@ fun DebugScreen(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     var missingHealthPermissions by remember { mutableStateOf<Set<String>>(emptySet()) }
-    var samsungPermissionsGranted by remember { mutableStateOf(true) }
+    var samsungPermissionsGranted by remember { mutableStateOf<Boolean?>(null) }
 
     LaunchedEffect(Unit) {
         missingHealthPermissions = healthConnectPermissionViewModel.getMissingPermissions()
@@ -135,6 +135,20 @@ fun DebugScreen(
                 color = Color.White,
                 fontSize = 16.sp
             )
+            samsungPermissionsGranted?.let { granted ->
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = stringResource(
+                        id = if (granted) {
+                            R.string.debug_samsung_permissions_granted
+                        } else {
+                            R.string.debug_samsung_permissions_not_granted
+                        }
+                    ),
+                    color = Color.White,
+                    fontSize = 16.sp
+                )
+            }
             if (missingHealthPermissions.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(24.dp))
                 Button(onClick = {
@@ -143,7 +157,7 @@ fun DebugScreen(
                     Text(text = stringResource(id = R.string.grant_health_permissions))
                 }
             }
-            if (!samsungPermissionsGranted) {
+            if (samsungPermissionsGranted == false) {
                 Spacer(modifier = Modifier.height(12.dp))
                 Button(onClick = {
                     (context as? Activity)?.let { activity ->
