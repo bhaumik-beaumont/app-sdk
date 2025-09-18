@@ -1,7 +1,6 @@
 package researchstack.presentation.initiate
 
 import android.R
-import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
@@ -19,15 +18,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 import researchstack.R
 import researchstack.presentation.LocalNavController
+import researchstack.presentation.initiate.screen.HealthConnectUnavailableScreen
 import researchstack.presentation.initiate.route.Route
 import researchstack.presentation.initiate.route.Router
 import researchstack.presentation.theme.AppTheme
@@ -42,8 +38,6 @@ class MainActivity : ComponentActivity() {
     private lateinit var splashLoadingViewModel: SplashLoadingViewModel
 
     private var isContentReady: Boolean = false
-    private var healthConnectInstallDialog: AlertDialog? = null
-    private var hasRequestedHealthConnectInstall = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
@@ -54,11 +48,24 @@ class MainActivity : ComponentActivity() {
         setContent {
             val startDestination: Route? by splashLoadingViewModel.routeDestination.observeAsState()
             val page by splashLoadingViewModel.startMainPage.observeAsState(0)
+            val isHealthConnectAvailable by splashLoadingViewModel.healthConnectAvailable.observeAsState()
             val openWeeklyProgress = intent.getBooleanExtra("openWeeklyProgress", false)
 
-            startDestination?.let {
-                AppTheme {
-                    ContentComposable(it, page, openWeeklyProgress)
+            AppTheme {
+                when {
+                    isHealthConnectAvailable == false -> {
+                        HealthConnectUnavailableScreen(
+                            onInstallHealthConnect = { openHealthConnectInPlayStore() },
+                            onRetry = { handleHealthConnectRetry() }
+                        )
+                    }
+                    startDestination != null -> {
+                        ContentComposable(
+                            startDestination = startDestination!!,
+                            page = page,
+                            openWeeklyProgress = openWeeklyProgress,
+                        )
+                    }
                 }
             }
         }
@@ -75,18 +82,8 @@ class MainActivity : ComponentActivity() {
             this
         ) { newIsReady -> isContentReady = newIsReady }
 
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                splashLoadingViewModel.requestHealthConnectInstall.collect {
-                    hasRequestedHealthConnectInstall = true
-                    showHealthConnectInstallDialog()
-                }
-            }
-        }
-
         val healthConnectReady = splashLoadingViewModel.setStartRouteDestination()
         if (healthConnectReady) {
-            hasRequestedHealthConnectInstall = false
             splashLoadingViewModel.setStartMainPage()
         }
     }
@@ -151,42 +148,17 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         NotificationUtil.initialize(this).let { NotificationUtil.getInstance().cancelAllNotification() }
-        if (splashLoadingViewModel.routeDestination.value == null) {
-            val shouldPromptInstall = !hasRequestedHealthConnectInstall
-            val healthConnectReady = splashLoadingViewModel.setStartRouteDestination(shouldPromptInstall)
-            if (healthConnectReady) {
-                hasRequestedHealthConnectInstall = false
-                splashLoadingViewModel.setStartMainPage()
-            }
-        } else {
-            hasRequestedHealthConnectInstall = false
+        val healthConnectReady = splashLoadingViewModel.setStartRouteDestination()
+        if (healthConnectReady) {
+            splashLoadingViewModel.setStartMainPage()
         }
     }
 
-    override fun onDestroy() {
-        healthConnectInstallDialog?.dismiss()
-        healthConnectInstallDialog = null
-        super.onDestroy()
-    }
-
-    private fun showHealthConnectInstallDialog() {
-        if (healthConnectInstallDialog?.isShowing == true) {
-            return
+    private fun handleHealthConnectRetry() {
+        val healthConnectReady = splashLoadingViewModel.setStartRouteDestination()
+        if (healthConnectReady) {
+            splashLoadingViewModel.setStartMainPage()
         }
-        healthConnectInstallDialog = AlertDialog.Builder(this)
-            .setTitle(R.string.health_connect_required_title)
-            .setMessage(R.string.health_connect_required_message)
-            .setCancelable(false)
-            .setPositiveButton(R.string.install) { dialog, _ ->
-                dialog.dismiss()
-                openHealthConnectInPlayStore()
-            }
-            .setNegativeButton(R.string.cancel) { dialog, _ ->
-                dialog.dismiss()
-                finish()
-            }
-            .create()
-        healthConnectInstallDialog?.show()
     }
 
     private fun openHealthConnectInPlayStore() {
@@ -204,7 +176,6 @@ class MainActivity : ComponentActivity() {
                 Toast.makeText(this, getString(R.string.no_app_found), Toast.LENGTH_LONG).show()
             }
         }
-        hasRequestedHealthConnectInstall = false
     }
 
     private fun startActivityIfAvailable(intent: Intent): Boolean {
