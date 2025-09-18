@@ -38,8 +38,8 @@ class SplashLoadingViewModel @Inject constructor(
 
     fun setStartRouteDestination(): Boolean {
         if (!ensureHealthConnectAvailable()) {
+            _routeDestination.postValue(Route.HealthConnectUnavailable)
             _isReady.postValue(true)
-            _routeDestination.postValue(null)
             return false
         }
         viewModelScope.launch {

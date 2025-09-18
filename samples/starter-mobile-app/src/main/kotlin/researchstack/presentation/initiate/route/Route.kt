@@ -1,6 +1,7 @@
 package researchstack.presentation.initiate.route
 
 enum class Route {
+    HealthConnectUnavailable,
     Welcome,
     Main,
     StudyCode,
