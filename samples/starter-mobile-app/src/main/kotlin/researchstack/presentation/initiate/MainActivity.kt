@@ -4,7 +4,6 @@ import android.R
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
-import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.view.ViewTreeObserver
@@ -21,7 +20,6 @@ import androidx.core.view.WindowCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
-import researchstack.R
 import researchstack.presentation.LocalNavController
 import researchstack.presentation.initiate.route.Route
 import researchstack.presentation.initiate.route.Router
@@ -30,6 +28,7 @@ import researchstack.presentation.viewmodel.SplashLoadingViewModel
 import researchstack.util.NotificationUtil
 import researchstack.util.scheduleComplianceCheck
 import researchstack.util.setAlarm
+import androidx.core.net.toUri
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -76,10 +75,8 @@ class MainActivity : ComponentActivity() {
             this
         ) { newIsReady -> isContentReady = newIsReady }
 
-        val healthConnectReady = splashLoadingViewModel.setStartRouteDestination()
-        if (healthConnectReady) {
-            splashLoadingViewModel.setStartMainPage()
-        }
+        splashLoadingViewModel.setStartRouteDestination()
+        splashLoadingViewModel.setStartMainPage()
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -149,10 +146,6 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         NotificationUtil.initialize(this).let { NotificationUtil.getInstance().cancelAllNotification() }
-        val healthConnectReady = splashLoadingViewModel.setStartRouteDestination()
-        if (healthConnectReady) {
-            splashLoadingViewModel.setStartMainPage()
-        }
     }
 
     private fun handleHealthConnectRetry() {
@@ -164,24 +157,24 @@ class MainActivity : ComponentActivity() {
 
     private fun openHealthConnectInPlayStore() {
         val playStoreIntent = Intent(Intent.ACTION_VIEW).apply {
-            data = Uri.parse("market://details?id=$HEALTH_CONNECT_PACKAGE_NAME")
+            data = "market://details?id=$HEALTH_CONNECT_PACKAGE_NAME".toUri()
             setPackage("com.android.vending")
         }
         val launched = startActivityIfAvailable(playStoreIntent)
         if (!launched) {
             val webIntent = Intent(
                 Intent.ACTION_VIEW,
-                Uri.parse("https://play.google.com/store/apps/details?id=$HEALTH_CONNECT_PACKAGE_NAME")
+                "https://play.google.com/store/apps/details?id=$HEALTH_CONNECT_PACKAGE_NAME".toUri()
             )
             if (!startActivityIfAvailable(webIntent)) {
-                Toast.makeText(this, getString(R.string.no_app_found), Toast.LENGTH_LONG).show()
+                Toast.makeText(this, getString(researchstack.R.string.no_app_found), Toast.LENGTH_LONG).show()
             }
         }
     }
 
     private fun openSamsungHealthInStore() {
         val playStoreIntent = Intent(Intent.ACTION_VIEW).apply {
-            data = Uri.parse("market://details?id=$SAMSUNG_HEALTH_PACKAGE_NAME")
+            data = "market://details?id=$SAMSUNG_HEALTH_PACKAGE_NAME".toUri()
             setPackage("com.android.vending")
         }
         if (startActivityIfAvailable(playStoreIntent)) {
@@ -189,7 +182,7 @@ class MainActivity : ComponentActivity() {
         }
 
         val galaxyStoreIntent = Intent(Intent.ACTION_VIEW).apply {
-            data = Uri.parse("samsungapps://ProductDetail/$SAMSUNG_HEALTH_PACKAGE_NAME")
+            data = "samsungapps://ProductDetail/$SAMSUNG_HEALTH_PACKAGE_NAME".toUri()
         }
         if (startActivityIfAvailable(galaxyStoreIntent)) {
             return
@@ -197,7 +190,7 @@ class MainActivity : ComponentActivity() {
 
         val webPlayStoreIntent = Intent(
             Intent.ACTION_VIEW,
-            Uri.parse("https://play.google.com/store/apps/details?id=$SAMSUNG_HEALTH_PACKAGE_NAME")
+            "https://play.google.com/store/apps/details?id=$SAMSUNG_HEALTH_PACKAGE_NAME".toUri()
         )
         if (startActivityIfAvailable(webPlayStoreIntent)) {
             return
@@ -205,13 +198,13 @@ class MainActivity : ComponentActivity() {
 
         val galaxyStoreWebIntent = Intent(
             Intent.ACTION_VIEW,
-            Uri.parse("https://galaxystore.samsung.com/detail/$SAMSUNG_HEALTH_PACKAGE_NAME")
+            "https://galaxystore.samsung.com/detail/$SAMSUNG_HEALTH_PACKAGE_NAME".toUri()
         )
         if (startActivityIfAvailable(galaxyStoreWebIntent)) {
             return
         }
 
-        Toast.makeText(this, getString(R.string.no_app_found), Toast.LENGTH_LONG).show()
+        Toast.makeText(this, getString(researchstack.R.string.no_app_found), Toast.LENGTH_LONG).show()
     }
 
     private fun startActivityIfAvailable(intent: Intent): Boolean {
