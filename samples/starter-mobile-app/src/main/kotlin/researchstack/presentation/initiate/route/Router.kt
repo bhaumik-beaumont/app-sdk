@@ -35,14 +35,20 @@ fun Router(
     startRoute: Route,
     askedPage: Int,
     onInstallHealthConnect: () -> Unit,
+    onInstallSamsungHealth: () -> Unit,
     onHealthConnectRetry: () -> Unit,
+    isHealthConnectAvailable: Boolean?,
+    isSamsungHealthAvailable: Boolean?,
 ) {
     val startDestination = startRoute.name
 
     NavHost(navController = navController, startDestination = startDestination) {
         composable(Route.HealthConnectUnavailable.name) {
             HealthConnectUnavailableScreen(
+                showHealthConnectButton = isHealthConnectAvailable != true,
+                showSamsungHealthButton = isSamsungHealthAvailable != true,
                 onInstallHealthConnect = onInstallHealthConnect,
+                onInstallSamsungHealth = onInstallSamsungHealth,
                 onRetry = onHealthConnectRetry,
             )
         }
