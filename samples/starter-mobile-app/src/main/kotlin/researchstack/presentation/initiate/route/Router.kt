@@ -6,6 +6,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import researchstack.presentation.initiate.screen.HealthConnectUnavailableScreen
 import researchstack.presentation.screen.insight.SettingScreen
 import researchstack.presentation.screen.insight.StudyPermissionSettingScreen
 import researchstack.presentation.screen.insight.StudyStatusScreen
@@ -29,10 +30,22 @@ import researchstack.presentation.screen.welcome.WelcomeScreen
 private val mainRouteName = "${Route.Main.name}/{page}"
 
 @Composable
-fun Router(navController: NavHostController, startRoute: Route, askedPage: Int) {
+fun Router(
+    navController: NavHostController,
+    startRoute: Route,
+    askedPage: Int,
+    onInstallHealthConnect: () -> Unit,
+    onHealthConnectRetry: () -> Unit,
+) {
     val startDestination = startRoute.name
 
     NavHost(navController = navController, startDestination = startDestination) {
+        composable(Route.HealthConnectUnavailable.name) {
+            HealthConnectUnavailableScreen(
+                onInstallHealthConnect = onInstallHealthConnect,
+                onRetry = onHealthConnectRetry,
+            )
+        }
         composable(Route.Intro.name) {
             AppIntroScreen()
         }

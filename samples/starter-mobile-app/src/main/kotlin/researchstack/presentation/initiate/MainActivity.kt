@@ -23,7 +23,6 @@ import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 import researchstack.R
 import researchstack.presentation.LocalNavController
-import researchstack.presentation.initiate.screen.HealthConnectUnavailableScreen
 import researchstack.presentation.initiate.route.Route
 import researchstack.presentation.initiate.route.Router
 import researchstack.presentation.theme.AppTheme
@@ -48,24 +47,15 @@ class MainActivity : ComponentActivity() {
         setContent {
             val startDestination: Route? by splashLoadingViewModel.routeDestination.observeAsState()
             val page by splashLoadingViewModel.startMainPage.observeAsState(0)
-            val isHealthConnectAvailable by splashLoadingViewModel.healthConnectAvailable.observeAsState()
             val openWeeklyProgress = intent.getBooleanExtra("openWeeklyProgress", false)
 
             AppTheme {
-                when {
-                    isHealthConnectAvailable == false -> {
-                        HealthConnectUnavailableScreen(
-                            onInstallHealthConnect = { openHealthConnectInPlayStore() },
-                            onRetry = { handleHealthConnectRetry() }
-                        )
-                    }
-                    startDestination != null -> {
-                        ContentComposable(
-                            startDestination = startDestination!!,
-                            page = page,
-                            openWeeklyProgress = openWeeklyProgress,
-                        )
-                    }
+                startDestination?.let { destination ->
+                    ContentComposable(
+                        startDestination = destination,
+                        page = page,
+                        openWeeklyProgress = openWeeklyProgress,
+                    )
                 }
             }
         }
@@ -108,6 +98,8 @@ class MainActivity : ComponentActivity() {
                     navController = navController,
                     startRoute = startDestination,
                     askedPage = intent.getIntExtra("page", page),
+                    onInstallHealthConnect = { openHealthConnectInPlayStore() },
+                    onHealthConnectRetry = { handleHealthConnectRetry() },
                 )
                 if (openWeeklyProgress) {
                     androidx.compose.runtime.LaunchedEffect(Unit) {
