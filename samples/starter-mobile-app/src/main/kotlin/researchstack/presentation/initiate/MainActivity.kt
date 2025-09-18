@@ -47,6 +47,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             val startDestination: Route? by splashLoadingViewModel.routeDestination.observeAsState()
             val page by splashLoadingViewModel.startMainPage.observeAsState(0)
+            val healthConnectAvailable by splashLoadingViewModel.healthConnectAvailable.observeAsState()
+            val samsungHealthAvailable by splashLoadingViewModel.samsungHealthAvailable.observeAsState()
             val openWeeklyProgress = intent.getBooleanExtra("openWeeklyProgress", false)
 
             AppTheme {
@@ -55,6 +57,8 @@ class MainActivity : ComponentActivity() {
                         startDestination = destination,
                         page = page,
                         openWeeklyProgress = openWeeklyProgress,
+                        healthConnectAvailable = healthConnectAvailable,
+                        samsungHealthAvailable = samsungHealthAvailable,
                     )
                 }
             }
@@ -88,6 +92,8 @@ class MainActivity : ComponentActivity() {
         startDestination: Route,
         page: Int = 0,
         openWeeklyProgress: Boolean = false,
+        healthConnectAvailable: Boolean? = null,
+        samsungHealthAvailable: Boolean? = null,
     ) {
         Surface {
             val navController = rememberNavController()
@@ -99,7 +105,10 @@ class MainActivity : ComponentActivity() {
                     startRoute = startDestination,
                     askedPage = intent.getIntExtra("page", page),
                     onInstallHealthConnect = { openHealthConnectInPlayStore() },
+                    onInstallSamsungHealth = { openSamsungHealthInStore() },
                     onHealthConnectRetry = { handleHealthConnectRetry() },
+                    isHealthConnectAvailable = healthConnectAvailable,
+                    isSamsungHealthAvailable = samsungHealthAvailable,
                 )
                 if (openWeeklyProgress) {
                     androidx.compose.runtime.LaunchedEffect(Unit) {
@@ -170,6 +179,41 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private fun openSamsungHealthInStore() {
+        val playStoreIntent = Intent(Intent.ACTION_VIEW).apply {
+            data = Uri.parse("market://details?id=$SAMSUNG_HEALTH_PACKAGE_NAME")
+            setPackage("com.android.vending")
+        }
+        if (startActivityIfAvailable(playStoreIntent)) {
+            return
+        }
+
+        val galaxyStoreIntent = Intent(Intent.ACTION_VIEW).apply {
+            data = Uri.parse("samsungapps://ProductDetail/$SAMSUNG_HEALTH_PACKAGE_NAME")
+        }
+        if (startActivityIfAvailable(galaxyStoreIntent)) {
+            return
+        }
+
+        val webPlayStoreIntent = Intent(
+            Intent.ACTION_VIEW,
+            Uri.parse("https://play.google.com/store/apps/details?id=$SAMSUNG_HEALTH_PACKAGE_NAME")
+        )
+        if (startActivityIfAvailable(webPlayStoreIntent)) {
+            return
+        }
+
+        val galaxyStoreWebIntent = Intent(
+            Intent.ACTION_VIEW,
+            Uri.parse("https://galaxystore.samsung.com/detail/$SAMSUNG_HEALTH_PACKAGE_NAME")
+        )
+        if (startActivityIfAvailable(galaxyStoreWebIntent)) {
+            return
+        }
+
+        Toast.makeText(this, getString(R.string.no_app_found), Toast.LENGTH_LONG).show()
+    }
+
     private fun startActivityIfAvailable(intent: Intent): Boolean {
         val resolveInfo = intent.resolveActivity(packageManager)
         return if (resolveInfo != null) {
@@ -182,5 +226,6 @@ class MainActivity : ComponentActivity() {
 
     private companion object {
         private const val HEALTH_CONNECT_PACKAGE_NAME = "com.google.android.apps.healthdata"
+        private const val SAMSUNG_HEALTH_PACKAGE_NAME = "com.sec.android.app.shealth"
     }
 }

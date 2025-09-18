@@ -1,6 +1,8 @@
 package researchstack.presentation.viewmodel
 
 import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
 import androidx.health.connect.client.HealthConnectClient
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -36,8 +38,12 @@ class SplashLoadingViewModel @Inject constructor(
     val healthConnectAvailable: LiveData<Boolean?>
         get() = _healthConnectAvailable
 
+    private val _samsungHealthAvailable = MutableLiveData<Boolean?>(null)
+    val samsungHealthAvailable: LiveData<Boolean?>
+        get() = _samsungHealthAvailable
+
     fun setStartRouteDestination(): Boolean {
-        if (!ensureHealthConnectAvailable()) {
+        if (!ensureRequiredHealthAppsAvailable()) {
             _routeDestination.postValue(Route.HealthConnectUnavailable)
             _isReady.postValue(true)
             return false
@@ -59,10 +65,37 @@ class SplashLoadingViewModel @Inject constructor(
         }
     }
 
-    private fun ensureHealthConnectAvailable(): Boolean {
+    private fun ensureRequiredHealthAppsAvailable(): Boolean {
         val status = HealthConnectClient.getSdkStatus(context)
-        val isAvailable = status == HealthConnectClient.SDK_AVAILABLE
-        _healthConnectAvailable.postValue(isAvailable)
-        return isAvailable
+        val isHealthConnectAvailable = status == HealthConnectClient.SDK_AVAILABLE
+        val isSamsungHealthAvailable = isSamsungHealthInstalled()
+
+        _healthConnectAvailable.postValue(isHealthConnectAvailable)
+        _samsungHealthAvailable.postValue(isSamsungHealthAvailable)
+
+        return isHealthConnectAvailable && isSamsungHealthAvailable
+    }
+
+    private fun isSamsungHealthInstalled(): Boolean {
+        return try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                context.packageManager.getPackageInfo(
+                    SAMSUNG_HEALTH_PACKAGE_NAME,
+                    PackageManager.PackageInfoFlags.of(0)
+                )
+            } else {
+                @Suppress("DEPRECATION")
+                context.packageManager.getPackageInfo(SAMSUNG_HEALTH_PACKAGE_NAME, 0)
+            }
+            true
+        } catch (_: PackageManager.NameNotFoundException) {
+            false
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    private companion object {
+        private const val SAMSUNG_HEALTH_PACKAGE_NAME = "com.sec.android.app.shealth"
     }
 }
