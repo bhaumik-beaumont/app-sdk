@@ -69,6 +69,7 @@
   <string name="no_app_found">이 작업을 처리할 앱이 없습니다.</string>
   <string name="health_connect_required_title">Health Connect required</string>
   <string name="health_connect_required_message">Install the Health Connect app from Google Play to continue.</string>
+  <string name="health_connect_retry">Check again</string>
   <string name="install">Install</string>
   <string name="debug">디버그</string>
   <string name="debug_joined_studies">참여 중인 연구: %1$s</string>

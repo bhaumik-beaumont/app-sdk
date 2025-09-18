@@ -8,10 +8,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import researchstack.auth.domain.usecase.CheckSignInUseCase
@@ -36,16 +32,14 @@ class SplashLoadingViewModel @Inject constructor(
     var startMainPage = MutableLiveData<Int>(0)
         private set
 
-    private val _requestHealthConnectInstall = MutableSharedFlow<Unit>(
-        replay = 0,
-        extraBufferCapacity = 1,
-        onBufferOverflow = BufferOverflow.DROP_OLDEST,
-    )
-    val requestHealthConnectInstall: SharedFlow<Unit> =
-        _requestHealthConnectInstall.asSharedFlow()
+    private val _healthConnectAvailable = MutableLiveData<Boolean?>(null)
+    val healthConnectAvailable: LiveData<Boolean?>
+        get() = _healthConnectAvailable
 
-    fun setStartRouteDestination(shouldPromptInstall: Boolean = true): Boolean {
-        if (!ensureHealthConnectAvailable(shouldPromptInstall)) {
+    fun setStartRouteDestination(): Boolean {
+        if (!ensureHealthConnectAvailable()) {
+            _isReady.postValue(true)
+            _routeDestination.postValue(null)
             return false
         }
         viewModelScope.launch {
@@ -65,12 +59,10 @@ class SplashLoadingViewModel @Inject constructor(
         }
     }
 
-    private fun ensureHealthConnectAvailable(shouldPromptInstall: Boolean): Boolean {
+    private fun ensureHealthConnectAvailable(): Boolean {
         val status = HealthConnectClient.getSdkStatus(context)
         val isAvailable = status == HealthConnectClient.SDK_AVAILABLE
-        if (!isAvailable && shouldPromptInstall) {
-            _requestHealthConnectInstall.tryEmit(Unit)
-        }
+        _healthConnectAvailable.postValue(isAvailable)
         return isAvailable
     }
 }
