@@ -9,9 +9,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
@@ -74,7 +77,14 @@ private fun IntroScreen(study: Study) {
             TopBar(title = stringResource(id = string.study_informaion))
         },
         bottomBar = {
-            Row(modifier = Modifier.padding(20.dp)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .imePadding()
+                    .padding(horizontal = 20.dp, vertical = 16.dp),
+                horizontalArrangement = Arrangement.Center
+            ) {
                 AppTextButton(text = stringResource(id = string.join_study_message)) {
                     navController.navigate("${StudyEligibility.name}/${study.id}")
                 }
@@ -105,7 +115,6 @@ private fun IntroScreen(study: Study) {
                         .padding(top = 24.dp),
                     text = study.name,
                     style = AppTheme.typography.title1,
-                    color = AppTheme.colors.onSurface,
                 )
 
                 Text(
@@ -113,7 +122,6 @@ private fun IntroScreen(study: Study) {
                         .padding(vertical = 8.dp),
                     text = study.organization,
                     style = AppTheme.typography.body3,
-                    color = descriptionColor,
                 )
 
                 StudyTimeInformation(study)
@@ -127,7 +135,6 @@ private fun IntroScreen(study: Study) {
 @Composable
 fun StudyTimeInformation(
     study: Study,
-    textColor: Color = descriptionColor,
 ) {
     Row(
         modifier = Modifier
@@ -145,7 +152,6 @@ fun StudyTimeInformation(
         Text(
             text = study.duration,
             style = AppTheme.typography.body3,
-            color = textColor,
         )
         Spacer(modifier = Modifier.width(12.dp))
         Icon(
@@ -159,7 +165,6 @@ fun StudyTimeInformation(
         Text(
             text = study.period,
             style = AppTheme.typography.body3,
-            color = textColor,
         )
     }
 }
@@ -179,33 +184,28 @@ private fun IntroSections(study: Study): Unit =
         Text(
             text = stringResource(id = string.study_introduction),
             style = AppTheme.typography.title3,
-            color = AppTheme.colors.onSurface
         )
         Spacer(Modifier.size(8.dp))
         Text(
             text = study.description,
             style = AppTheme.typography.body3,
-            color = AppTheme.colors.onSurface
         )
         Spacer(Modifier.size(24.dp))
         Text(
             text = stringResource(id = string.study_requirements),
             style = AppTheme.typography.title3,
-            color = AppTheme.colors.onSurface
         )
         Spacer(Modifier.size(8.dp))
         if (study.requirements.isEmpty()) {
             Text(
                 text = stringResource(id = string.no_requirement_message),
                 style = AppTheme.typography.body3,
-                color = descriptionColor,
             )
         } else {
             study.requirements.forEach {
                 Text(
                     text = "$it",
                     style = AppTheme.typography.body3,
-                    color = AppTheme.colors.onSurface
                 )
             }
         }

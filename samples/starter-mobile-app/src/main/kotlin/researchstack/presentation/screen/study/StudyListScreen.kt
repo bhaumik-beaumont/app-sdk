@@ -139,7 +139,7 @@ fun StudyCard(
                 )
                 Spacer(modifier = Modifier.height(12.dp))
 
-                StudyTimeInformation(study, descriptionColor)
+                StudyTimeInformation(study)
                 Spacer(modifier = Modifier.height(20.dp))
                 Text(
                     text = study.description,
