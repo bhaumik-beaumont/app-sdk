@@ -76,13 +76,13 @@ android {
         create("dev") {
             dimension = "env"
             applicationId = "com.mgb.beaumont.glp1activitytracking.dev"
-            buildConfigField("String", "SERVER_ADDRESS", "\"192.168.1.20\"")
-            resValue("string","app_name","MGH BICEP")
+            buildConfigField("String", "SERVER_ADDRESS", "\"bicep.eevalbot.com\"")
+            resValue("string","app_name","MGH BICEP (Dev)")
         }
         create("prod") {
             dimension = "env"
             applicationId = "com.mgb.beaumont.glp1activitytracking"
-            buildConfigField("String", "SERVER_ADDRESS", "\"13.60.148.115\"")
+            buildConfigField("String", "SERVER_ADDRESS", "\"bicep.eevalbot.com\"")
             resValue("string","app_name","MGH BICEP")
         }
     }
@@ -186,7 +186,7 @@ dependencies {
     // Temporarily avoid BoM for Analytics and pin an older version:
     implementation("com.google.firebase:firebase-analytics:21.5.0")
     implementation("com.google.firebase:firebase-crashlytics-ktx")
-    implementation("com.google.firebase:firebase-crashlytics-ndk:18.6.2") // example; align others as needed
+    implementation("com.google.firebase:firebase-crashlytics-ndk:20.0.1")
     implementation("com.google.firebase:firebase-config-ktx")
 
 }

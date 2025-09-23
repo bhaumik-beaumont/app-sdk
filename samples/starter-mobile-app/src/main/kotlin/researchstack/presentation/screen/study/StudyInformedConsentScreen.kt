@@ -166,7 +166,7 @@ fun UserAgreement(
                 .padding(innerPadding)
                 .padding(start = 24.dp, end = 24.dp)
         ) {
-            TermsOfService(informedConsent.imageUrl) {
+            TermsOfService("https://www.massgeneralbrigham.org/en/notices/hipaa") {
                 onRequestPage(it)
             }
 
