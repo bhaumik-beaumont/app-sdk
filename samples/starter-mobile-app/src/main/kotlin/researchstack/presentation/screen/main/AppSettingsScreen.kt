@@ -25,12 +25,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Adb
+import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Insights
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
@@ -38,6 +38,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -48,9 +49,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.FileProvider
 import researchstack.R
 import researchstack.presentation.LocalNavController
 import researchstack.presentation.initiate.route.Route
+import java.io.BufferedInputStream
+import java.io.BufferedOutputStream
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 private const val PRIVACY_URL = "https://www.massgeneralbrigham.org/en/notices/hipaa"
 
@@ -59,6 +71,7 @@ fun AppSettingsScreen() {
     val context = LocalContext.current
     val navController = LocalNavController.current
     val scrollState = rememberScrollState()
+    val coroutineScope = rememberCoroutineScope()
     val packageInfo = remember {
         context.packageManager.getPackageInfo(context.packageName, 0)
     }
@@ -133,6 +146,35 @@ fun AppSettingsScreen() {
                         icon = Icons.Filled.Email,
                         label = stringResource(id = R.string.contact_us),
                         onClick = { sendEmail(context) }
+                    )
+                    Divider(color = Color(0xFF3D3D3D))
+                    SettingsRow(
+                        icon = Icons.Filled.Insights,
+                        label = stringResource(id = R.string.export_databases),
+                        onClick = {
+                            coroutineScope.launch {
+                                val exportFile = try {
+                                    prepareDatabaseExportFile(context)
+                                } catch (e: Exception) {
+                                    Toast.makeText(
+                                        context,
+                                        context.getString(R.string.database_export_failed),
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    return@launch
+                                }
+
+                                if (exportFile == null) {
+                                    Toast.makeText(
+                                        context,
+                                        context.getString(R.string.database_export_no_files),
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                } else {
+                                    shareDatabasesViaEmail(context, exportFile)
+                                }
+                            }
+                        }
                     )
                     Divider(color = Color(0xFF3D3D3D))
                     SettingsRow(
@@ -234,6 +276,89 @@ private fun sendEmail(context: android.content.Context) {
     }
     try {
         context.startActivity(intent)
+    } catch (e: ActivityNotFoundException) {
+        Toast.makeText(context, context.getString(R.string.no_app_found), Toast.LENGTH_SHORT).show()
+    }
+}
+
+private suspend fun prepareDatabaseExportFile(context: android.content.Context): File? = withContext(Dispatchers.IO) {
+    val databaseNames = context.databaseList()?.toSet() ?: emptySet()
+    if (databaseNames.isEmpty()) {
+        return@withContext null
+    }
+
+    val seenPaths = mutableSetOf<String>()
+    val databaseFiles = mutableListOf<File>()
+
+    databaseNames.forEach { name ->
+        val databaseFile = context.getDatabasePath(name)
+        if (databaseFile != null && databaseFile.exists() && seenPaths.add(databaseFile.absolutePath)) {
+            databaseFiles += databaseFile
+        }
+
+        if (!name.endsWith("-wal") && !name.endsWith("-shm") && !name.endsWith("-journal")) {
+            val basePath = databaseFile?.absolutePath
+            if (!basePath.isNullOrEmpty()) {
+                listOf("-wal", "-shm", "-journal").forEach { suffix ->
+                    val related = File(basePath + suffix)
+                    if (related.exists() && seenPaths.add(related.absolutePath)) {
+                        databaseFiles += related
+                    }
+                }
+            }
+        }
+    }
+
+    if (databaseFiles.isEmpty()) {
+        return@withContext null
+    }
+
+    val exportDir = File(context.cacheDir, "db-export").apply {
+        if (!exists()) {
+            mkdirs()
+        }
+    }
+    exportDir.listFiles()?.forEach { it.delete() }
+
+    val exportFile = File(exportDir, "databases_${System.currentTimeMillis()}.zip")
+
+    ZipOutputStream(BufferedOutputStream(FileOutputStream(exportFile))).use { zipStream ->
+        databaseFiles.forEach { file ->
+            BufferedInputStream(FileInputStream(file)).use { inputStream ->
+                val entry = ZipEntry(file.name)
+                zipStream.putNextEntry(entry)
+                inputStream.copyTo(zipStream)
+                zipStream.closeEntry()
+            }
+        }
+    }
+
+    exportFile
+}
+
+private fun shareDatabasesViaEmail(context: android.content.Context, exportFile: File) {
+    val uri = FileProvider.getUriForFile(
+        context,
+        "${context.packageName}.fileprovider",
+        exportFile
+    )
+
+    val intent = Intent(Intent.ACTION_SEND).apply {
+        type = "application/zip"
+        putExtra(Intent.EXTRA_EMAIL, arrayOf("alexa.skill.89@gmail.com"))
+        putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.database_export_email_subject))
+        putExtra(Intent.EXTRA_TEXT, context.getString(R.string.database_export_email_body))
+        putExtra(Intent.EXTRA_STREAM, uri)
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+    }
+
+    try {
+        context.startActivity(
+            Intent.createChooser(
+                intent,
+                context.getString(R.string.database_export_chooser_title)
+            )
+        )
     } catch (e: ActivityNotFoundException) {
         Toast.makeText(context, context.getString(R.string.no_app_found), Toast.LENGTH_SHORT).show()
     }
