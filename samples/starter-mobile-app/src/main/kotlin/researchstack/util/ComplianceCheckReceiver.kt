@@ -77,7 +77,7 @@ class ComplianceCheckReceiver : DaggerBroadcastReceiver() {
             val biaCount = biaDao.countBetween(startMillis, endMillis).first()
             val weightCount = userProfileDao.countBetween(startMillis, endMillis).first()
 
-            val activityCompliant = activityMinutes >= WEEKLY_ACTIVITY_GOAL_MINUTES
+            val activityCompliant = activityMinutes >= WEEKLY_ACTIVITY_GOAL_MINUTES.toLong()
             val resistanceCompliant = resistanceSessions >= WEEKLY_RESISTANCE_SESSION_COUNT
             val biaCompliant = isBiaCompliant(biaCount)
             val weightCompliant = isWeightCompliant(weightCount)
@@ -89,11 +89,24 @@ class ComplianceCheckReceiver : DaggerBroadcastReceiver() {
             val todayStr = today.toString()
             val messages = mutableListOf<String>()
 
-            if (dayOfWeek >= 3 && !activityCompliant && reminderPref.getLastReminderDate(Type.ACTIVITY) != todayStr) {
+            val shouldRemindActivity = when {
+                dayOfWeek in 3 until 5 -> activityMinutes < 50L
+                dayOfWeek in 5 until 7 -> activityMinutes < 100L
+                dayOfWeek == 7 -> activityMinutes < WEEKLY_ACTIVITY_GOAL_MINUTES.toLong()
+                else -> false
+            }
+
+            if (shouldRemindActivity && reminderPref.getLastReminderDate(Type.ACTIVITY) != todayStr) {
                 reminderPref.saveReminderDate(Type.ACTIVITY, todayStr)
                 messages += getActivityMessage()
             }
-            if (dayOfWeek >= 4 && !resistanceCompliant && reminderPref.getLastReminderDate(Type.RESISTANCE) != todayStr) {
+            val shouldRemindResistance = when {
+                dayOfWeek in 4 until 7 -> resistanceSessions < 1
+                dayOfWeek == 7 -> resistanceSessions < WEEKLY_RESISTANCE_SESSION_COUNT
+                else -> false
+            }
+
+            if (shouldRemindResistance && reminderPref.getLastReminderDate(Type.RESISTANCE) != todayStr) {
                 reminderPref.saveReminderDate(Type.RESISTANCE, todayStr)
                 messages += getResistanceMessage()
             }
