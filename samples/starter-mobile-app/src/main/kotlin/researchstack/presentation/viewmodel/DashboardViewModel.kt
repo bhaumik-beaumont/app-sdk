@@ -170,14 +170,24 @@ class DashboardViewModel @Inject constructor(
 
     private fun updateComplianceMessages() {
         val messages = mutableListOf<String>()
-        if (_currentDay.value >= 3 && _totalDurationMinutes.value < WEEKLY_ACTIVITY_GOAL_MINUTES) {
+        val currentDay = _currentDay.value
+        val totalActivityMinutes = _totalDurationMinutes.value
+        if (
+            (currentDay in 3 until 5 && totalActivityMinutes < 50L) ||
+            (currentDay in 5 until 7 && totalActivityMinutes < 100L) ||
+            (currentDay == 7 && totalActivityMinutes < WEEKLY_ACTIVITY_GOAL_MINUTES.toLong())
+        ) {
             messages += getActivityMessage()
         }
-        if (_currentDay.value >= 4 && _resistanceExercises.value.size < WEEKLY_RESISTANCE_SESSION_COUNT) {
+        val resistanceSessions = _resistanceExercises.value.size
+        if (
+            (currentDay in 4 until 7 && resistanceSessions < 1) ||
+            (currentDay == 7 && resistanceSessions < WEEKLY_RESISTANCE_SESSION_COUNT)
+        ) {
             messages += getResistanceMessage()
         }
         if (
-            _currentDay.value == 7 &&
+            currentDay == 7 &&
             (_biaCount.value < MINIMUM_BIA_ENTRIES_PER_WEEK ||
                 _weightCount.value < MINIMUM_WEIGHT_ENTRIES_PER_WEEK)
         ) {
