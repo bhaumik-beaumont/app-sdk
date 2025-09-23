@@ -74,8 +74,10 @@
   <string name="grant_health_permissions">Grant Android Health permissions</string>
   <string name="grant_samsung_health_permissions">Grant Samsung Health access</string>
   <string name="health_connect_required_message">Install the Health Connect app to continue.</string>
+  <string name="health_connect_update_required_message">Update the Health Connect app to continue.</string>
   <string name="samsung_health_required_message">Install the Samsung Health app to continue.</string>
   <string name="install_health_connect">Install Health Connect</string>
+  <string name="update_health_connect">Update Health Connect</string>
   <string name="install_samsung_health">Install Samsung Health</string>
   <string name="sensor">Mobile sensor data</string>
   <string name="priv_data">Wearable sensor data</string>

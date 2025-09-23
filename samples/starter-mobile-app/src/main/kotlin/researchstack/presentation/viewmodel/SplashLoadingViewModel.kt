@@ -38,6 +38,10 @@ class SplashLoadingViewModel @Inject constructor(
     val healthConnectAvailable: LiveData<Boolean?>
         get() = _healthConnectAvailable
 
+    private val _healthConnectAvailabilityStatus = MutableLiveData<Int?>(null)
+    val healthConnectAvailabilityStatus: LiveData<Int?>
+        get() = _healthConnectAvailabilityStatus
+
     private val _samsungHealthAvailable = MutableLiveData<Boolean?>(null)
     val samsungHealthAvailable: LiveData<Boolean?>
         get() = _samsungHealthAvailable
@@ -72,6 +76,7 @@ class SplashLoadingViewModel @Inject constructor(
 
         _healthConnectAvailable.postValue(isHealthConnectAvailable)
         _samsungHealthAvailable.postValue(isSamsungHealthAvailable)
+        _healthConnectAvailabilityStatus.postValue(status)
 
         return isHealthConnectAvailable && isSamsungHealthAvailable
     }

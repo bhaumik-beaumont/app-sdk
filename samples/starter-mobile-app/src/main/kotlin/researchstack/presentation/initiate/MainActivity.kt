@@ -48,6 +48,7 @@ class MainActivity : ComponentActivity() {
             val page by splashLoadingViewModel.startMainPage.observeAsState(0)
             val healthConnectAvailable by splashLoadingViewModel.healthConnectAvailable.observeAsState()
             val samsungHealthAvailable by splashLoadingViewModel.samsungHealthAvailable.observeAsState()
+            val healthConnectAvailabilityStatus by splashLoadingViewModel.healthConnectAvailabilityStatus.observeAsState()
             val openWeeklyProgress = intent.getBooleanExtra("openWeeklyProgress", false)
 
             AppTheme {
@@ -58,6 +59,7 @@ class MainActivity : ComponentActivity() {
                         openWeeklyProgress = openWeeklyProgress,
                         healthConnectAvailable = healthConnectAvailable,
                         samsungHealthAvailable = samsungHealthAvailable,
+                        healthConnectAvailabilityStatus = healthConnectAvailabilityStatus,
                     )
                 }
             }
@@ -91,6 +93,7 @@ class MainActivity : ComponentActivity() {
         openWeeklyProgress: Boolean = false,
         healthConnectAvailable: Boolean? = null,
         samsungHealthAvailable: Boolean? = null,
+        healthConnectAvailabilityStatus: Int? = null,
     ) {
         Surface {
             val navController = rememberNavController()
@@ -106,6 +109,7 @@ class MainActivity : ComponentActivity() {
                     onHealthConnectRetry = { handleHealthConnectRetry() },
                     isHealthConnectAvailable = healthConnectAvailable,
                     isSamsungHealthAvailable = samsungHealthAvailable,
+                    healthConnectAvailabilityStatus = healthConnectAvailabilityStatus,
                 )
                 if (openWeeklyProgress) {
                     androidx.compose.runtime.LaunchedEffect(Unit) {

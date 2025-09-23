@@ -1,6 +1,7 @@
 package researchstack.presentation.initiate.route
 
 import androidx.compose.runtime.Composable
+import androidx.health.connect.client.HealthConnectClient
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -39,6 +40,7 @@ fun Router(
     onHealthConnectRetry: () -> Unit,
     isHealthConnectAvailable: Boolean?,
     isSamsungHealthAvailable: Boolean?,
+    healthConnectAvailabilityStatus: Int?,
 ) {
     val startDestination = startRoute.name
 
@@ -47,6 +49,9 @@ fun Router(
             HealthConnectUnavailableScreen(
                 showHealthConnectButton = isHealthConnectAvailable != true,
                 showSamsungHealthButton = isSamsungHealthAvailable != true,
+                isHealthConnectUpdateRequired =
+                    healthConnectAvailabilityStatus ==
+                        HealthConnectClient.SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED,
                 onInstallHealthConnect = onInstallHealthConnect,
                 onInstallSamsungHealth = onInstallSamsungHealth,
                 onRetry = onHealthConnectRetry,

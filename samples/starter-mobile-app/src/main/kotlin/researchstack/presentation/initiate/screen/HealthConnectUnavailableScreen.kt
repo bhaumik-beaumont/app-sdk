@@ -31,10 +31,22 @@ private val SamsungHealthButtonColor = Color(0xFF287CC3)
 fun HealthConnectUnavailableScreen(
     showHealthConnectButton: Boolean,
     showSamsungHealthButton: Boolean,
+    isHealthConnectUpdateRequired: Boolean,
     onInstallHealthConnect: () -> Unit,
     onInstallSamsungHealth: () -> Unit,
     onRetry: () -> Unit,
 ) {
+    val healthConnectMessageRes = if (isHealthConnectUpdateRequired) {
+        R.string.health_connect_update_required_message
+    } else {
+        R.string.health_connect_required_message
+    }
+    val healthConnectButtonTextRes = if (isHealthConnectUpdateRequired) {
+        R.string.update_health_connect
+    } else {
+        R.string.install_health_connect
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -54,7 +66,7 @@ fun HealthConnectUnavailableScreen(
 
         if (showHealthConnectButton) {
             Text(
-                text = stringResource(id = R.string.health_connect_required_message),
+                text = stringResource(id = healthConnectMessageRes),
                 style = MaterialTheme.typography.body1,
                 textAlign = TextAlign.Center,
                 color = Color.White,
@@ -75,7 +87,7 @@ fun HealthConnectUnavailableScreen(
 
         if (!showHealthConnectButton && !showSamsungHealthButton) {
             Text(
-                text = stringResource(id = R.string.health_connect_required_message),
+                text = stringResource(id = healthConnectMessageRes),
                 style = MaterialTheme.typography.body1,
                 textAlign = TextAlign.Center,
                 color = Color.White,
@@ -93,7 +105,7 @@ fun HealthConnectUnavailableScreen(
                     contentColor = Color.White,
                 )
             ) {
-                Text(text = stringResource(id = R.string.install_health_connect))
+                Text(text = stringResource(id = healthConnectButtonTextRes))
             }
             Spacer(modifier = Modifier.height(12.dp))
         }
