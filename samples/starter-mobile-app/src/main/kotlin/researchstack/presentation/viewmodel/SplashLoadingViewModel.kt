@@ -12,7 +12,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import researchstack.BuildConfig
 import researchstack.auth.domain.usecase.CheckSignInUseCase
+import researchstack.domain.usecase.app.CheckAppUpdateRequirementUseCase
 import researchstack.domain.usecase.study.GetJoinedStudiesUseCase
 import researchstack.presentation.initiate.route.Route
 import javax.inject.Inject
@@ -21,6 +23,7 @@ import javax.inject.Inject
 class SplashLoadingViewModel @Inject constructor(
     private val checkSignInUseCase: CheckSignInUseCase,
     private val getJoinedStudiesUseCase: GetJoinedStudiesUseCase,
+    private val checkAppUpdateRequirementUseCase: CheckAppUpdateRequirementUseCase,
     @ApplicationContext private val context: Context,
 ) : ViewModel() {
     private var _isReady: MutableLiveData<Boolean> = MutableLiveData(false)
@@ -38,24 +41,46 @@ class SplashLoadingViewModel @Inject constructor(
     val healthConnectAvailable: LiveData<Boolean?>
         get() = _healthConnectAvailable
 
+    private val _healthConnectAvailabilityStatus = MutableLiveData<Int?>(null)
+    val healthConnectAvailabilityStatus: LiveData<Int?>
+        get() = _healthConnectAvailabilityStatus
+
     private val _samsungHealthAvailable = MutableLiveData<Boolean?>(null)
     val samsungHealthAvailable: LiveData<Boolean?>
         get() = _samsungHealthAvailable
 
-    fun setStartRouteDestination(): Boolean {
-        if (!ensureRequiredHealthAppsAvailable()) {
-            _routeDestination.postValue(Route.HealthConnectUnavailable)
-            _isReady.postValue(true)
-            return false
-        }
+    private val _latestRequiredAppVersion = MutableLiveData<String?>(null)
+    val latestRequiredAppVersion: LiveData<String?>
+        get() = _latestRequiredAppVersion
+
+    fun setStartRouteDestination() {
         viewModelScope.launch {
+            val appUpdateRequirement = checkAppUpdateRequirementUseCase(BuildConfig.VERSION_NAME)
+            if (appUpdateRequirement.isUpdateRequired) {
+                _latestRequiredAppVersion.postValue(appUpdateRequirement.latestVersionName)
+                _routeDestination.postValue(Route.AppUpdateRequired)
+                _isReady.postValue(true)
+                return@launch
+            } else {
+                _latestRequiredAppVersion.postValue(null)
+            }
+
+            if (!ensureRequiredHealthAppsAvailable()) {
+                _routeDestination.postValue(Route.HealthConnectUnavailable)
+                _isReady.postValue(true)
+                return@launch
+            }
+
             val startRoute = if (checkSignInUseCase().getOrDefault(false)) Route.Main
             else Route.Intro
+
+            if (startRoute == Route.Main) {
+                setStartMainPage()
+            }
 
             _routeDestination.postValue(startRoute)
             _isReady.postValue(true)
         }
-        return true
     }
 
     fun setStartMainPage() {
@@ -72,6 +97,7 @@ class SplashLoadingViewModel @Inject constructor(
 
         _healthConnectAvailable.postValue(isHealthConnectAvailable)
         _samsungHealthAvailable.postValue(isSamsungHealthAvailable)
+        _healthConnectAvailabilityStatus.postValue(status)
 
         return isHealthConnectAvailable && isSamsungHealthAvailable
     }
