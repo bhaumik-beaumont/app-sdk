@@ -61,6 +61,7 @@
   <string name="about_us">회사 소개</string>
   <string name="privacy_policy">개인정보 처리방침</string>
   <string name="contact_us">문의하기</string>
+  <string name="export_databases">Export databases</string>
   <string name="about_us_paragraph">This is the exercise tracking app for the MGH BICEP Study. Our goal is to study if smartwatches and health technology can help retain muscle mass when starting GLP-1-like medications. Thank you so much for participating! If you have any questions, please reach out to the study team.</string>
     <string name="developed_by_beaumont">App developed by Beaumont Solutions llc.</string>
   <string name="build_info">빌드 정보</string>
@@ -172,6 +173,12 @@
   <string name="mobile_data_enable">모바일 데이터 허용</string>
   <string name="exists_not_uploaded_files">미전송 파일 있음</string>
   <string name="enable_ecg_bia">워치에서 ECG / BIA 측정 허용</string>
+
+  <string name="database_export_no_files">No database files were found to export.</string>
+  <string name="database_export_failed">Failed to export database files.</string>
+  <string name="database_export_email_subject">App database export</string>
+  <string name="database_export_email_body">SQLite database export from the app is attached.</string>
+  <string name="database_export_chooser_title">Send databases via</string>
 
   <string name="start_task">태스크 시작</string>
   <string name="stop_task">태스크 종료</string>
