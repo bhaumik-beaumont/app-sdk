@@ -7,6 +7,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import researchstack.presentation.initiate.screen.AppUpdateRequiredScreen
 import researchstack.presentation.initiate.screen.HealthConnectUnavailableScreen
 import researchstack.presentation.screen.insight.SettingScreen
 import researchstack.presentation.screen.insight.StudyPermissionSettingScreen
@@ -41,10 +42,18 @@ fun Router(
     isHealthConnectAvailable: Boolean?,
     isSamsungHealthAvailable: Boolean?,
     healthConnectAvailabilityStatus: Int?,
+    latestRequiredAppVersion: String?,
+    onUpdateApp: () -> Unit,
 ) {
     val startDestination = startRoute.name
 
     NavHost(navController = navController, startDestination = startDestination) {
+        composable(Route.AppUpdateRequired.name) {
+            AppUpdateRequiredScreen(
+                latestVersionName = latestRequiredAppVersion,
+                onUpdateApp = onUpdateApp,
+            )
+        }
         composable(Route.HealthConnectUnavailable.name) {
             HealthConnectUnavailableScreen(
                 showHealthConnectButton = isHealthConnectAvailable != true,

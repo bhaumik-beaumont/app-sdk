@@ -76,6 +76,11 @@
   <string name="install_health_connect">Install Health Connect</string>
   <string name="update_health_connect">Update Health Connect</string>
   <string name="install_samsung_health">Install Samsung Health</string>
+  <string name="app_update_required_title">Update required</string>
+  <string name="app_update_required_message">A new version of the app is required to continue.</string>
+  <string name="app_update_required_message_with_version">Version %1$s is now available. Update the app to continue.</string>
+  <string name="app_update_current_version">Current version: %1$s</string>
+  <string name="update_app">Update App</string>
   <string name="debug">디버그</string>
   <string name="debug_joined_studies">참여 중인 연구: %1$s</string>
   <string name="debug_granted_permissions">허용된 권한: %1$s</string>

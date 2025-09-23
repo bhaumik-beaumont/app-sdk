@@ -187,6 +187,7 @@ dependencies {
     implementation("com.google.firebase:firebase-analytics:21.5.0")
     implementation("com.google.firebase:firebase-crashlytics-ktx")
     implementation("com.google.firebase:firebase-crashlytics-ndk:18.6.2") // example; align others as needed
+    implementation("com.google.firebase:firebase-config-ktx")
 
 }
 

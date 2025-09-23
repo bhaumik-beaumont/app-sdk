@@ -50,6 +50,7 @@ class MainActivity : ComponentActivity() {
             val samsungHealthAvailable by splashLoadingViewModel.samsungHealthAvailable.observeAsState()
             val healthConnectAvailabilityStatus by splashLoadingViewModel.healthConnectAvailabilityStatus.observeAsState()
             val openWeeklyProgress = intent.getBooleanExtra("openWeeklyProgress", false)
+            val latestRequiredAppVersion by splashLoadingViewModel.latestRequiredAppVersion.observeAsState()
 
             AppTheme {
                 startDestination?.let { destination ->
@@ -60,6 +61,8 @@ class MainActivity : ComponentActivity() {
                         healthConnectAvailable = healthConnectAvailable,
                         samsungHealthAvailable = samsungHealthAvailable,
                         healthConnectAvailabilityStatus = healthConnectAvailabilityStatus,
+                        latestRequiredAppVersion = latestRequiredAppVersion,
+                        onUpdateApp = { openAppInStore() },
                     )
                 }
             }
@@ -78,7 +81,6 @@ class MainActivity : ComponentActivity() {
         ) { newIsReady -> isContentReady = newIsReady }
 
         splashLoadingViewModel.setStartRouteDestination()
-        splashLoadingViewModel.setStartMainPage()
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -94,6 +96,8 @@ class MainActivity : ComponentActivity() {
         healthConnectAvailable: Boolean? = null,
         samsungHealthAvailable: Boolean? = null,
         healthConnectAvailabilityStatus: Int? = null,
+        latestRequiredAppVersion: String? = null,
+        onUpdateApp: () -> Unit,
     ) {
         Surface {
             val navController = rememberNavController()
@@ -110,8 +114,10 @@ class MainActivity : ComponentActivity() {
                     isHealthConnectAvailable = healthConnectAvailable,
                     isSamsungHealthAvailable = samsungHealthAvailable,
                     healthConnectAvailabilityStatus = healthConnectAvailabilityStatus,
+                    latestRequiredAppVersion = latestRequiredAppVersion,
+                    onUpdateApp = onUpdateApp,
                 )
-                if (openWeeklyProgress) {
+                if (openWeeklyProgress && startDestination == Route.Main) {
                     androidx.compose.runtime.LaunchedEffect(Unit) {
                         navController.navigate(Route.WeeklyProgress.name)
                     }
@@ -153,10 +159,29 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun handleHealthConnectRetry() {
-        val healthConnectReady = splashLoadingViewModel.setStartRouteDestination()
-        if (healthConnectReady) {
-            splashLoadingViewModel.setStartMainPage()
+        splashLoadingViewModel.setStartRouteDestination()
+    }
+
+    private fun openAppInStore() {
+        val appPackageName = packageName
+        val playStoreIntent = Intent(Intent.ACTION_VIEW).apply {
+            data = "market://details?id=$appPackageName".toUri()
+            setPackage("com.android.vending")
         }
+        val launched = startActivityIfAvailable(playStoreIntent)
+        if (launched) {
+            return
+        }
+
+        val webIntent = Intent(
+            Intent.ACTION_VIEW,
+            "https://play.google.com/store/apps/details?id=$appPackageName".toUri()
+        )
+        if (startActivityIfAvailable(webIntent)) {
+            return
+        }
+
+        Toast.makeText(this, getString(researchstack.R.string.no_app_found), Toast.LENGTH_LONG).show()
     }
 
     private fun openHealthConnectInPlayStore() {
