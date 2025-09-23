@@ -14,6 +14,8 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import researchstack.POSITIVE_TEST
+import researchstack.data.datasource.healthConnect.HealthConnectDataSource
+import researchstack.data.datasource.local.pref.EnrollmentDatePref
 import researchstack.data.datasource.grpc.GrpcHealthDataSynchronizerImpl
 import researchstack.data.local.room.WearableAppDataBase
 import researchstack.domain.model.TimestampMapData
@@ -44,6 +46,8 @@ internal class WearableDataReceiverRepositoryImplTest {
         mockk<ShareAgreementRepository>(),
         mockk<WearableAppDataBase>(),
         mockk<GrpcHealthDataSynchronizerImpl>(),
+        mockk<HealthConnectDataSource>(relaxed = true),
+        mockk<EnrollmentDatePref>(),
     )
 
     @Tag(POSITIVE_TEST)
@@ -89,6 +93,8 @@ internal class WearableDataReceiverRepositoryImplTest {
             mockk<ShareAgreementRepository>(),
             db,
             mockk<GrpcHealthDataSynchronizerImpl>(),
+            mockk<HealthConnectDataSource>(relaxed = true),
+            mockk<EnrollmentDatePref>(),
         )
 
         val profile = UserProfile(170f, 0f, 1990, Gender.MALE, true, 1)
@@ -117,6 +123,8 @@ internal class WearableDataReceiverRepositoryImplTest {
             mockk<ShareAgreementRepository>(),
             db,
             mockk<GrpcHealthDataSynchronizerImpl>(),
+            mockk<HealthConnectDataSource>(relaxed = true),
+            mockk<EnrollmentDatePref>(),
         )
 
         val profile = lastProfile.copy(timestamp = 1)
@@ -145,6 +153,8 @@ internal class WearableDataReceiverRepositoryImplTest {
             mockk<ShareAgreementRepository>(),
             db,
             mockk<GrpcHealthDataSynchronizerImpl>(),
+            mockk<HealthConnectDataSource>(relaxed = true),
+            mockk<EnrollmentDatePref>(),
         )
 
         val profile = lastProfile.copy(weight = 75f, timestamp = 1)

@@ -8,6 +8,9 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import researchstack.BuildConfig
 import researchstack.backend.integration.GrpcHealthDataSynchronizer
+import researchstack.data.datasource.healthConnect.HealthConnectDataSource
+import researchstack.data.datasource.local.pref.EnrollmentDatePref
+import researchstack.data.datasource.local.pref.dataStore
 import researchstack.data.local.room.WearableAppDataBase
 import researchstack.data.local.room.dao.PassiveDataStatusDao
 import researchstack.data.repository.WatchEventRepositoryImpl
@@ -74,11 +77,20 @@ object WearableProvider {
         shareAgreementRepository: ShareAgreementRepository,
         wearableAppDatabase: WearableAppDataBase,
         grpcHealthDataSynchronizer: GrpcHealthDataSynchronizer<HealthDataModel>,
+        healthConnectDataSource: HealthConnectDataSource,
+        enrollmentDatePref: EnrollmentDatePref,
     ): WearableDataReceiverRepository =
         WearableDataReceiverRepositoryImpl(
             studyRepository,
             shareAgreementRepository,
             wearableAppDatabase,
-            grpcHealthDataSynchronizer
+            grpcHealthDataSynchronizer,
+            healthConnectDataSource,
+            enrollmentDatePref,
         )
+
+    @Singleton
+    @Provides
+    fun provideEnrollmentDatePref(@ApplicationContext context: Context): EnrollmentDatePref =
+        EnrollmentDatePref(context.dataStore)
 }

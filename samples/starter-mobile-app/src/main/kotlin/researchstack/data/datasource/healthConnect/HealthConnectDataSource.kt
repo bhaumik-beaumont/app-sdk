@@ -50,6 +50,25 @@ class HealthConnectDataSource @Inject constructor(private val healthConnectClien
         return exerciseResult.dataList
     }
 
+    suspend fun getBiaData(): List<HealthDataPoint> {
+        val currentDate: LocalDateTime = LocalDateTime.now().with(LocalTime.MIDNIGHT)
+        val startTime: Instant =
+            currentDate.minusDays(30).atZone(ZoneId.systemDefault()).toInstant()
+        val endTime: Instant = LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant()
+
+        val localTimeFilter = LocalTimeFilter.of(
+            LocalDateTime.ofInstant(startTime, ZoneId.systemDefault()),
+            LocalDateTime.ofInstant(endTime, ZoneId.systemDefault())
+        )
+
+        val request = DataTypes.BODY_COMPOSITION.readDataRequestBuilder
+            .setLocalTimeFilter(localTimeFilter)
+            .build()
+
+        val result = healthDataStore.readData(request)
+        return result.dataList
+    }
+
     @Throws(HealthDataException::class)
     fun getExerciseAggregateRequestBuilder(
         startTime: Instant,
