@@ -24,6 +24,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 import researchstack.BuildConfig
 import researchstack.backend.integration.GrpcHealthDataSynchronizer
+import researchstack.data.datasource.healthConnect.HealthConnectDataSource
+import researchstack.data.datasource.local.pref.EnrollmentDatePref
 import researchstack.data.local.room.WearableAppDataBase
 import researchstack.data.local.room.dao.PrivDao
 import researchstack.domain.model.Timestamp
@@ -45,17 +47,26 @@ import researchstack.domain.repository.ShareAgreementRepository
 import researchstack.domain.repository.StudyRepository
 import researchstack.domain.repository.WearableDataReceiverRepository
 import researchstack.domain.usecase.log.AppLogger
+import researchstack.util.getCurrentTimeOffset
 import java.io.IOException
 import java.io.InputStream
 import java.lang.reflect.Type
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 import javax.inject.Inject
+import com.samsung.android.sdk.health.data.data.Field
+import com.samsung.android.sdk.health.data.data.HealthDataPoint
+import com.samsung.android.sdk.health.data.request.DataTypes
 
 class WearableDataReceiverRepositoryImpl @Inject constructor(
     private val studyRepository: StudyRepository,
     private val shareAgreementRepository: ShareAgreementRepository,
     private val wearableAppDataBase: WearableAppDataBase,
     private val grpcHealthDataSynchronizer: GrpcHealthDataSynchronizer<HealthDataModel>,
+    private val healthConnectDataSource: HealthConnectDataSource,
+    private val enrollmentDatePref: EnrollmentDatePref,
 ) : WearableDataReceiverRepository {
 
     private val gson = Gson()
@@ -234,8 +245,77 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
             data
         }
 
+    private suspend fun importBiaFromSamsungHealth(studyId: String?) {
+        val biaDataPoints = runCatching { healthConnectDataSource.getBiaData() }
+            .onFailure { Log.e(TAG, "Failed to load BIA data from Samsung Health", it) }
+            .getOrNull()
+            .orEmpty()
+
+        if (biaDataPoints.isEmpty()) {
+            return
+        }
+
+        val enrollmentDate = studyId?.let { id ->
+            runCatching { enrollmentDatePref.getEnrollmentDate(id) }
+                .getOrNull()
+                ?.let { dateString -> runCatching { LocalDate.parse(dateString) }.getOrNull() }
+        }
+
+        val bias = biaDataPoints.mapNotNull { it.toBia(enrollmentDate) }
+        if (bias.isEmpty()) {
+            return
+        }
+
+        wearableAppDataBase.biaDao().insertAll(bias)
+    }
+
+    private fun HealthDataPoint.toBia(enrollmentDate: LocalDate?): Bia? {
+        val measurementStartTime = startTime ?: return null
+        val timestamp = measurementStartTime.toEpochMilli()
+        val timeOffsetMillis = zoneOffset?.totalSeconds?.times(1000)?.toInt() ?: getCurrentTimeOffset()
+
+        fun getFloatField(name: String): Float {
+            val field = bodyCompositionFields[name] ?: return 0f
+            val value = runCatching { getValue(field) }.getOrNull()
+            return when (value) {
+                is Number -> value.toFloat()
+                else -> 0f
+            }
+        }
+
+        val weekNumber = enrollmentDate?.let { enrollment ->
+            val measurementDate = measurementStartTime.atZone(ZoneId.systemDefault()).toLocalDate()
+            ChronoUnit.WEEKS.between(enrollment, measurementDate).toInt() + 1
+        } ?: 0
+
+        return Bia(
+            timestamp = timestamp,
+            basalMetabolicRate = getFloatField("basal_metabolic_rate"),
+            bodyFatMass = getFloatField("body_fat_mass"),
+            bodyFatRatio = getFloatField("body_fat"),
+            fatFreeMass = getFloatField("fat_free_mass"),
+            fatFreeRatio = getFloatField("fat_free"),
+            skeletalMuscleMass = getFloatField("skeletal_muscle_mass")
+                .takeIf { it != 0f } ?: getFloatField("muscle_mass"),
+            skeletalMuscleRatio = getFloatField("skeletal_muscle"),
+            totalBodyWater = getFloatField("total_body_water"),
+            measurementProgress = 1f,
+            status = 0,
+            weekNumber = weekNumber,
+            timeOffset = timeOffsetMillis,
+            id = uid.orEmpty().ifBlank { UUID.randomUUID().toString() },
+        )
+    }
+
+    private val bodyCompositionFields: Map<String, Field<*>> by lazy {
+        DataTypes.BODY_COMPOSITION.allFields.associateBy { it.name }
+    }
+
     override suspend fun syncWearableData() {
-        studyRepository.getActiveStudies().first()
+        val activeStudies = studyRepository.getActiveStudies().first()
+        importBiaFromSamsungHealth(activeStudies.firstOrNull()?.id)
+
+        activeStudies
             .associate { (studyId) -> getAgreedWearableDataTypes(studyId).first() }
             .reverse()
             .forEach { (dataType, studyIds) ->

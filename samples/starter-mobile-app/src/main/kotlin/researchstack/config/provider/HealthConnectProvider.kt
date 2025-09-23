@@ -25,7 +25,6 @@ import researchstack.domain.repository.healthConnect.HealthConnectDataSyncReposi
 import researchstack.domain.usecase.file.UploadFileUseCase
 import researchstack.domain.usecase.profile.GetProfileUseCase
 import researchstack.data.datasource.local.pref.EnrollmentDatePref
-import researchstack.data.datasource.local.pref.dataStore
 import researchstack.domain.usecase.profile.UpdateProfileUseCase
 import javax.inject.Singleton
 
@@ -58,6 +57,7 @@ class HealthConnectProvider {
         complianceEntryDao: ComplianceEntryDao,
         biaDao: BiaDao,
         userProfileDao: UserProfileDao,
+        enrollmentDatePref: EnrollmentDatePref,
         grpcHealthDataSynchronizer: GrpcHealthDataSynchronizer<HealthDataModel>
     ): HealthConnectDataSyncRepository = HealthConnectDataSyncRepositoryImpl(
         context,
@@ -72,7 +72,7 @@ class HealthConnectProvider {
         complianceEntryDao,
         biaDao,
         userProfileDao,
-        EnrollmentDatePref(context.dataStore),
+        enrollmentDatePref,
         grpcHealthDataSynchronizer
     )
 }
