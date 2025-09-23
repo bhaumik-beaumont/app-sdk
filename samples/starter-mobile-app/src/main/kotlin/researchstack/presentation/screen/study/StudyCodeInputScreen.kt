@@ -100,7 +100,6 @@ fun StudyCodeInputScreen() {
                     .wrapContentHeight(),
                 text = stringResource(id = string.input_study_code_message),
                 style = AppTheme.typography.body2,
-                color = descriptionColor,
                 textAlign = TextAlign.Center,
             )
             Spacer(modifier = Modifier.height(150.dp))
@@ -110,7 +109,6 @@ fun StudyCodeInputScreen() {
                 Text(
                     text = stringResource(id = string.study_code),
                     style = AppTheme.typography.body3,
-                    color = descriptionColor,
                     textAlign = TextAlign.Left,
                 )
                 Image(

@@ -50,30 +50,28 @@ object GrpcProvider {
 
     @Singleton
     @Provides
-    fun provideManagedChannel(authRepositoryWrapper: AuthRepositoryWrapper): ManagedChannel =
-        ManagedChannelBuilder.forAddress(SERVER_ADDRESS, SERVER_PORT)
+    fun provideManagedChannel(
+        authRepositoryWrapper: AuthRepositoryWrapper
+    ): ManagedChannel =
+        ManagedChannelBuilder
+            .forAddress(SERVER_ADDRESS,SERVER_PORT)   // <- host + gRPC TLS port
+            .useTransportSecurity()                   // <- TLS (required)
             .intercept(IdTokenProvideInterceptor(authRepositoryWrapper))
+            .intercept(LoggingInterceptor())
             .executor(Dispatchers.IO.asExecutor())
-            .apply {
-                if (BuildConfig.USE_PLAIN_TEXT) {
-                    usePlaintext()
-                }
-                intercept(LoggingInterceptor())
-            }
+            .maxInboundMessageSize(16 * 1024 * 1024)  // optional: bigger replies
             .build()
 
     @Singleton
     @Provides
     @Named("channelNoIdToken")
     fun provideManagedChannelWithNoIdToken(): ManagedChannel =
-        ManagedChannelBuilder.forAddress(SERVER_ADDRESS, SERVER_PORT)
+        ManagedChannelBuilder
+            .forAddress(SERVER_ADDRESS,SERVER_PORT)   // <- host + gRPC TLS port
+            .useTransportSecurity()
+            .intercept(LoggingInterceptor())
             .executor(Dispatchers.IO.asExecutor())
-            .apply {
-                if (BuildConfig.USE_PLAIN_TEXT) {
-                    usePlaintext()
-                }
-                intercept(LoggingInterceptor())
-            }
+            .maxInboundMessageSize(16 * 1024 * 1024)
             .build()
 
     @Singleton

@@ -6,6 +6,7 @@ import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,6 +14,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.width
@@ -151,7 +154,14 @@ fun UserAgreement(
             TopBar(title = stringResource(id = string.agreement)) { }
         },
         bottomBar = {
-            Row(modifier = Modifier.padding(24.dp)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .imePadding()
+                    .padding(horizontal = 20.dp, vertical = 16.dp),
+                horizontalArrangement = Arrangement.Center
+            ) {
                 AppTextButton(
                     text = stringResource(id = string.next),
                     enabled = isSigned and allChecked
@@ -357,7 +367,7 @@ fun TermsOfService(tosUrl: String, onClick: (String) -> Unit) {
                 )
             },
             modifier = Modifier.align(Alignment.End),
-            style = AppTheme.typography.title2
+            style = AppTheme.typography.title2.copy(color = AppTheme.colors.onSurface)
         ) { index ->
             if (index in tosStartIndex..tosEndIndex) {
                 onClick(tosUrl)
@@ -376,7 +386,14 @@ private fun ConsentInformWebView(url: String, onClick: () -> Unit) {
     Scaffold(
         contentWindowInsets = androidx.compose.foundation.layout.WindowInsets.safeDrawing,
         bottomBar = {
-            Row(modifier = Modifier.padding(20.dp)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .imePadding()
+                    .padding(horizontal = 20.dp, vertical = 16.dp),
+                horizontalArrangement = Arrangement.Center
+            ) {
                 AppTextButton(text = stringResource(id = string.confirm), onClick = onClick)
             }
         }

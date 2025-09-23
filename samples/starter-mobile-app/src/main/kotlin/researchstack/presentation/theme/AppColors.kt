@@ -202,7 +202,7 @@ fun mainDarkColors(
     isLight = isLight
 )
 
-internal val LocalColors = staticCompositionLocalOf { mainLightColors() }
+internal val LocalColors = staticCompositionLocalOf { mainDarkColors() }
 
 // TODO often used. but not defined in colors
 val descriptionColor = Color(0x99000000)
