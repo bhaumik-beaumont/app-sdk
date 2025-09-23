@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import java.util.concurrent.TimeUnit
@@ -29,6 +30,7 @@ import researchstack.util.getBiaMessage
 import researchstack.util.getResistanceMessage
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 
@@ -89,6 +91,11 @@ class DashboardViewModel @Inject constructor(
     private val _complianceMessages = MutableStateFlow<List<String>>(emptyList())
     val complianceMessages: StateFlow<List<String>> = _complianceMessages
 
+    private var biaCountJob: Job? = null
+    private var weightCountJob: Job? = null
+    private var latestWeightJob: Job? = null
+    private var exerciseJob: Job? = null
+
     init {
         refreshData()
     }
@@ -96,40 +103,54 @@ class DashboardViewModel @Inject constructor(
     suspend fun ensureAuthenticated(): Boolean =
         authRepositoryWrapper.getIdToken().isSuccess
 
-    fun refreshData(){
+    fun refreshData() {
         viewModelScope.launch(Dispatchers.IO) {
             val studyId = studyRepository.getActiveStudies().firstOrNull()?.firstOrNull()?.id
             if (studyId != null) {
                 val enrollmentDate = enrollmentDatePref.getEnrollmentDate(studyId)
                 enrollmentDate?.let { dateString ->
                     val enrollmentLocalDate = LocalDate.parse(dateString)
-                    val weekStart = calculateCurrentWeekStart(enrollmentLocalDate)
+                    val zoneId = ZoneId.systemDefault()
+                    val now = ZonedDateTime.now(zoneId)
+                    val today = now.toLocalDate()
+                    val weekStart = calculateCurrentWeekStart(enrollmentLocalDate, today)
                     _weekStart.value = weekStart
-                    val startMillis = weekStart.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
-                    val endMillis = startMillis + TimeUnit.DAYS.toMillis(7)
+                    val weekStartInstant = weekStart.atStartOfDay(zoneId).toInstant()
+                    val startMillis = weekStartInstant.toEpochMilli()
+                    val weekEndInstant = weekStart.plusWeeks(1).atStartOfDay(zoneId).toInstant()
+                    val endMillisExclusive = weekEndInstant.toEpochMilli()
+                    val endMillisInclusive = if (endMillisExclusive == Long.MIN_VALUE) {
+                        endMillisExclusive
+                    } else {
+                        endMillisExclusive - 1L
+                    }
 
-                    val daysSinceEnrollment = ChronoUnit.DAYS.between(enrollmentLocalDate, LocalDate.now()).toInt()
-                    _currentWeek.value = daysSinceEnrollment / 7 + 1
-                    _currentDay.value = daysSinceEnrollment % 7 + 1
+                    val daysSinceEnrollment = ChronoUnit.DAYS
+                        .between(enrollmentLocalDate, today)
+                        .coerceAtLeast(0L)
+                    _currentWeek.value = (daysSinceEnrollment / 7).toInt() + 1
+                    _currentDay.value = (daysSinceEnrollment % 7).toInt() + 1
                     updateComplianceMessages()
 
-                    launch {
-                        biaDao.countBetween(startMillis, endMillis).collect { count ->
+                    cancelExistingJobs()
+
+                    biaCountJob = launch {
+                        biaDao.countBetween(startMillis, endMillisInclusive).collect { count ->
                             _biaCount.value = count
                             val progress = if (count > 0) 100 else 0
                             _biaProgressPercent.value = progress
                             updateComplianceMessages()
                         }
                     }
-                    launch {
-                        userProfileDao.countBetween(startMillis, endMillis).collect { count ->
+                    weightCountJob = launch {
+                        userProfileDao.countBetween(startMillis, endMillisInclusive).collect { count ->
                             val progress = if (count > 0) 100 else 0
                             _weightProgressPercent.value = progress
                             _weightCount.value = count
                             updateComplianceMessages()
                         }
                     }
-                    viewModelScope.launch(Dispatchers.IO) {
+                    latestWeightJob = launch {
                         userProfileDao.getLatest().collect { profile ->
                             profile?.let {
                                 val unit = if (it.isMetricUnit == false) "lbs" else "kg"
@@ -139,33 +160,44 @@ class DashboardViewModel @Inject constructor(
                         }
                     }
 
-                    exerciseDao.getExercisesFrom(startMillis).collect { list ->
-                        val resistanceList = list.filter { it.isResistance }
-                        val exerciseList = list.filterNot {it.isResistance }
+                    val weekEndMillisExclusive = endMillisExclusive
+                    exerciseJob = launch {
+                        exerciseDao.getExercisesFrom(startMillis).collect { list ->
+                            val weeklyExercises = list.filter { it.startTime < weekEndMillisExclusive }
+                            val resistanceList = weeklyExercises.filter { it.isResistance }
+                            val exerciseList = weeklyExercises.filterNot { it.isResistance }
 
-                        _resistanceExercises.value = resistanceList
-                        _exercises.value = exerciseList
+                            _resistanceExercises.value = resistanceList
+                            _exercises.value = exerciseList
 
-                        val totalMillis = exerciseList.sumOf { it.endTime - it.startTime }
-                        val minutes = TimeUnit.MILLISECONDS.toMinutes(totalMillis)
-                        _totalDurationMinutes.value = minutes
-                        val progress = ((minutes * 100f) / WEEKLY_ACTIVITY_GOAL_MINUTES).coerceAtMost(100f)
-                        _activityProgressPercent.value = progress.toInt()
+                            val totalMillis = exerciseList.sumOf { it.endTime - it.startTime }
+                            val minutes = TimeUnit.MILLISECONDS.toMinutes(totalMillis)
+                            _totalDurationMinutes.value = minutes
+                            val progress = ((minutes * 100f) / WEEKLY_ACTIVITY_GOAL_MINUTES).coerceAtMost(100f)
+                            _activityProgressPercent.value = progress.toInt()
 
-                        val resistanceMillis = resistanceList.sumOf { it.endTime - it.startTime }
-                        val resistanceMinutes = TimeUnit.MILLISECONDS.toMinutes(resistanceMillis)
-                        _resistanceDurationMinutes.value = resistanceMinutes
-                        val resistanceProgress = resistanceList.size * 100 / WEEKLY_RESISTANCE_SESSION_COUNT
-                        _resistanceProgressPercent.value = if (resistanceProgress > 100) {
-                            100
-                        } else {
-                            resistanceProgress
+                            val resistanceMillis = resistanceList.sumOf { it.endTime - it.startTime }
+                            val resistanceMinutes = TimeUnit.MILLISECONDS.toMinutes(resistanceMillis)
+                            _resistanceDurationMinutes.value = resistanceMinutes
+                            val resistanceProgress = resistanceList.size * 100 / WEEKLY_RESISTANCE_SESSION_COUNT
+                            _resistanceProgressPercent.value = if (resistanceProgress > 100) {
+                                100
+                            } else {
+                                resistanceProgress
+                            }
+                            updateComplianceMessages()
                         }
-                        updateComplianceMessages()
                     }
                 }
             }
         }
+    }
+
+    private fun cancelExistingJobs() {
+        biaCountJob?.cancel()
+        weightCountJob?.cancel()
+        latestWeightJob?.cancel()
+        exerciseJob?.cancel()
     }
 
     private fun updateComplianceMessages() {
@@ -186,9 +218,8 @@ class DashboardViewModel @Inject constructor(
         _complianceMessages.value = messages
     }
 
-    private fun calculateCurrentWeekStart(enrollmentDate: LocalDate): LocalDate {
-        val today = LocalDate.now()
-        val days = ChronoUnit.DAYS.between(enrollmentDate, today)
+    private fun calculateCurrentWeekStart(enrollmentDate: LocalDate, today: LocalDate): LocalDate {
+        val days = ChronoUnit.DAYS.between(enrollmentDate, today).coerceAtLeast(0L)
         val weeks = days / 7
         return enrollmentDate.plusWeeks(weeks)
     }
