@@ -92,27 +92,27 @@ class WearableDataReceiver : WearableListenerService() {
                         file.renameTo(completedFile)
                         CoroutineScope(Dispatchers.IO).launch {
                             if(channel.path.lowercase().contains("bia")) {
-                                completedFile.inputStream().use { inputStream ->
-                                    val reader = BufferedReader(InputStreamReader(inputStream))
-                                    val dataType = PrivDataType.valueOf(reader.readLine())
-                                    val header = reader.readLine()
-                                    val csvBuilder = StringBuilder()
-                                    csvBuilder.appendLine("$header|weekNumber")
-                                    val studyId = studyRepository.getActiveStudies().first().firstOrNull()?.id
-                                    val enrollmentDate = studyId?.let { enrollmentDatePref.getEnrollmentDate(it) }?.let { LocalDate.parse(it) }
-                                    reader.lineSequence().forEach { line ->
-                                        if (line.isNotBlank()) {
-                                            val columns = line.split('|')
-                                            val timestamp = columns[11].toLongOrNull()
-                                            val week = if (timestamp != null && enrollmentDate != null) {
-                                                val date = Instant.ofEpochMilli(timestamp).atZone(ZoneId.systemDefault()).toLocalDate()
-                                                ChronoUnit.WEEKS.between(enrollmentDate, date).toInt() + 1
-                                            } else 0
-                                            csvBuilder.appendLine("$line|$week")
-                                        }
-                                    }
-                                    saveWearableDataUseCase(dataType, csvBuilder.toString().byteInputStream())
-                                }
+//                                completedFile.inputStream().use { inputStream ->
+//                                    val reader = BufferedReader(InputStreamReader(inputStream))
+//                                    val dataType = PrivDataType.valueOf(reader.readLine())
+//                                    val header = reader.readLine()
+//                                    val csvBuilder = StringBuilder()
+//                                    csvBuilder.appendLine("$header|weekNumber")
+//                                    val studyId = studyRepository.getActiveStudies().first().firstOrNull()?.id
+//                                    val enrollmentDate = studyId?.let { enrollmentDatePref.getEnrollmentDate(it) }?.let { LocalDate.parse(it) }
+//                                    reader.lineSequence().forEach { line ->
+//                                        if (line.isNotBlank()) {
+//                                            val columns = line.split('|')
+//                                            val timestamp = columns[11].toLongOrNull()
+//                                            val week = if (timestamp != null && enrollmentDate != null) {
+//                                                val date = Instant.ofEpochMilli(timestamp).atZone(ZoneId.systemDefault()).toLocalDate()
+//                                                ChronoUnit.WEEKS.between(enrollmentDate, date).toInt() + 1
+//                                            } else 0
+//                                            csvBuilder.appendLine("$line|$week")
+//                                        }
+//                                    }
+//                                    saveWearableDataUseCase(dataType, csvBuilder.toString().byteInputStream())
+//                                }
                             }
                             AppLogger.saveLog(DataSyncLog("wear->mobile ${channel.path} success"))
                         }
@@ -134,8 +134,8 @@ class WearableDataReceiver : WearableListenerService() {
                 Tasks.await(channelClient.getInputStream(channel))
             }.onSuccess {
                 it.use { inputStream ->
-                    val jsonObject = JsonParser.parseString(String(inputStream.readBytes())).asJsonObject
-                    saveWearableDataUseCase(jsonObject)
+//                    val jsonObject = JsonParser.parseString(String(inputStream.readBytes())).asJsonObject
+//                    saveWearableDataUseCase(jsonObject)
                 }
                 channelClient.close(channel)
             }.onFailure { Log.e(TAG, "${it.message}") }
