@@ -237,8 +237,12 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
     private fun saveUserProfiles(profiles: List<UserProfile>) {
         logDataSync("Saving ${profiles.size} user profiles")
         val userProfileDao = wearableAppDataBase.userProfileDao()
+        logDataSync("Filtered user profiles count: ${profiles.size}")
         if (profiles.isNotEmpty()) {
             userProfileDao.insertAll(profiles)
+            logDataSync("Inserted ${profiles.size} user profiles into database")
+        } else {
+            logDataSync("No valid user profiles to insert")
         }
     }
 
