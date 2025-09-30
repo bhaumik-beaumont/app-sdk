@@ -223,20 +223,8 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
 
     private fun saveUserProfiles(profiles: List<UserProfile>) {
         val userProfileDao = wearableAppDataBase.userProfileDao()
-        var lastWeight = runBlocking { userProfileDao.getLatest().first()?.weight }
-        val validProfiles = profiles.filter { profile ->
-            val weight = profile.weight
-            if (weight <= 0f) {
-                return@filter false
-            }
-            if (lastWeight != null && weight == lastWeight) {
-                return@filter false
-            }
-            lastWeight = weight
-            true
-        }
-        if (validProfiles.isNotEmpty()) {
-            userProfileDao.insertAll(validProfiles)
+        if (profiles.isNotEmpty()) {
+            userProfileDao.insertAll(profiles)
         }
     }
 
@@ -331,15 +319,13 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
             ?.takeIf { it in Gender.values().indices }
             ?.let { Gender.values()[it] }
             ?: fallback.gender
-        val isMetricUnit = getBooleanFieldOrNull("is_metric_unit") ?: fallback.isMetricUnit
-            ?: DEFAULT_IS_METRIC_UNIT
 
         return UserProfile(
             height = height,
             weight = weight,
             yearBirth = yearBirth,
             gender = gender,
-            isMetricUnit = isMetricUnit,
+            isMetricUnit = DEFAULT_IS_METRIC_UNIT,
             timestamp = timestamp,
             timeOffset = timeOffsetMillis,
         )
@@ -627,7 +613,7 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
         private const val DEFAULT_WEIGHT = 70f
         private const val DEFAULT_YEAR_BIRTH = 1990
         private val DEFAULT_GENDER = Gender.UNKNOWN
-        private const val DEFAULT_IS_METRIC_UNIT = true
+        private const val DEFAULT_IS_METRIC_UNIT = false
         private val DEFAULT_USER_PROFILE = UserProfile(
             height = DEFAULT_HEIGHT,
             weight = DEFAULT_WEIGHT,
