@@ -127,10 +127,10 @@ class HealthConnectDataSyncRepositoryImpl @Inject constructor(
                                     )
                                     emptyList<ExerciseSession>()
                                 }
-                                if (sessions.isEmpty()) {
-                                    logDataSync("Samsung exercise record ${record.uid ?: index.toString()} contains no sessions")
+                                if (sessions?.isEmpty() == true) {
+                                    logDataSync("Samsung exercise record ${record.uid} contains no sessions")
                                 }
-                                sessions.forEachIndexed { sessionIndex, session ->
+                                sessions?.forEachIndexed { sessionIndex, session ->
                                     val sessionStartTime = session.startTime.toEpochMilli()
                                     if (enrollmentMillis != null && sessionStartTime < enrollmentMillis) {
                                         Log.d(TAG, "Ignore Samsung exercise ${record.uid ?: "unknown"} session $sessionIndex before enrollment date")

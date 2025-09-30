@@ -13,6 +13,7 @@ import com.samsung.android.sdk.health.data.request.DataType
 import researchstack.domain.model.healthConnect.Exercise
 import researchstack.data.datasource.local.pref.EnrollmentDatePref
 import researchstack.domain.model.shealth.SHealthDataType
+import researchstack.presentation.util.toDecimalFormat
 import researchstack.util.getCurrentTimeOffset
 import researchstack.util.toEpochMilli
 import java.time.Instant
@@ -173,7 +174,7 @@ suspend fun processExerciseData(
         endTime = sessionEndMillis,
         exerciseType = exerciseOrdinal,
         exerciseName = session.customTitle ?: exerciseTypeName ?: "",
-        calorie = session.calories.toDouble(),
+        calorie = session.calories.toDecimalFormat(0).toDouble(),
         duration = session.duration?.toMillis() ?: (sessionEndMillis - sessionStartMillis),
         timeOffset = timeOffset,
         weekNumber = weekNumber.toLong(),
