@@ -37,6 +37,7 @@ object Permissions {
 
     val PERMISSIONS = setOf(
         Permission.of(DataTypes.EXERCISE, AccessType.READ),
+        Permission.of(DataTypes.ACTIVITY_SUMMARY, AccessType.READ),
         Permission.of(DataTypes.BODY_COMPOSITION, AccessType.READ),
         Permission.of(DataTypes.USER_PROFILE, AccessType.READ),
     )
