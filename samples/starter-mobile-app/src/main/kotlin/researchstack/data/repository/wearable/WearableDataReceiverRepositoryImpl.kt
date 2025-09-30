@@ -105,6 +105,7 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
     override fun saveWearableData(jsonObject: JsonObject) {
         val dataType = gson.fromJson(jsonObject.get("dataType"), PrivDataType::class.java)
         Log.i(TAG, "received datatype: $dataType")
+        logDataSync("Received wearable JSON payload for data type $dataType")
         when (dataType) {
             PrivDataType.WEAR_ACCELEROMETER -> saveData<Accelerometer>(
                 jsonObject,
@@ -124,6 +125,7 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
     }
 
     override fun saveWearableData(dataType: PrivDataType, csvInputStream: InputStream) {
+        logDataSync("Received wearable CSV stream for data type $dataType")
         when (dataType) {
             PrivDataType.WEAR_ACCELEROMETER -> saveData<Accelerometer>(
                 readCsv<Accelerometer>(csvInputStream),
@@ -162,6 +164,7 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
     }
 
     inline fun <reified T> readCsv(inputStream: InputStream): List<T> {
+        logDataSync("Parsing CSV input stream into ${T::class.java.simpleName}")
         val csvMapper = CsvMapper().apply {
             enable(CsvParser.Feature.TRIM_SPACES)
             enable(CsvParser.Feature.SKIP_EMPTY_LINES)
@@ -181,6 +184,7 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
             WearableDataReceiverRepositoryImpl::class.simpleName,
             "data synced from wearOS: ${T::class.java.simpleName}, size: ${data.size}"
         )
+        logDataSync("Parsed ${data.size} ${T::class.java.simpleName} entries from CSV stream")
 
         return data
     }
@@ -195,53 +199,72 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
         runCatching { fromJson<ArrayList<T>>(this, object : TypeToken<ArrayList<T>>() {}.type) }.getOrNull() != null
 
     private inline fun <reified T : Timestamp> saveData(jsonObject: JsonObject, privDao: PrivDao<T>) {
+        logDataSync("Saving JSON wearable payload into ${T::class.java.simpleName} table")
         if (jsonObject.isArrayItem<T>()) {
             val data: List<T> = fromJson(
                 jsonObject,
                 object : TypeToken<ArrayList<T>>() {}.type
             )
+            logDataSync("Detected array payload with ${data.size} ${T::class.java.simpleName} items")
             privDao.insertAll(data.map { ensureId(it) })
         } else {
             val data: T = fromJson(jsonObject, object : TypeToken<T>() {}.type)
+            logDataSync("Detected single payload item for ${T::class.java.simpleName}")
             privDao.insert(ensureId(data))
         }
+        logDataSync("Completed saving JSON payload for ${T::class.java.simpleName}")
     }
 
     private inline fun <reified T : Timestamp> saveData(data: List<T>, privDao: PrivDao<T>) {
+        logDataSync("Saving ${data.size} ${T::class.java.simpleName} items parsed from CSV")
         privDao.insertAll(data.map { ensureId(it) })
+        logDataSync("Completed CSV save for ${T::class.java.simpleName}")
     }
 
     private fun saveUserProfile(jsonObject: JsonObject) {
+        logDataSync("Saving wearable user profile JSON payload")
         val profiles: List<UserProfile> =
             if (jsonObject.isArrayItem<UserProfile>()) {
+                logDataSync("Detected array payload for user profiles")
                 fromJson(jsonObject, object : TypeToken<ArrayList<UserProfile>>() {}.type)
             } else {
+                logDataSync("Detected single payload item for user profile")
                 listOf(fromJson(jsonObject, object : TypeToken<UserProfile>() {}.type))
             }
         saveUserProfiles(profiles)
     }
 
     private fun saveUserProfiles(profiles: List<UserProfile>) {
+        logDataSync("Saving ${profiles.size} user profiles")
         val userProfileDao = wearableAppDataBase.userProfileDao()
+        logDataSync("Filtered user profiles count: ${profiles.size}")
         if (profiles.isNotEmpty()) {
             userProfileDao.insertAll(profiles)
+            logDataSync("Inserted ${profiles.size} user profiles into database")
+        } else {
+            logDataSync("No valid user profiles to insert")
         }
     }
 
     private inline fun <reified T : Timestamp> ensureId(data: T): T =
         if (data is Bia && data.id.isBlank()) {
-            data.copy(id = UUID.randomUUID().toString()) as T
+            val newId = UUID.randomUUID().toString()
+            logDataSync("Generated new UUID for BIA entry: $newId")
+            data.copy(id = newId) as T
         } else {
             data
         }
 
     private suspend fun importBiaFromSamsungHealth(studyId: String?) {
+        logDataSync("Importing BIA data from Samsung Health for studyId=$studyId")
         val biaDataPoints = runCatching { healthConnectDataSource.getBiaData() }
             .onFailure { Log.e(TAG, "Failed to load BIA data from Samsung Health", it) }
             .getOrNull()
             .orEmpty()
+        logDataSync("Fetched ${biaDataPoints.size} BIA data points from Samsung Health")
 
         if (biaDataPoints.isEmpty()) {
+            logDataSync("No BIA data points available to import")
             return
         }
 
@@ -249,20 +272,24 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
         val latestProfile = runCatching { userProfileDao.getLatest().firstOrNull() }
             .onFailure { Log.e(TAG, "Failed to load latest user profile", it) }
             .getOrNull()
+        logDataSync("Latest wearable user profile found: ${latestProfile != null}")
 
         val enrollmentDate = studyId?.let { id ->
             runCatching { enrollmentDatePref.getEnrollmentDate(id) }
                 .getOrNull()
                 ?.let { dateString -> runCatching { LocalDate.parse(dateString) }.getOrNull() }
         }
+        logDataSync("Enrollment date resolved for BIA import: ${enrollmentDate ?: "none"}")
 
         val bias = biaDataPoints.mapNotNull { it.toBia(enrollmentDate) }
         val userProfiles = biaDataPoints.mapNotNull {
             it.toUserProfile(latestProfile ?: DEFAULT_USER_PROFILE)
         }
+        logDataSync("Parsed ${bias.size} BIA entries and ${userProfiles.size} user profiles from Samsung Health data")
 
         if (bias.isNotEmpty()) {
             wearableAppDataBase.biaDao().insertAll(bias)
+            logDataSync("Inserted ${bias.size} BIA entries into database")
         }
 
         if (userProfiles.isNotEmpty()) {
@@ -271,10 +298,12 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
 
         if (bias.isEmpty() && userProfiles.isEmpty()) {
             Log.i(TAG, "No BIA or user profile data parsed from Samsung Health")
+            logDataSync("No BIA or user profile data parsed from Samsung Health during import")
         }
     }
 
     private fun HealthDataPoint.toBia(enrollmentDate: LocalDate?): Bia? {
+        logDataSync("Converting HealthDataPoint ${uid ?: "unknown"} to BIA model")
         val measurementStartTime = startTime ?: return null
         val timestamp = measurementStartTime.toEpochMilli()
         val timeOffsetMillis = zoneOffset?.totalSeconds?.times(1000)?.toInt() ?: getCurrentTimeOffset()
@@ -287,6 +316,7 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
             val measurementDate = measurementStartTime.atZone(ZoneId.systemDefault()).toLocalDate()
             ChronoUnit.WEEKS.between(enrollment, measurementDate).toInt() + 1
         } ?: 0
+        logDataSync("Calculated week number $weekNumber for BIA measurement ${uid ?: "unknown"}")
 
         return Bia(
             timestamp = timestamp,
@@ -308,6 +338,7 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
     }
 
     private fun HealthDataPoint.toUserProfile(fallback: UserProfile): UserProfile? {
+        logDataSync("Converting HealthDataPoint ${uid ?: "unknown"} to wearable user profile")
         val measurementStartTime = startTime ?: return null
         val timestamp = measurementStartTime.toEpochMilli()
         val timeOffsetMillis = zoneOffset?.totalSeconds?.times(1000)?.toInt() ?: getCurrentTimeOffset()
@@ -334,6 +365,9 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
     private fun HealthDataPoint.getFloatFieldOrNull(name: String): Float? {
         val field = bodyCompositionFields[name] ?: return null
         val value = runCatching { getValue(field) }.getOrNull()
+        if (value == null) {
+            logDataSync("Float field '$name' missing for HealthDataPoint ${uid ?: "unknown"}")
+        }
         return when (value) {
             is Number -> value.toFloat()
             else -> null
@@ -343,6 +377,9 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
     private fun HealthDataPoint.getIntFieldOrNull(name: String): Int? {
         val field = bodyCompositionFields[name] ?: return null
         val value = runCatching { getValue(field) }.getOrNull()
+        if (value == null) {
+            logDataSync("Int field '$name' missing for HealthDataPoint ${uid ?: "unknown"}")
+        }
         return when (value) {
             is Number -> value.toInt()
             else -> null
@@ -352,6 +389,9 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
     private fun HealthDataPoint.getBooleanFieldOrNull(name: String): Boolean? {
         val field = bodyCompositionFields[name] ?: return null
         val value = runCatching { getValue(field) }.getOrNull()
+        if (value == null) {
+            logDataSync("Boolean field '$name' missing for HealthDataPoint ${uid ?: "unknown"}")
+        }
         return when (value) {
             is Boolean -> value
             is Number -> value.toInt() != 0
@@ -360,19 +400,26 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
     }
 
     private val bodyCompositionFields: Map<String, Field<*>> by lazy {
-        DataTypes.BODY_COMPOSITION.allFields.associateBy { it.name }
+        logDataSync("Initializing body composition field map")
+        DataTypes.BODY_COMPOSITION.allFields.associateBy { it.name }.also {
+            logDataSync("Body composition field map contains ${it.size} entries")
+        }
     }
 
     override suspend fun syncWearableData() {
+        logDataSync("Starting wearable data synchronization for all data types")
         val activeStudies = studyRepository.getActiveStudies().first()
+        logDataSync("Loaded ${activeStudies.size} active studies for wearable sync")
         importBiaFromSamsungHealth(activeStudies.firstOrNull()?.id)
 
         activeStudies
             .associate { (studyId) -> getAgreedWearableDataTypes(studyId).first() }
             .reverse()
             .forEach { (dataType, studyIds) ->
+                logDataSync("Syncing data type $dataType for studies ${studyIds.joinToString()}")
                 syncRoomToServer(getDao(dataType), dataType, studyIds)
             }
+        logDataSync("Completed wearable data synchronization for all data types")
     }
 
     override suspend fun syncWearableData(
@@ -380,6 +427,7 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
         dataType: PrivDataType,
         csvInputStream: InputStream
     ) {
+        logDataSync("Starting manual wearable data sync for $dataType and studies ${studyIds.joinToString()}")
         val data = when (dataType) {
             PrivDataType.WEAR_ACCELEROMETER -> readCsv<Accelerometer>(csvInputStream)
             PrivDataType.WEAR_BIA -> readCsv<Bia>(csvInputStream)
@@ -393,22 +441,30 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
             PrivDataType.WEAR_USER_PROFILE -> readCsv<UserProfile>(csvInputStream)
         }
 
+        logDataSync("Uploading ${data.size} ${dataType.name} records to server via manual sync")
         grpcHealthDataSynchronizer.syncHealthData(
             studyIds,
             toHealthDataModel(dataType, data)
         ).onSuccess {
             Log.i(TAG, "success to upload data: $dataType")
+            logDataSync("Successfully uploaded ${data.size} ${dataType.name} records via manual sync")
             AppLogger.saveLog(DataSyncLog("sync $dataType ${data.size}"))
         }.onFailure {
             Log.e(TAG, "fail to upload data to server")
             Log.e(TAG, it.stackTraceToString())
+            logDataSync("Failed manual upload for $dataType: ${it.message}", it)
             AppLogger.saveLog(DataSyncLog("FAIL: sync data $dataType ${it.stackTraceToString()}"))
         }.getOrThrow()
     }
 
     private fun getAgreedWearableDataTypes(studyId: String) =
         shareAgreementRepository.getAgreedWearableDataTypes(studyId)
-            .map { dataTypes -> studyId to dataTypes }
+            .map { dataTypes ->
+                logDataSync(
+                    "Resolved ${dataTypes.size} agreed wearable data types for study $studyId: ${dataTypes.joinToString()}"
+                )
+                studyId to dataTypes
+            }
 
     private fun <T1, T2> Map<T1, List<T2>>.reverse(): Map<T2, List<T1>> {
         val reversed = mutableMapOf<T2, MutableList<T1>>()
@@ -420,6 +476,11 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
             }
         }
 
+        logDataSync(
+            "Reversed mapping result: ${
+                reversed.entries.joinToString { (type, studies) -> "$type -> ${studies.joinToString()}" }
+            }"
+        )
         return reversed
     }
 
@@ -435,7 +496,7 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
             PrivDataType.WEAR_SWEAT_LOSS -> wearableAppDataBase.sweatLossDao()
             PrivDataType.WEAR_HEART_RATE -> wearableAppDataBase.heartRateDao()
             PrivDataType.WEAR_USER_PROFILE -> wearableAppDataBase.userProfileDao()
-        }
+        }.also { logDataSync("Resolved DAO for $dataType: ${it::class.simpleName}") }
 
     private suspend fun <T : TimestampMapData> syncRoomToServer(
         dao: PrivDao<T>,
@@ -443,18 +504,22 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
         studyIds: List<String>,
     ) {
         Log.i(TAG, "syncWearableData Start $dataType")
+        logDataSync("Starting room-to-server sync for $dataType and studies ${studyIds.joinToString()}")
         var cnt = 0
         var check = false
         while (!check && cnt < 30) {
             Log.i(TAG, "current try: $cnt")
+            logDataSync("Attempt $cnt for syncing $dataType")
             cnt++
             check = true
             kotlin.runCatching {
                 when (dataType) {
                     PrivDataType.WEAR_PPG_GREEN, PrivDataType.WEAR_ACCELEROMETER -> {
+                        logDataSync("Executing batch sync strategy for $dataType")
                         val batchHealthData = mutableListOf<List<T>>()
                         var lastTimestamp = -1L
                         val pageSource = dao.getGreaterThan(0)
+                        logDataSync("Initialized paging source for $dataType")
 
                         var loadResult =
                             pageSource.load(
@@ -472,17 +537,28 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
                                     if (copiedLoadResult.data.isEmpty() && nextPage == -1) {
                                         Log.e(TAG, "data is empty: $dataType")
                                         AppLogger.saveLog(DataSyncLog("nothing to sync $dataType"))
+                                        logDataSync("No data found for initial page of $dataType; finishing sync")
                                         finishSync(dao, lastTimestamp)
                                         break
                                     }
 
                                     nextPage = copiedLoadResult.nextKey
+                                    logDataSync(
+                                        "Loaded page with ${copiedLoadResult.data.size} $dataType records; nextKey=$nextPage"
+                                    )
 
                                     if (copiedLoadResult.data.size == BuildConfig.BATCH_HEALTH_DATA_SIZE) {
                                         batchHealthData.add(copiedLoadResult.data)
+                                        logDataSync(
+                                            "Accumulated batch segment with ${copiedLoadResult.data.size} $dataType records; bat"
+                                                + "ches=${batchHealthData.size}"
+                                        )
                                     }
 
                                     if (batchHealthData.size != 0 && (nextPage == null || copiedLoadResult.data.size != BuildConfig.BATCH_HEALTH_DATA_SIZE || batchHealthData.size == BuildConfig.NUM_BATCH_HEALTH_DATA)) {
+                                        logDataSync(
+                                            "Flushing ${batchHealthData.size} batches for $dataType to server"
+                                        )
                                         grpcHealthDataSynchronizer.syncBatchHealthData(
                                             studyIds,
                                             batchHealthData.map {
@@ -497,12 +573,22 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
                                                     }"
                                                 )
                                             )
+                                            logDataSync(
+                                                "Successfully uploaded batch payload for $dataType with ${
+                                                    batchHealthData.map { it.size }.sum()
+                                                } records"
+                                            )
                                             lastTimestamp = batchHealthData.last().last().timestamp
+                                            logDataSync("Updated last timestamp for $dataType to $lastTimestamp")
                                             batchHealthData.clear()
                                         }.onFailure {
                                             Log.e(TAG, "fail to upload data to server")
                                             Log.e(TAG, it.stackTraceToString())
                                             AppLogger.saveLog(DataSyncLog("FAIL: sync data $dataType ${it.stackTraceToString()}"))
+                                            logDataSync(
+                                                "Failed to upload batch payload for $dataType: ${it.message}",
+                                                it
+                                            )
                                             finishSync(dao, lastTimestamp)
                                         }.getOrThrow()
                                     }
@@ -511,6 +597,10 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
                                 is PagingSource.LoadResult.Error -> {
                                     Log.e(TAG, copiedLoadResult.throwable.stackTraceToString())
                                     AppLogger.saveLog(DataSyncLog("FAIL: sync data $dataType ${copiedLoadResult.throwable.stackTraceToString()}"))
+                                    logDataSync(
+                                        "Paging error while syncing $dataType: ${copiedLoadResult.throwable.message}",
+                                        copiedLoadResult.throwable
+                                    )
                                     finishSync(dao, lastTimestamp)
                                     throw copiedLoadResult.throwable
                                 }
@@ -518,6 +608,7 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
                                 is PagingSource.LoadResult.Invalid -> {
                                     Log.e(TAG, "Invalid page")
                                     AppLogger.saveLog(DataSyncLog("FAIL: sync data $dataType Invalid page"))
+                                    logDataSync("Encountered invalid page while syncing $dataType")
                                     finishSync(dao, lastTimestamp)
                                     throw IOException("Invalid page")
                                 }
@@ -525,6 +616,7 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
 
                             if (nextPage == null) {
                                 finishSync(dao, lastTimestamp)
+                                logDataSync("Finished batch sync loop for $dataType with lastTimestamp=$lastTimestamp")
                             } else {
                                 loadResult = pageSource.load(
                                     PagingSource.LoadParams.Append(nextPage, BuildConfig.BATCH_HEALTH_DATA_SIZE, false)
@@ -534,6 +626,7 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
                     }
 
                     else -> {
+                        logDataSync("Executing standard sync strategy for $dataType")
                         var lastTimestamp = 0L
                         val pageSource = dao.getGreaterThan(0)
 
@@ -547,6 +640,7 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
                                     if (copiedLoadResult.data.isEmpty() && nextPage == -1) {
                                         Log.e(TAG, "data is empty: $dataType")
                                         AppLogger.saveLog(DataSyncLog("nothing to sync $dataType"))
+                                        logDataSync("No data found for $dataType; ending sync loop")
                                         break
                                     }
 
@@ -556,12 +650,20 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
                                     ).onSuccess {
                                         Log.i(TAG, "success to upload data: $dataType")
                                         AppLogger.saveLog(DataSyncLog("sync $dataType ${copiedLoadResult.data.size}"))
+                                        logDataSync(
+                                            "Successfully uploaded ${copiedLoadResult.data.size} records for $dataType"
+                                        )
                                         lastTimestamp = copiedLoadResult.data.last().timestamp
+                                        logDataSync("Updated last timestamp for $dataType to $lastTimestamp")
                                         nextPage = copiedLoadResult.nextKey
                                     }.onFailure {
                                         Log.e(TAG, "fail to upload data to server")
                                         Log.e(TAG, it.stackTraceToString())
                                         AppLogger.saveLog(DataSyncLog("FAIL: sync data $dataType ${it.stackTraceToString()}"))
+                                        logDataSync(
+                                            "Failed to upload ${copiedLoadResult.data.size} records for $dataType: ${it.message}",
+                                            it
+                                        )
                                         finishSync(dao, lastTimestamp)
                                     }.getOrThrow()
                                 }
@@ -569,6 +671,10 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
                                 is PagingSource.LoadResult.Error -> {
                                     Log.e(TAG, copiedLoadResult.throwable.stackTraceToString())
                                     AppLogger.saveLog(DataSyncLog("FAIL: sync data $dataType ${copiedLoadResult.throwable.stackTraceToString()}"))
+                                    logDataSync(
+                                        "Paging error while syncing $dataType: ${copiedLoadResult.throwable.message}",
+                                        copiedLoadResult.throwable
+                                    )
                                     finishSync(dao, lastTimestamp)
                                     throw copiedLoadResult.throwable
                                 }
@@ -576,6 +682,7 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
                                 is PagingSource.LoadResult.Invalid -> {
                                     Log.e(TAG, "Invalid page")
                                     AppLogger.saveLog(DataSyncLog("FAIL: sync data $dataType Invalid page"))
+                                    logDataSync("Encountered invalid page while syncing $dataType")
                                     finishSync(dao, lastTimestamp)
                                     throw IOException("Invalid page")
                                 }
@@ -583,6 +690,7 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
 
                             if (nextPage == null) {
                                 finishSync(dao, lastTimestamp)
+                                logDataSync("Finished standard sync loop for $dataType with lastTimestamp=$lastTimestamp")
                             } else {
                                 loadResult = pageSource.load(
                                     PagingSource.LoadParams.Append(nextPage!!, PAGE_LOAD_SIZE, false)
@@ -594,16 +702,39 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
             }.onFailure {
                 check = false
                 Log.e(TAG, it.stackTraceToString())
+                logDataSync("Retrying $dataType sync due to failure: ${it.message}", it)
             }
         }
+        logDataSync("Completed room-to-server sync routine for $dataType")
     }
 
     private fun <T : TimestampMapData> toHealthDataModel(dataType: PrivDataType, data: List<T>): HealthDataModel {
-        return HealthDataModel(dataType, data.map { it.toDataMap() })
+        logDataSync("Converting ${data.size} $dataType records to HealthDataModel")
+        val mapped = data.map { it.toDataMap() }
+        logDataSync("Converted $dataType records to map payload with size ${mapped.size}")
+        return HealthDataModel(dataType, mapped)
     }
 
     private fun <T : Timestamp> finishSync(dao: PrivDao<T>, lastSyncTime: Long) {
         dao.deleteLEThan(lastSyncTime)
+        logDataSync("Deleted records with timestamp <= $lastSyncTime during sync cleanup")
+    }
+
+    private fun logDataSync(message: String, throwable: Throwable? = null) {
+        val tag = TAG ?: "WearableDataReceiverRepositoryImpl"
+        val fullMessage = buildString {
+            append("[")
+            append(tag)
+            append("] ")
+            append(message)
+            if (throwable != null) {
+                append(' ')
+                append(throwable.stackTraceToString())
+            }
+        }
+        runBlocking {
+            AppLogger.saveLog(DataSyncLog(fullMessage))
+        }
     }
 
     companion object {
