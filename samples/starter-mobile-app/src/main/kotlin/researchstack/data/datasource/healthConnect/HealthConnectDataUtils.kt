@@ -146,6 +146,7 @@ suspend fun processExerciseData(
     samsungRecord: HealthDataPoint?
 ): Exercise {
     val exerciseType = samsungRecord?.getValue(DataType.ExerciseType.EXERCISE_TYPE)?.name
+    val sessions = samsungRecord?.getValue(DataType.ExerciseType.SESSIONS)
     val exerciseOrdinal = samsungRecord?.getValue(DataType.ExerciseType.EXERCISE_TYPE)?.ordinal?.toLong()
     val name = EXERCISE_TYPE_INT_TO_STRING_MAP[record.exerciseType]
     val enrollmentDateStr = enrollmentDatePref.getEnrollmentDate(studyId)
