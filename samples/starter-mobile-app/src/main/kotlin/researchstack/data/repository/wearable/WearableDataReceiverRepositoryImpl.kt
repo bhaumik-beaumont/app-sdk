@@ -20,6 +20,7 @@ import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 import researchstack.BuildConfig
@@ -41,6 +42,7 @@ import researchstack.domain.model.priv.PpgRed
 import researchstack.domain.model.priv.PrivDataType
 import researchstack.domain.model.priv.SpO2
 import researchstack.domain.model.priv.SweatLoss
+import researchstack.domain.model.Gender
 import researchstack.domain.model.UserProfile
 import researchstack.domain.model.shealth.HealthDataModel
 import researchstack.domain.repository.ShareAgreementRepository
@@ -255,6 +257,11 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
             return
         }
 
+        val userProfileDao = wearableAppDataBase.userProfileDao()
+        val latestProfile = runCatching { userProfileDao.getLatest().firstOrNull() }
+            .onFailure { Log.e(TAG, "Failed to load latest user profile", it) }
+            .getOrNull()
+
         val enrollmentDate = studyId?.let { id ->
             runCatching { enrollmentDatePref.getEnrollmentDate(id) }
                 .getOrNull()
@@ -262,11 +269,21 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
         }
 
         val bias = biaDataPoints.mapNotNull { it.toBia(enrollmentDate) }
-        if (bias.isEmpty()) {
-            return
+        val userProfiles = biaDataPoints.mapNotNull {
+            it.toUserProfile(latestProfile ?: DEFAULT_USER_PROFILE)
         }
 
-        wearableAppDataBase.biaDao().insertAll(bias)
+        if (bias.isNotEmpty()) {
+            wearableAppDataBase.biaDao().insertAll(bias)
+        }
+
+        if (userProfiles.isNotEmpty()) {
+            saveUserProfiles(userProfiles)
+        }
+
+        if (bias.isEmpty() && userProfiles.isEmpty()) {
+            Log.i(TAG, "No BIA or user profile data parsed from Samsung Health")
+        }
     }
 
     private fun HealthDataPoint.toBia(enrollmentDate: LocalDate?): Bia? {
@@ -275,12 +292,7 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
         val timeOffsetMillis = zoneOffset?.totalSeconds?.times(1000)?.toInt() ?: getCurrentTimeOffset()
 
         fun getFloatField(name: String): Float {
-            val field = bodyCompositionFields[name] ?: return 0f
-            val value = runCatching { getValue(field) }.getOrNull()
-            return when (value) {
-                is Number -> value.toFloat()
-                else -> 0f
-            }
+            return getFloatFieldOrNull(name) ?: 0f
         }
 
         val weekNumber = enrollmentDate?.let { enrollment ->
@@ -305,6 +317,60 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
             timeOffset = timeOffsetMillis,
             id = uid.orEmpty().ifBlank { UUID.randomUUID().toString() },
         )
+    }
+
+    private fun HealthDataPoint.toUserProfile(fallback: UserProfile): UserProfile? {
+        val measurementStartTime = startTime ?: return null
+        val timestamp = measurementStartTime.toEpochMilli()
+        val timeOffsetMillis = zoneOffset?.totalSeconds?.times(1000)?.toInt() ?: getCurrentTimeOffset()
+
+        val weight = getFloatFieldOrNull("weight")?.takeIf { it > 0f } ?: fallback.weight
+        val height = getFloatFieldOrNull("height")?.takeIf { it > 0f } ?: fallback.height
+        val yearBirth = getIntFieldOrNull("birth_year")?.takeIf { it > 0 } ?: fallback.yearBirth
+        val gender = getIntFieldOrNull("gender")
+            ?.takeIf { it in Gender.values().indices }
+            ?.let { Gender.values()[it] }
+            ?: fallback.gender
+        val isMetricUnit = getBooleanFieldOrNull("is_metric_unit") ?: fallback.isMetricUnit
+            ?: DEFAULT_IS_METRIC_UNIT
+
+        return UserProfile(
+            height = height,
+            weight = weight,
+            yearBirth = yearBirth,
+            gender = gender,
+            isMetricUnit = isMetricUnit,
+            timestamp = timestamp,
+            timeOffset = timeOffsetMillis,
+        )
+    }
+
+    private fun HealthDataPoint.getFloatFieldOrNull(name: String): Float? {
+        val field = bodyCompositionFields[name] ?: return null
+        val value = runCatching { getValue(field) }.getOrNull()
+        return when (value) {
+            is Number -> value.toFloat()
+            else -> null
+        }
+    }
+
+    private fun HealthDataPoint.getIntFieldOrNull(name: String): Int? {
+        val field = bodyCompositionFields[name] ?: return null
+        val value = runCatching { getValue(field) }.getOrNull()
+        return when (value) {
+            is Number -> value.toInt()
+            else -> null
+        }
+    }
+
+    private fun HealthDataPoint.getBooleanFieldOrNull(name: String): Boolean? {
+        val field = bodyCompositionFields[name] ?: return null
+        val value = runCatching { getValue(field) }.getOrNull()
+        return when (value) {
+            is Boolean -> value
+            is Number -> value.toInt() != 0
+            else -> null
+        }
     }
 
     private val bodyCompositionFields: Map<String, Field<*>> by lazy {
@@ -557,5 +623,17 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
     companion object {
         private const val PAGE_LOAD_SIZE = 1000
         private val TAG = this::class.simpleName
+        private const val DEFAULT_HEIGHT = 170f
+        private const val DEFAULT_WEIGHT = 70f
+        private const val DEFAULT_YEAR_BIRTH = 1990
+        private val DEFAULT_GENDER = Gender.UNKNOWN
+        private const val DEFAULT_IS_METRIC_UNIT = true
+        private val DEFAULT_USER_PROFILE = UserProfile(
+            height = DEFAULT_HEIGHT,
+            weight = DEFAULT_WEIGHT,
+            yearBirth = DEFAULT_YEAR_BIRTH,
+            gender = DEFAULT_GENDER,
+            isMetricUnit = DEFAULT_IS_METRIC_UNIT,
+        )
     }
 }
