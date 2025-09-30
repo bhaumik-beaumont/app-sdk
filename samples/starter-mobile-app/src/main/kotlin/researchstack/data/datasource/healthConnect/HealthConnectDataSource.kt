@@ -44,7 +44,7 @@ class HealthConnectDataSource @Inject constructor(private val healthConnectClien
     suspend fun getExerciseData(): List<HealthDataPoint> {
         val currentDate: LocalDateTime = LocalDateTime.now().with(LocalTime.MIDNIGHT)
         val startTime: Instant =
-            currentDate.minusDays(30).atZone(ZoneId.systemDefault()).toInstant()
+            currentDate.minusDays(90).atZone(ZoneId.systemDefault()).toInstant()
         val endTime: Instant = LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant()
         val exerciseRequest = getExerciseAggregateRequestBuilder(startTime, endTime)
         val exerciseResult = healthDataStore.readData(exerciseRequest)

@@ -61,6 +61,7 @@ import javax.inject.Inject
 import com.samsung.android.sdk.health.data.data.Field
 import com.samsung.android.sdk.health.data.data.HealthDataPoint
 import com.samsung.android.sdk.health.data.data.UserDataPoint
+import com.samsung.android.sdk.health.data.request.DataType
 import com.samsung.android.sdk.health.data.request.DataTypes
 
 class WearableDataReceiverRepositoryImpl @Inject constructor(
@@ -165,7 +166,6 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
     }
 
     inline fun <reified T> readCsv(inputStream: InputStream): List<T> {
-        logDataSync("Parsing CSV input stream into ${T::class.java.simpleName}")
         val csvMapper = CsvMapper().apply {
             enable(CsvParser.Feature.TRIM_SPACES)
             enable(CsvParser.Feature.SKIP_EMPTY_LINES)
@@ -185,8 +185,6 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
             WearableDataReceiverRepositoryImpl::class.simpleName,
             "data synced from wearOS: ${T::class.java.simpleName}, size: ${data.size}"
         )
-        logDataSync("Parsed ${data.size} ${T::class.java.simpleName} entries from CSV stream")
-
         return data
     }
 
@@ -420,21 +418,22 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
     private fun UserDataPoint.toGender(): Gender? {
         val genderValue = getIntFieldOrNull("gender")
         val gender = genderValue
-            ?.takeIf { it in Gender.values().indices }
-            ?.let { Gender.values()[it] }
+            ?.takeIf { it in Gender.entries.toTypedArray().indices }
+            ?.let { Gender.entries[it] }
         logDataSync("Extracted gender $gender from Samsung Health user profile data point")
         return gender
     }
 
     private fun UserDataPoint.getIntFieldOrNull(name: String): Int? {
         val field = userProfileFields[name] ?: return null
-        val value = runCatching { getValue(field) }.getOrNull()
+        val value  = runCatching { getValue(field) }.getOrNull()
         if (value == null) {
             logDataSync("Int field '$name' missing for Samsung Health user profile data point")
         }
-        return when (value) {
-            is Number -> value.toInt()
-            else -> null
+        return if (value.toString() == "GENDER_MALE"){
+            1
+        } else{
+            0
         }
     }
 
