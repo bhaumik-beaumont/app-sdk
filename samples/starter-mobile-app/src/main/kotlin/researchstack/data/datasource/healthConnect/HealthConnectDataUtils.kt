@@ -3,13 +3,12 @@ package researchstack.data.datasource.healthConnect
 import android.annotation.SuppressLint
 import androidx.health.connect.client.records.BloodGlucoseRecord
 import androidx.health.connect.client.records.BloodPressureRecord
-import androidx.health.connect.client.records.ExerciseSessionRecord
-import androidx.health.connect.client.records.ExerciseSessionRecord.Companion.EXERCISE_TYPE_INT_TO_STRING_MAP
 import androidx.health.connect.client.records.HeartRateRecord
 import androidx.health.connect.client.records.OxygenSaturationRecord
 import androidx.health.connect.client.records.SleepSessionRecord
 import androidx.health.connect.client.records.StepsRecord
 import com.samsung.android.sdk.health.data.data.HealthDataPoint
+import com.samsung.android.sdk.health.data.data.entries.ExerciseSession
 import com.samsung.android.sdk.health.data.request.DataType
 import researchstack.domain.model.healthConnect.Exercise
 import researchstack.data.datasource.local.pref.EnrollmentDatePref
@@ -139,45 +138,53 @@ fun processSleepData(dataList: List<SleepSessionRecord>): HashMap<Long, StringBu
 
 @SuppressLint("RestrictedApi")
 suspend fun processExerciseData(
-    record: ExerciseSessionRecord,
-    sessionData: ExerciseSessionData,
+    samsungRecord: HealthDataPoint,
+    session: ExerciseSession,
     studyId: String,
     enrollmentDatePref: EnrollmentDatePref,
-    samsungRecord: HealthDataPoint?
+    sessionIndex: Int
 ): Exercise {
-    val exerciseType = samsungRecord?.getValue(DataType.ExerciseType.EXERCISE_TYPE)?.name
-    val sessions = samsungRecord?.getValue(DataType.ExerciseType.SESSIONS)
-    val exerciseOrdinal = samsungRecord?.getValue(DataType.ExerciseType.EXERCISE_TYPE)?.ordinal?.toLong()
-    val name = EXERCISE_TYPE_INT_TO_STRING_MAP[record.exerciseType]
+    val exerciseTypeName = session.exerciseType?.name
+        ?: samsungRecord.getValue(DataType.ExerciseType.EXERCISE_TYPE)?.name
+    val exerciseOrdinal = session.exerciseType?.ordinal?.toLong()
+        ?: samsungRecord.getValue(DataType.ExerciseType.EXERCISE_TYPE)?.ordinal?.toLong()
+        ?: 0L
     val enrollmentDateStr = enrollmentDatePref.getEnrollmentDate(studyId)
+    val sessionStartMillis = session.startTime.toEpochMilli()
+    val sessionEndMillis = session.endTime.toEpochMilli()
     val weekNumber = enrollmentDateStr?.let { dateString ->
         val enrollmentMillis = LocalDate.parse(dateString)
             .atStartOfDay(ZoneId.systemDefault())
             .toInstant()
             .toEpochMilli()
-        (((record.startTime.toEpochMilli() - enrollmentMillis) / (7 * 24 * 60 * 60 * 1000L)) + 1).toInt()
+        (((sessionStartMillis - enrollmentMillis) / (7 * 24 * 60 * 60 * 1000L)) + 1).toInt()
     } ?: 0
-
-    val exercise = Exercise(
-        id = record.metadata.id,
-        timestamp = record.startTime.toEpochMilli(),
-        startTime = record.startTime.toEpochMilli(),
-        endTime = record.endTime.toEpochMilli(),
-        exerciseType = exerciseOrdinal ?: record.exerciseType.toLong(),
-        exerciseName = exerciseType ?: name ?: "",
-        calorie = (sessionData.totalEnergyBurned?.inCalories ?: 0.0).toInt()/1000*1.0,
-        duration = sessionData.totalActiveTime?.toMillis() ?: 0,
-        timeOffset = getCurrentTimeOffset(),
-        weekNumber = weekNumber*1L,
-        meanHeartRate = sessionData.avgHeartRate?.toDouble() ?: 0.00,
-        maxHeartRate = sessionData.maxHeartRate?.toDouble() ?: 0.00,
-        minHeartRate = sessionData.minHeartRate?.toDouble() ?: 0.00,
-        distance = sessionData.totalDistance?.inMeters ?: 0.00,
-        maxSpeed = sessionData.maxSpeed ?: 0.00,
-        meanSpeed = sessionData.meanSpeed ?: 0.00,
-        isResistance = isResistance(exerciseOrdinal?.toInt()?:0)
+    val exerciseId = buildString {
+        append(samsungRecord.uid ?: "${sessionStartMillis}-${sessionEndMillis}")
+        append("-")
+        append(sessionIndex)
+    }
+    val timeOffset = samsungRecord.zoneOffset?.totalSeconds?.times(1000)?.toInt()
+        ?: getCurrentTimeOffset()
+    return Exercise(
+        id = exerciseId,
+        timestamp = sessionStartMillis,
+        startTime = sessionStartMillis,
+        endTime = sessionEndMillis,
+        exerciseType = exerciseOrdinal,
+        exerciseName = session.customTitle ?: exerciseTypeName ?: "",
+        calorie = session.calories.toDouble(),
+        duration = session.duration?.toMillis() ?: (sessionEndMillis - sessionStartMillis),
+        timeOffset = timeOffset,
+        weekNumber = weekNumber.toLong(),
+        meanHeartRate = session.meanHeartRate?.toDouble() ?: 0.0,
+        maxHeartRate = session.maxHeartRate?.toDouble() ?: 0.0,
+        minHeartRate = session.minHeartRate?.toDouble() ?: 0.0,
+        distance = session.distance?.toDouble() ?: 0.0,
+        maxSpeed = session.maxSpeed?.toDouble() ?: 0.0,
+        meanSpeed = session.meanSpeed?.toDouble() ?: 0.0,
+        isResistance = isResistance(exerciseOrdinal.toInt())
     )
-    return exercise
 }
 
 private fun isResistance(exerciseOrdinal: Int): Boolean {

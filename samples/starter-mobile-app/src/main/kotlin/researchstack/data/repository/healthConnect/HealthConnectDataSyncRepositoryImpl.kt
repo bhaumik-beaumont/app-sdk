@@ -2,7 +2,8 @@ package researchstack.data.repository.healthConnect
 
 import android.content.Context
 import android.util.Log
-import androidx.health.connect.client.records.ExerciseSessionRecord
+import com.samsung.android.sdk.health.data.data.entries.ExerciseSession
+import com.samsung.android.sdk.health.data.request.DataType
 import kotlinx.coroutines.flow.first
 import researchstack.R
 import researchstack.auth.data.datasource.local.pref.BasicAuthenticationPref
@@ -102,11 +103,6 @@ class HealthConnectDataSyncRepositoryImpl @Inject constructor(
                     logDataSync("Processing data type ${dataType.name}")
                     val result: List<TimestampMapData>? = when (dataType) {
                         SHealthDataType.EXERCISE -> {
-                            val exerciseRecords = healthConnectDataSource.getData(
-                                ExerciseSessionRecord::class
-                            ).filterIsInstance<ExerciseSessionRecord>()
-                            logDataSync("Fetched ${exerciseRecords.size} exercise session records from Health Connect")
-
                             val samsungRecords = healthConnectDataSource.getExerciseData()
                             logDataSync("Fetched ${samsungRecords.size} Samsung Health exercise records")
 
@@ -121,39 +117,42 @@ class HealthConnectDataSyncRepositoryImpl @Inject constructor(
                             )
 
                             val items = mutableListOf<Exercise>()
-                            for (record in exerciseRecords) {
-                                val recordStartTime = record.startTime.toEpochMilli()
-                                if (enrollmentMillis != null && recordStartTime < enrollmentMillis) {
-                                    Log.d(TAG, "Ignore exercise ${record.metadata.id} before enrollment date")
-                                    logDataSync("Skipping exercise ${record.metadata.id} before enrollment threshold")
-                                } else {
+                            samsungRecords.forEachIndexed { index, record ->
+                                val sessions = runCatching {
+                                    record.getValue(DataType.ExerciseType.SESSIONS)
+                                }.getOrElse { throwable ->
                                     logDataSync(
-                                        "Processing exercise record ${record.metadata.id} from ${record.startTime} to ${record.endTime}"
+                                        "Failed to read sessions from Samsung exercise record ${record.uid ?: index.toString()}: ${throwable.message}",
+                                        throwable
                                     )
-                                    val sessionData = healthConnectDataSource.getAggregateData(record.metadata.id)
-                                    logDataSync(
-                                        "Aggregated exercise session ${record.metadata.id}: totalSteps=${sessionData.totalSteps ?: 0}, totalActiveTime=${sessionData.totalActiveTime}, totalEnergy=${sessionData.totalEnergyBurned}"
-                                    )
-                                    val matchingSamsungRecord = samsungRecords.firstOrNull { samsung ->
-                                        samsung.startTime.toEpochMilli() == record.startTime.toEpochMilli() &&
-                                            samsung.endTime?.toEpochMilli() == record.endTime.toEpochMilli()
-                                    }
-                                    if (matchingSamsungRecord != null) {
-                                        logDataSync("Found matching Samsung record for exercise ${record.metadata.id}")
+                                    emptyList<ExerciseSession>()
+                                }
+                                if (sessions.isEmpty()) {
+                                    logDataSync("Samsung exercise record ${record.uid ?: index.toString()} contains no sessions")
+                                }
+                                sessions.forEachIndexed { sessionIndex, session ->
+                                    val sessionStartTime = session.startTime.toEpochMilli()
+                                    if (enrollmentMillis != null && sessionStartTime < enrollmentMillis) {
+                                        Log.d(TAG, "Ignore Samsung exercise ${record.uid ?: "unknown"} session $sessionIndex before enrollment date")
+                                        logDataSync(
+                                            "Skipping Samsung exercise ${record.uid ?: "unknown"} session $sessionIndex before enrollment threshold"
+                                        )
                                     } else {
-                                        logDataSync("No matching Samsung record found for exercise ${record.metadata.id}")
+                                        logDataSync(
+                                            "Processing Samsung exercise ${record.uid ?: "unknown"} session $sessionIndex from ${session.startTime} to ${session.endTime}"
+                                        )
+                                        val exercise = processExerciseData(
+                                            record,
+                                            session,
+                                            studyId,
+                                            enrollmentDatePref,
+                                            sessionIndex
+                                        )
+                                        logDataSync(
+                                            "Processed exercise ${exercise.id} with duration=${exercise.duration} and distance=${exercise.distance}"
+                                        )
+                                        items.add(exercise)
                                     }
-                                    val exercise = processExerciseData(
-                                        record,
-                                        sessionData,
-                                        studyId,
-                                        enrollmentDatePref,
-                                        matchingSamsungRecord
-                                    )
-                                    logDataSync(
-                                        "Processed exercise ${exercise.id} with duration=${exercise.duration} and distance=${exercise.distance}"
-                                    )
-                                    items.add(exercise)
                                 }
                             }
                             exerciseDao.insertAll(*items.toTypedArray())
