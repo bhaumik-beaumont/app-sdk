@@ -13,6 +13,7 @@ import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import com.samsung.android.sdk.health.data.HealthDataStore
 import com.samsung.android.sdk.health.data.data.HealthDataPoint
+import com.samsung.android.sdk.health.data.data.UserDataPoint
 import com.samsung.android.sdk.health.data.error.HealthDataException
 import com.samsung.android.sdk.health.data.request.DataTypes
 import com.samsung.android.sdk.health.data.request.LocalTimeFilter
@@ -65,6 +66,13 @@ class HealthConnectDataSource @Inject constructor(private val healthConnectClien
             .setLocalTimeFilter(localTimeFilter)
             .build()
 
+        val result = healthDataStore.readData(request)
+        return result.dataList
+    }
+
+    suspend fun getUserProfileData(): List<UserDataPoint> {
+        val request = DataTypes.USER_PROFILE.readDataRequestBuilder
+            .build()
         val result = healthDataStore.readData(request)
         return result.dataList
     }

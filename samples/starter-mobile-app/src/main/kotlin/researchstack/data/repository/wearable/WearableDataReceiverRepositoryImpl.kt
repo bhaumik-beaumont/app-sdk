@@ -237,27 +237,8 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
     private fun saveUserProfiles(profiles: List<UserProfile>) {
         logDataSync("Saving ${profiles.size} user profiles")
         val userProfileDao = wearableAppDataBase.userProfileDao()
-        var lastWeight = runBlocking { userProfileDao.getLatest().first()?.weight }
-        logDataSync("Latest stored user profile weight: ${lastWeight ?: "none"}")
-        val validProfiles = profiles.filter { profile ->
-            val weight = profile.weight
-            if (weight <= 0f) {
-                logDataSync("Skipping user profile with non-positive weight: $weight")
-                return@filter false
-            }
-            if (lastWeight != null && weight == lastWeight) {
-                logDataSync("Skipping user profile with duplicate weight: $weight")
-                return@filter false
-            }
-            lastWeight = weight
-            true
-        }
-        logDataSync("Filtered user profiles count: ${validProfiles.size}")
-        if (validProfiles.isNotEmpty()) {
-            userProfileDao.insertAll(validProfiles)
-            logDataSync("Inserted ${validProfiles.size} user profiles into database")
-        } else {
-            logDataSync("No valid user profiles to insert")
+        if (profiles.isNotEmpty()) {
+            userProfileDao.insertAll(profiles)
         }
     }
 
@@ -365,15 +346,13 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
             ?.takeIf { it in Gender.values().indices }
             ?.let { Gender.values()[it] }
             ?: fallback.gender
-        val isMetricUnit = getBooleanFieldOrNull("is_metric_unit") ?: fallback.isMetricUnit
-            ?: DEFAULT_IS_METRIC_UNIT
 
         return UserProfile(
             height = height,
             weight = weight,
             yearBirth = yearBirth,
             gender = gender,
-            isMetricUnit = isMetricUnit,
+            isMetricUnit = DEFAULT_IS_METRIC_UNIT,
             timestamp = timestamp,
             timeOffset = timeOffsetMillis,
         )
@@ -761,7 +740,7 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
         private const val DEFAULT_WEIGHT = 70f
         private const val DEFAULT_YEAR_BIRTH = 1990
         private val DEFAULT_GENDER = Gender.UNKNOWN
-        private const val DEFAULT_IS_METRIC_UNIT = true
+        private const val DEFAULT_IS_METRIC_UNIT = false
         private val DEFAULT_USER_PROFILE = UserProfile(
             height = DEFAULT_HEIGHT,
             weight = DEFAULT_WEIGHT,
