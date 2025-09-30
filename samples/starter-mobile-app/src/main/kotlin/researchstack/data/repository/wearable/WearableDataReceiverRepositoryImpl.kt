@@ -60,6 +60,7 @@ import java.util.UUID
 import javax.inject.Inject
 import com.samsung.android.sdk.health.data.data.Field
 import com.samsung.android.sdk.health.data.data.HealthDataPoint
+import com.samsung.android.sdk.health.data.data.UserDataPoint
 import com.samsung.android.sdk.health.data.request.DataTypes
 
 class WearableDataReceiverRepositoryImpl @Inject constructor(
@@ -268,6 +269,17 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
             return
         }
 
+        val userProfileDataPoints = runCatching { healthConnectDataSource.getUserProfileData() }
+            .onFailure { Log.e(TAG, "Failed to load user profile data from Samsung Health", it) }
+            .getOrNull()
+            .orEmpty()
+        logDataSync("Fetched ${userProfileDataPoints.size} user profile data points from Samsung Health")
+
+        val samsungHealthGender = userProfileDataPoints
+            .mapNotNull { it.toGender() }
+            .lastOrNull()
+        logDataSync("Resolved Samsung Health gender override: ${samsungHealthGender ?: "none"}")
+
         val userProfileDao = wearableAppDataBase.userProfileDao()
         val latestProfile = runCatching { userProfileDao.getLatest().firstOrNull() }
             .onFailure { Log.e(TAG, "Failed to load latest user profile", it) }
@@ -282,8 +294,10 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
         logDataSync("Enrollment date resolved for BIA import: ${enrollmentDate ?: "none"}")
 
         val bias = biaDataPoints.mapNotNull { it.toBia(enrollmentDate) }
+        val fallbackProfile = latestProfile ?: DEFAULT_USER_PROFILE
+        val fallbackWithGender = samsungHealthGender?.let { fallbackProfile.copy(gender = it) } ?: fallbackProfile
         val userProfiles = biaDataPoints.mapNotNull {
-            it.toUserProfile(latestProfile ?: DEFAULT_USER_PROFILE)
+            it.toUserProfile(fallbackWithGender, samsungHealthGender)
         }
         logDataSync("Parsed ${bias.size} BIA entries and ${userProfiles.size} user profiles from Samsung Health data")
 
@@ -337,7 +351,10 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
         )
     }
 
-    private fun HealthDataPoint.toUserProfile(fallback: UserProfile): UserProfile? {
+    private fun HealthDataPoint.toUserProfile(
+        fallback: UserProfile,
+        genderOverride: Gender? = null
+    ): UserProfile? {
         logDataSync("Converting HealthDataPoint ${uid ?: "unknown"} to wearable user profile")
         val measurementStartTime = startTime ?: return null
         val timestamp = measurementStartTime.toEpochMilli()
@@ -346,7 +363,8 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
         val weight = getFloatFieldOrNull("weight")?.takeIf { it > 0f } ?: fallback.weight
         val height = getFloatFieldOrNull("height")?.takeIf { it > 0f } ?: fallback.height
         val yearBirth = getIntFieldOrNull("birth_year")?.takeIf { it > 0 } ?: fallback.yearBirth
-        val gender = getIntFieldOrNull("gender")
+        val gender = genderOverride
+            ?: getIntFieldOrNull("gender")
             ?.takeIf { it in Gender.values().indices }
             ?.let { Gender.values()[it] }
             ?: fallback.gender
@@ -399,10 +417,38 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
         }
     }
 
+    private fun UserDataPoint.toGender(): Gender? {
+        val genderValue = getIntFieldOrNull("gender")
+        val gender = genderValue
+            ?.takeIf { it in Gender.values().indices }
+            ?.let { Gender.values()[it] }
+        logDataSync("Extracted gender $gender from Samsung Health user profile data point")
+        return gender
+    }
+
+    private fun UserDataPoint.getIntFieldOrNull(name: String): Int? {
+        val field = userProfileFields[name] ?: return null
+        val value = runCatching { getValue(field) }.getOrNull()
+        if (value == null) {
+            logDataSync("Int field '$name' missing for Samsung Health user profile data point")
+        }
+        return when (value) {
+            is Number -> value.toInt()
+            else -> null
+        }
+    }
+
     private val bodyCompositionFields: Map<String, Field<*>> by lazy {
         logDataSync("Initializing body composition field map")
         DataTypes.BODY_COMPOSITION.allFields.associateBy { it.name }.also {
             logDataSync("Body composition field map contains ${it.size} entries")
+        }
+    }
+
+    private val userProfileFields: Map<String, Field<*>> by lazy {
+        logDataSync("Initializing user profile field map")
+        DataTypes.USER_PROFILE.allFields.associateBy { it.name }.also {
+            logDataSync("User profile field map contains ${it.size} entries")
         }
     }
 
