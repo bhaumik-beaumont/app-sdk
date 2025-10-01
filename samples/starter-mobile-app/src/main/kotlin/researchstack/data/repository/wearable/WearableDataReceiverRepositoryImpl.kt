@@ -22,7 +22,6 @@ import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.runBlocking
 import researchstack.BuildConfig
 import researchstack.backend.integration.GrpcHealthDataSynchronizer
 import researchstack.data.datasource.healthConnect.HealthConnectDataSource
@@ -766,20 +765,7 @@ class WearableDataReceiverRepositoryImpl @Inject constructor(
     }
 
     private fun logDataSync(message: String, throwable: Throwable? = null) {
-        val tag = TAG ?: "WearableDataReceiverRepositoryImpl"
-        val fullMessage = buildString {
-            append("[")
-            append(tag)
-            append("] ")
-            append(message)
-            if (throwable != null) {
-                append(' ')
-                append(throwable.stackTraceToString())
-            }
-        }
-        runBlocking {
-            AppLogger.saveLog(DataSyncLog(fullMessage))
-        }
+        researchstack.util.logDataSync(message, throwable, TAG)
     }
 
     companion object {
