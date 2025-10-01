@@ -27,6 +27,7 @@ import researchstack.util.WEEKLY_RESISTANCE_SESSION_COUNT
 import researchstack.util.getActivityMessage
 import researchstack.util.getBiaMessage
 import researchstack.util.getResistanceMessage
+import researchstack.util.logDataSync
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
@@ -43,6 +44,7 @@ class DashboardViewModel @Inject constructor(
 ) : AndroidViewModel(application) {
 
     private val enrollmentDatePref = EnrollmentDatePref(application.dataStore)
+    private val logTag = this::class.simpleName ?: "DashboardViewModel"
 
     private val _exercises = MutableStateFlow<List<Exercise>>(emptyList())
     val exercises: StateFlow<List<Exercise>> = _exercises
@@ -90,31 +92,56 @@ class DashboardViewModel @Inject constructor(
     val complianceMessages: StateFlow<List<String>> = _complianceMessages
 
     init {
+        logDataSync("Initializing DashboardViewModel; triggering initial refresh", tag = logTag)
         refreshData()
     }
 
-    suspend fun ensureAuthenticated(): Boolean =
-        authRepositoryWrapper.getIdToken().isSuccess
+    suspend fun ensureAuthenticated(): Boolean {
+        logDataSync("Ensuring authentication via AuthRepositoryWrapper", tag = logTag)
+        return runCatching { authRepositoryWrapper.getIdToken().isSuccess }
+            .onSuccess { result ->
+                logDataSync("Authentication result received: $result", tag = logTag)
+            }
+            .onFailure {
+                logDataSync("Authentication check failed: ${it.message}", it, tag = logTag)
+            }
+            .getOrThrow()
+    }
 
-    fun refreshData(){
+    fun refreshData() {
+        logDataSync("refreshData invoked", tag = logTag)
         viewModelScope.launch(Dispatchers.IO) {
+            logDataSync("refreshData coroutine launched on ${Thread.currentThread().name}", tag = logTag)
             val studyId = studyRepository.getActiveStudies().firstOrNull()?.firstOrNull()?.id
+            logDataSync("Active study resolved to id=${studyId ?: "none"}", tag = logTag)
             if (studyId != null) {
                 val enrollmentDate = enrollmentDatePref.getEnrollmentDate(studyId)
+                logDataSync("Enrollment date fetched for $studyId: ${enrollmentDate ?: "none"}", tag = logTag)
                 enrollmentDate?.let { dateString ->
                     val enrollmentLocalDate = LocalDate.parse(dateString)
+                    logDataSync("Parsed enrollment date $dateString into $enrollmentLocalDate", tag = logTag)
                     val weekStart = calculateCurrentWeekStart(enrollmentLocalDate)
                     _weekStart.value = weekStart
                     val startMillis = weekStart.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
                     val endMillis = startMillis + TimeUnit.DAYS.toMillis(7)
+                    logDataSync(
+                        "Week window established from $startMillis to $endMillis for week starting $weekStart",
+                        tag = logTag
+                    )
 
                     val daysSinceEnrollment = ChronoUnit.DAYS.between(enrollmentLocalDate, LocalDate.now()).toInt()
                     _currentWeek.value = daysSinceEnrollment / 7 + 1
                     _currentDay.value = daysSinceEnrollment % 7 + 1
+                    logDataSync(
+                        "Current week=${_currentWeek.value}, day=${_currentDay.value} computed from enrollment",
+                        tag = logTag
+                    )
                     updateComplianceMessages()
 
                     launch {
+                        logDataSync("Collecting BIA counts between $startMillis and $endMillis", tag = logTag)
                         biaDao.countBetween(startMillis, endMillis).collect { count ->
+                            logDataSync("BIA count emission received: $count", tag = logTag)
                             _biaCount.value = count
                             val progress = if (count > 0) 100 else 0
                             _biaProgressPercent.value = progress
@@ -122,7 +149,9 @@ class DashboardViewModel @Inject constructor(
                         }
                     }
                     launch {
+                        logDataSync("Collecting weight entries between $startMillis and $endMillis", tag = logTag)
                         userProfileDao.countBetween(startMillis, endMillis).collect { count ->
+                            logDataSync("Weight count emission received: $count", tag = logTag)
                             val progress = if (count > 0) 100 else 0
                             _weightProgressPercent.value = progress
                             _weightCount.value = count
@@ -130,27 +159,40 @@ class DashboardViewModel @Inject constructor(
                         }
                     }
                     viewModelScope.launch(Dispatchers.IO) {
+                        logDataSync("Collecting latest user profile for weight display", tag = logTag)
                         userProfileDao.getLatest().collect { profile ->
+                            logDataSync("Latest profile emission received: ${profile != null}", tag = logTag)
                             profile?.let {
                                 val unit = if (it.isMetricUnit == false) "lbs" else "kg"
                                 val value = it.weight.kgToLbs(it.isMetricUnit == true)
+                                logDataSync("Weight converted to $value $unit", tag = logTag)
                                 _weight.value = "${value.toDecimalFormat(2)} $unit"
+                                logDataSync("Weight state updated to ${_weight.value}", tag = logTag)
                             }
                         }
                     }
 
                     exerciseDao.getExercisesFrom(startMillis).collect { list ->
+                        logDataSync("Exercise list emission received with size=${list.size}", tag = logTag)
                         val resistanceList = list.filter { it.isResistance }
                         val exerciseList = list.filterNot {it.isResistance }
 
                         _resistanceExercises.value = resistanceList
                         _exercises.value = exerciseList
+                        logDataSync(
+                            "Resistance exercises=${resistanceList.size}, cardio exercises=${exerciseList.size}",
+                            tag = logTag
+                        )
 
                         val totalMillis = exerciseList.sumOf { it.endTime - it.startTime }
                         val minutes = TimeUnit.MILLISECONDS.toMinutes(totalMillis)
                         _totalDurationMinutes.value = minutes
                         val progress = ((minutes * 100f) / WEEKLY_ACTIVITY_GOAL_MINUTES).coerceAtMost(100f)
                         _activityProgressPercent.value = progress.toInt()
+                        logDataSync(
+                            "Updated activity duration=$minutes minutes with progress=${_activityProgressPercent.value}%",
+                            tag = logTag
+                        )
 
                         val resistanceMillis = resistanceList.sumOf { it.endTime - it.startTime }
                         val resistanceMinutes = TimeUnit.MILLISECONDS.toMinutes(resistanceMillis)
@@ -161,9 +203,15 @@ class DashboardViewModel @Inject constructor(
                         } else {
                             resistanceProgress
                         }
+                        logDataSync(
+                            "Updated resistance duration=$resistanceMinutes minutes with progress=${_resistanceProgressPercent.value}%",
+                            tag = logTag
+                        )
                         updateComplianceMessages()
                     }
                 }
+            } else {
+                logDataSync("No active study found; skipping refreshData processing", tag = logTag)
             }
         }
     }
@@ -172,12 +220,19 @@ class DashboardViewModel @Inject constructor(
         val messages = mutableListOf<String>()
         val currentDay = _currentDay.value
         val totalActivityMinutes = _totalDurationMinutes.value
+        logDataSync(
+            "Evaluating compliance messages for day=$currentDay with activityMinutes=$totalActivityMinutes, " +
+                "resistanceSessions=${_resistanceExercises.value.size}, biaCount=${_biaCount.value}, " +
+                "weightCount=${_weightCount.value}",
+            tag = logTag
+        )
         if (
             (currentDay in 3 until 5 && totalActivityMinutes < 50L) ||
             (currentDay in 5 until 7 && totalActivityMinutes < 100L) ||
             (currentDay == 7 && totalActivityMinutes < WEEKLY_ACTIVITY_GOAL_MINUTES.toLong())
         ) {
             messages += getActivityMessage()
+            logDataSync("Added activity compliance message", tag = logTag)
         }
         val resistanceSessions = _resistanceExercises.value.size
         if (
@@ -185,6 +240,7 @@ class DashboardViewModel @Inject constructor(
             (currentDay == 7 && resistanceSessions < WEEKLY_RESISTANCE_SESSION_COUNT)
         ) {
             messages += getResistanceMessage()
+            logDataSync("Added resistance compliance message", tag = logTag)
         }
         if (
             currentDay == 7 &&
@@ -192,14 +248,22 @@ class DashboardViewModel @Inject constructor(
                 _weightCount.value < MINIMUM_WEIGHT_ENTRIES_PER_WEEK)
         ) {
             messages += getBiaMessage()
+            logDataSync("Added BIA/weight compliance message", tag = logTag)
         }
         _complianceMessages.value = messages
+        logDataSync("Compliance messages updated: ${messages.joinToString()} (total=${messages.size})", tag = logTag)
     }
 
     private fun calculateCurrentWeekStart(enrollmentDate: LocalDate): LocalDate {
         val today = LocalDate.now()
         val days = ChronoUnit.DAYS.between(enrollmentDate, today)
         val weeks = days / 7
-        return enrollmentDate.plusWeeks(weeks)
+        logDataSync(
+            "calculateCurrentWeekStart: today=$today, enrollmentDate=$enrollmentDate, days=$days, weeks=$weeks",
+            tag = logTag
+        )
+        return enrollmentDate.plusWeeks(weeks).also {
+            logDataSync("Week start calculated as $it", tag = logTag)
+        }
     }
 }
