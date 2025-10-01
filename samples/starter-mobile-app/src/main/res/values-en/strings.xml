@@ -1,9 +1,17 @@
 <resources>
   <!-- need to localize -->
+  <string name="app_name" translatable="false">MGH BICEP</string>
+  <string name="log_page" translatable="false">Log</string>
   <string name="settings">Settings</string>
   <string name="about_us">About Us</string>
   <string name="privacy_policy">Privacy Policy</string>
   <string name="contact_us">Contact Us</string>
+  <string name="export_databases">Export Databases</string>
+  <string name="database_export_no_files">No database files available to export.</string>
+  <string name="database_export_failed">Failed to export database files.</string>
+  <string name="database_export_email_subject">Export App Database</string>
+  <string name="database_export_email_body">Attached is the SQLite database exported from the app.</string>
+  <string name="database_export_chooser_title">Share Database</string>
   <string name="build_info">Build Info</string>
   <string name="build_number">Build Number</string>
   <string name="build_code">Build Code</string>
@@ -73,9 +81,12 @@
   <string name="samsung_health">Samsung Health</string>
   <string name="grant_health_permissions">Grant Android Health permissions</string>
   <string name="grant_samsung_health_permissions">Grant Samsung Health access</string>
+  <string name="health_connect_required_title">Health App Required</string>
   <string name="health_connect_required_message">Install the Health Connect app to continue.</string>
   <string name="health_connect_update_required_message">Update the Health Connect app to continue.</string>
+  <string name="health_connect_retry">Retry</string>
   <string name="samsung_health_required_message">Install the Samsung Health app to continue.</string>
+  <string name="install">Install</string>
   <string name="install_health_connect">Install Health Connect</string>
   <string name="update_health_connect">Update Health Connect</string>
   <string name="install_samsung_health">Install Samsung Health</string>
@@ -132,6 +143,8 @@
 
   <string name="screen_interaction">Screen interaction</string>
   <string name="call_log">Call log</string>
+  <string name="place_event" translatable="false">Place event</string>
+  <string name="presence_event" translatable="false">Presence Event</string>
 
   <string name="wear_acceleromemter">Accelerometer</string>
   <string name="wear_bia">BIA</string>
@@ -212,13 +225,28 @@
     <string name="bia">BIA</string>
     <string name="sessions">0 Sessions</string>
     <string name="lbs">0 Lbs</string>
+    <string name="rewards">Rewards</string>
+    <string name="activity_rewards">Activity Rewards</string>
+    <string name="resistance_rewards">Resistance Rewards</string>
+    <string name="bia_rewards">BIA Rewards</string>
+    <string name="weight_rewards">Weight Rewards</string>
+    <string name="champion_rewards">Champion Rewards</string>
+    <string name="view_rewards">View Rewards</string>
+    <string name="week_label">Week - %1$d</string>
     <string name="sync_success">Data sync successful</string>
     <string name="sync_success_with_type">%1$s data sync successful</string>
 
     <string name="date_label">Date</string>
     <string name="time_label">Time</string>
     <string name="duration_label">Duration</string>
+    <string name="duration_minutes">Duration: %1$d minutes</string>
     <string name="minutes_short">min</string>
+    <string name="minutes_out_of">%1$d of %2$d minutes</string>
+    <string name="activity_details">Activity Details</string>
+    <string name="resistance_details">Resistance Details</string>
+    <string name="calories">Calories</string>
+    <string name="min_hr">Min heart rate</string>
+    <string name="max_hr">Max heart rate</string>
     <string name="show_details">Show Details</string>
     <string name="kcal_unit">Kcal</string>
     <string name="bpm_unit">BPM</string>
@@ -229,6 +257,9 @@
 
     <string name="weight_details">Weight Details</string>
     <string name="bia_details">BIA Details</string>
+    <string name="today">Today</string>
+    <string name="no_data_available">No data available</string>
+    <string name="no_activity_data_week">No activity data for this week.</string>
     <string name="no_data_this_week">No data available this week.</string>
     <string name="no_weight_data_week">No weight data for this week.</string>
     <string name="no_bia_data_week">No BIA data for this week.</string>
@@ -236,9 +267,14 @@
     <string name="skeletal_muscle_mass">Skeletal Muscle Mass</string>
     <string name="body_fat_mass">Body Fat Mass</string>
     <string name="fat_free_mass">Fat Free Mass</string>
+    <string name="insights">Insights</string>
+    <string name="calorie_burn_over_time">Calories Burned Over Time</string>
+    <string name="bia_progress">BIA Progress</string>
     <string name="view_progress">View Progress</string>
     <string name="weight_progress">Weight Progress</string>
     <string name="user_compliance">User Compliance</string>
+    <string name="weekly_summary_helper">This summary includes every session from this week.</string>
+    <string name="try_sync_or_check_later">Try syncing your device or check again later.</string>
     <string name="weekly_message_activity_none">You haven’t logged any activity this week. Try to stay active for better results.</string>
     <string name="weekly_message_activity_partial">You’ve logged %1$d minutes of activity. Try to reach %2$d minutes this week!</string>
     <string name="weekly_message_resistance_none">You haven’t completed any resistance training sessions this week. Let’s get moving!</string>
