@@ -24,16 +24,15 @@ import researchstack.domain.model.healthConnect.Exercise
 import researchstack.domain.model.ComplianceEntry
 import researchstack.domain.model.shealth.HealthDataModel
 import researchstack.domain.model.shealth.SHealthDataType
-import researchstack.domain.model.log.DataSyncLog
 import researchstack.domain.repository.ShareAgreementRepository
 import researchstack.domain.repository.StudyRepository
 import researchstack.domain.repository.healthConnect.HealthConnectDataSyncRepository
 import researchstack.domain.usecase.profile.GetProfileUseCase
 import researchstack.domain.usecase.profile.UpdateProfileUseCase
-import researchstack.domain.usecase.log.AppLogger
 import researchstack.presentation.util.toDecimalFormat
 import researchstack.presentation.util.toStringResourceId
 import researchstack.util.NotificationUtil
+import researchstack.util.logDataSync as sharedLogDataSync
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.concurrent.TimeUnit
@@ -379,19 +378,9 @@ class HealthConnectDataSyncRepositoryImpl @Inject constructor(
         return entries
     }
 
-    private suspend fun logDataSync(message: String, throwable: Throwable? = null) {
+    private fun logDataSync(message: String, throwable: Throwable? = null) {
         val tag = TAG ?: "HealthConnectDataSyncRepositoryImpl"
-        val fullMessage = buildString {
-            append("[")
-            append(tag)
-            append("] ")
-            append(message)
-            if (throwable != null) {
-                append(' ')
-                append(throwable.stackTraceToString())
-            }
-        }
-        AppLogger.saveLog(DataSyncLog(fullMessage))
+        sharedLogDataSync(message = message, throwable = throwable, tag = tag)
     }
 
     companion object {
