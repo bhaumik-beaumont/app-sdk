@@ -188,7 +188,7 @@
 
     <string name="home">Home</string>
     <string name="weekly">Weekly</string>
-    <string name="adherence">Adherence</string>
+    <string name="adherence">Progress</string>
     <string name="this_week">This Week</string>
     <string name="week_range">Week of %1$s - %2$s</string>
     <string name="device_sync">Device Sync</string>
