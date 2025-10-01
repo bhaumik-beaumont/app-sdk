@@ -121,7 +121,7 @@ class HealthConnectDataSyncRepositoryImpl @Inject constructor(
                                     record.getValue(DataType.ExerciseType.SESSIONS)
                                 }.getOrElse { throwable ->
                                     logDataSync(
-                                        "Failed to read sessions from Samsung exercise record ${record.uid ?: index.toString()}: ${throwable.message}",
+                                        "Failed to read sessions from Samsung exercise record ${record.uid}: ${throwable.message}",
                                         throwable
                                     )
                                     emptyList<ExerciseSession>()
@@ -132,13 +132,13 @@ class HealthConnectDataSyncRepositoryImpl @Inject constructor(
                                 sessions?.forEachIndexed { sessionIndex, session ->
                                     val sessionStartTime = session.startTime.toEpochMilli()
                                     if (enrollmentMillis != null && sessionStartTime < enrollmentMillis) {
-                                        Log.d(TAG, "Ignore Samsung exercise ${record.uid ?: "unknown"} session $sessionIndex before enrollment date")
+                                        Log.d(TAG, "Ignore Samsung exercise ${record.uid} session $sessionIndex before enrollment date")
                                         logDataSync(
-                                            "Skipping Samsung exercise ${record.uid ?: "unknown"} session $sessionIndex before enrollment threshold"
+                                            "Skipping Samsung exercise ${record.uid} session $sessionIndex before enrollment threshold"
                                         )
                                     } else {
                                         logDataSync(
-                                            "Processing Samsung exercise ${record.uid ?: "unknown"} session $sessionIndex from ${session.startTime} to ${session.endTime}"
+                                            "Processing Samsung exercise ${record.uid} session $sessionIndex from ${session.startTime} to ${session.endTime}"
                                         )
                                         val exercise = processExerciseData(
                                             record,
