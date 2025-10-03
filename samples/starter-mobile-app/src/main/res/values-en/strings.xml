@@ -272,7 +272,7 @@
     <string name="bia_progress">BIA Progress</string>
     <string name="view_progress">View Progress</string>
     <string name="weight_progress">Weight Progress</string>
-    <string name="user_compliance">User Compliance</string>
+    <string name="user_compliance">User Progress</string>
     <string name="weekly_summary_helper">This summary includes every session from this week.</string>
     <string name="try_sync_or_check_later">Try syncing your device or check again later.</string>
     <string name="weekly_message_activity_none">You haven’t logged any activity this week. Try to stay active for better results.</string>

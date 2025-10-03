@@ -270,7 +270,7 @@
     <string name="bia_progress">BIA 추이</string>
     <string name="view_progress">진행 상황 보기</string>
     <string name="weight_progress">체중 추이</string>
-    <string name="user_compliance">참여자 준수도</string>
+    <string name="user_compliance">사용자 진행 상황</string>
     <!-- Weekly compliance messages -->
     <string name="weekly_message_activity_none">이번 주에는 활동을 기록하지 않았습니다. 더 나은 결과를 위해 적극적으로 움직여 보세요.</string>
     <string name="weekly_message_activity_partial">%1$d분의 활동을 기록했습니다. 이번 주에는 %2$d분을 달성해 보세요!</string>
