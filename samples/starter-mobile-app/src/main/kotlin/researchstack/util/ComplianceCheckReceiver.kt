@@ -156,12 +156,6 @@ class ComplianceCheckReceiver : DaggerBroadcastReceiver() {
         }
         val textColor = if (isYellow) Color.BLACK else Color.WHITE
 
-        val collapsed = RemoteViews(context.packageName, R.layout.notification_compliance).apply {
-            setTextViewText(R.id.notification_title, "Weekly Progress Reminder")
-            setViewVisibility(R.id.notification_text, View.GONE)
-            setInt(R.id.notification_root, "setBackgroundResource", bgRes)
-            setTextColor(R.id.notification_title, textColor)
-        }
         val expanded = RemoteViews(context.packageName, R.layout.notification_compliance).apply {
             setTextViewText(R.id.notification_title, "Weekly Progress Reminder")
             setViewVisibility(R.id.notification_text, View.VISIBLE)
@@ -174,7 +168,7 @@ class ComplianceCheckReceiver : DaggerBroadcastReceiver() {
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.flexed_biceps)
             .setStyle(NotificationCompat.DecoratedCustomViewStyle())
-            .setCustomContentView(collapsed)
+            .setCustomContentView(expanded)
             .setCustomBigContentView(expanded)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setContentIntent(pi)

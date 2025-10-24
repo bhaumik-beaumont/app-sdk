@@ -76,13 +76,13 @@ android {
         create("dev") {
             dimension = "env"
             applicationId = "com.mgb.beaumont.glp1activitytracking.dev"
-            buildConfigField("String", "SERVER_ADDRESS", "\"bicep.eevalbot.com\"")
+            buildConfigField("String", "SERVER_ADDRESS", "\"bicep.mghbicepstudy.diabetesresearchcenter.massgeneralhospital.org/grpc\"")
             resValue("string","app_name","MGH BICEP (Dev)")
         }
         create("prod") {
             dimension = "env"
             applicationId = "com.mgb.beaumont.glp1activitytracking"
-            buildConfigField("String", "SERVER_ADDRESS", "\"bicep.eevalbot.com\"")
+            buildConfigField("String", "SERVER_ADDRESS", "\"bicep.mghbicepstudy.diabetesresearchcenter.massgeneralhospital.org/grpc\"")
             resValue("string","app_name","MGH BICEP")
         }
     }
