@@ -20,15 +20,23 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.wear.compose.material.Text
 import researchstack.R
+import researchstack.presentation.main.screen.HomeScreenItem
 import researchstack.presentation.theme.HealthWearableTheme
 import researchstack.presentation.theme.TextColor
 
 class MedicalInfoActivity : ComponentActivity() {
+    companion object {
+        const val EXTRA_HOME_ITEM = "medical_info_home_item"
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val selectedItem = intent?.getStringExtra(EXTRA_HOME_ITEM)?.let { itemName ->
+            runCatching { HomeScreenItem.valueOf(itemName) }.getOrNull()
+        } ?: HomeScreenItem.BLOOD_OXYGEN
         setContent {
             HealthWearableTheme {
-                MedicalInfoScreen()
+                MedicalInfoScreen(selectedItem)
             }
         }
     }
@@ -56,8 +64,20 @@ class MedicalInfoActivity : ComponentActivity() {
         }
     }
 
+    private fun HomeScreenItem.messageRes(): Int {
+        return when (this) {
+            HomeScreenItem.BLOOD_OXYGEN -> R.string.medical_info_blood_oxygen
+            HomeScreenItem.ECG -> R.string.medical_info_ecg
+            HomeScreenItem.BODY_COMPOSITION -> R.string.medical_info_body_composition
+            HomeScreenItem.PPG_RED -> R.string.medical_info_ppg_red
+            HomeScreenItem.PPG_IR -> R.string.medical_info_ppg_ir
+        }
+    }
+
     @Composable
-    fun MedicalInfoScreen() {
+    fun MedicalInfoScreen(selectedItem: HomeScreenItem) {
+        val titleRes = selectedItem.titleRes()
+        val messageRes = selectedItem.messageRes()
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -81,36 +101,21 @@ class MedicalInfoActivity : ComponentActivity() {
                 modifier = Modifier.padding(horizontal = 12.dp)
             )
             Spacer(modifier = Modifier.height(20.dp))
-
             Section(
-                titleRes = R.string.blood_oxygen,
-                messageRes = R.string.medical_info_blood_oxygen
-            )
-            Spacer(modifier = Modifier.height(20.dp))
-
-            Section(
-                titleRes = R.string.ecg,
-                messageRes = R.string.medical_info_ecg
-            )
-            Spacer(modifier = Modifier.height(20.dp))
-
-            Section(
-                titleRes = R.string.body_composition,
-                messageRes = R.string.medical_info_body_composition
-            )
-            Spacer(modifier = Modifier.height(20.dp))
-
-            Section(
-                titleRes = R.string.ppg_red,
-                messageRes = R.string.medical_info_ppg_red
-            )
-            Spacer(modifier = Modifier.height(20.dp))
-
-            Section(
-                titleRes = R.string.ppg_ir,
-                messageRes = R.string.medical_info_ppg_ir
+                titleRes = titleRes,
+                messageRes = messageRes
             )
             Spacer(modifier = Modifier.height(32.dp))
+        }
+    }
+
+    private fun HomeScreenItem.titleRes(): Int {
+        return when (this) {
+            HomeScreenItem.BLOOD_OXYGEN -> R.string.blood_oxygen
+            HomeScreenItem.ECG -> R.string.ecg
+            HomeScreenItem.BODY_COMPOSITION -> R.string.body_composition
+            HomeScreenItem.PPG_RED -> R.string.ppg_red
+            HomeScreenItem.PPG_IR -> R.string.ppg_ir
         }
     }
 }

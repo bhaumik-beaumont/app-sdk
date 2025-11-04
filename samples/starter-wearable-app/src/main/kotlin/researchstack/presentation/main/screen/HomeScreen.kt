@@ -36,14 +36,8 @@ import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.items
 import androidx.wear.compose.material.rememberScalingLazyListState
 import researchstack.R
-import researchstack.presentation.component.AppButton
-import researchstack.presentation.main.MainActivity
 import researchstack.presentation.main.MedicalInfoActivity
 import researchstack.presentation.main.viewmodel.HomeViewModel
-import researchstack.presentation.measurement.BiaActivity
-import researchstack.presentation.measurement.EcgActivity
-import researchstack.presentation.measurement.PpgActivity
-import researchstack.presentation.measurement.SpO2Activity
 import researchstack.presentation.theme.HomeScreenItemBackground
 import researchstack.presentation.theme.SubTextColor
 import researchstack.presentation.theme.TextColor
@@ -89,12 +83,7 @@ fun HomeScreenItem.getItemIcon(): Int {
 }
 
 fun HomeScreenItem.getItemActivityClass(): Class<*> {
-    return when (this) {
-        HomeScreenItem.BLOOD_OXYGEN -> SpO2Activity::class.java
-        HomeScreenItem.ECG -> EcgActivity::class.java
-        HomeScreenItem.BODY_COMPOSITION -> BiaActivity::class.java
-        HomeScreenItem.PPG_RED, HomeScreenItem.PPG_IR -> PpgActivity::class.java
-    }
+    return MedicalInfoActivity::class.java
 }
 
 @Composable
@@ -182,23 +171,12 @@ fun HomeScreen(context: Context, homeViewModel: HomeViewModel = hiltViewModel())
                 val lastMeasure = homeViewModel.getLiveDataByType(homeItem).observeAsState().value ?: ""
                 homeItem.View(lastMeasure) {
                     val intent = Intent(context, homeItem.getItemActivityClass())
-                    if (homeItem == HomeScreenItem.PPG_IR || homeItem == HomeScreenItem.PPG_RED) {
-                        intent.putExtra(MainActivity.PPG_BUNDLE_KEY, homeItem.name)
-                    }
+                        .putExtra(MedicalInfoActivity.EXTRA_HOME_ITEM, homeItem.name)
                     context.startActivity(intent)
                 }
             }
 
             item { Spacer(modifier = Modifier.height(16.dp)) }
-
-            item {
-                AppButton(
-                    HomeScreenItemBackground,
-                    stringResource(id = R.string.medical_info_button)
-                ) {
-                    context.startActivity(Intent(context, MedicalInfoActivity::class.java))
-                }
-            }
 
 //            item {
 //                AppButton(HomeScreenItemBackground, stringResource(id = R.string.note)) {
