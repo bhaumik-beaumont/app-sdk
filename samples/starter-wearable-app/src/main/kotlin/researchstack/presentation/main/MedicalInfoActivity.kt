@@ -6,10 +6,9 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -18,7 +17,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.wear.compose.material.PositionIndicator
+import androidx.wear.compose.material.Scaffold
+import androidx.wear.compose.material.ScalingLazyColumn
 import androidx.wear.compose.material.Text
+import androidx.wear.compose.material.rememberScalingLazyListState
 import researchstack.R
 import researchstack.presentation.main.screen.HomeScreenItem
 import researchstack.presentation.theme.HealthWearableTheme
@@ -45,7 +48,9 @@ class MedicalInfoActivity : ComponentActivity() {
     private fun Section(titleRes: Int, messageRes: Int) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(horizontal = 12.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp)
         ) {
             Text(
                 text = stringResource(id = titleRes),
@@ -78,34 +83,51 @@ class MedicalInfoActivity : ComponentActivity() {
     fun MedicalInfoScreen(selectedItem: HomeScreenItem) {
         val titleRes = selectedItem.titleRes()
         val messageRes = selectedItem.messageRes()
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Spacer(modifier = Modifier.height(20.dp))
-            Text(
-                text = stringResource(id = R.string.medical_info_title),
-                color = TextColor,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold,
-                textAlign = TextAlign.Center
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                text = stringResource(id = R.string.medical_info_intro),
-                color = TextColor,
-                fontSize = 14.sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(horizontal = 12.dp)
-            )
-            Spacer(modifier = Modifier.height(20.dp))
-            Section(
-                titleRes = titleRes,
-                messageRes = messageRes
-            )
-            Spacer(modifier = Modifier.height(32.dp))
+        val listState = rememberScalingLazyListState()
+
+        Scaffold(
+            positionIndicator = {
+                PositionIndicator(scalingLazyListState = listState)
+            }
+        ) { innerPadding ->
+            ScalingLazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                state = listState,
+            ) {
+                item { Spacer(modifier = Modifier.height(16.dp)) }
+                item {
+                    Text(
+                        text = stringResource(id = R.string.medical_info_title),
+                        color = TextColor,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        textAlign = TextAlign.Center
+                    )
+                }
+                item { Spacer(modifier = Modifier.height(12.dp)) }
+                item {
+                    Text(
+                        text = stringResource(id = R.string.medical_info_intro),
+                        color = TextColor,
+                        fontSize = 14.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp)
+                    )
+                }
+                item { Spacer(modifier = Modifier.height(20.dp)) }
+                item {
+                    Section(
+                        titleRes = titleRes,
+                        messageRes = messageRes
+                    )
+                }
+                item { Spacer(modifier = Modifier.height(24.dp)) }
+            }
         }
     }
 
