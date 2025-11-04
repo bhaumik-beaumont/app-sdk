@@ -16,8 +16,8 @@ class BootCompletedReceiver : DaggerBroadcastReceiver() {
         )
         runBlocking {
             // TODO Run Service according to PASSIVE_ON_OFF_PREF_KEY
-            if (WearableDataForegroundService.isRunning.not())
-                context.startForegroundService(Intent(context, WearableDataForegroundService::class.java))
+//            if (WearableDataForegroundService.isRunning.not())
+//                context.startForegroundService(Intent(context, WearableDataForegroundService::class.java))
         }
     }
 }

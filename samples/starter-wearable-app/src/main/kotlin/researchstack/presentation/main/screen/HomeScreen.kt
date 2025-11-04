@@ -155,12 +155,11 @@ fun HomeScreen(context: Context, homeViewModel: HomeViewModel = hiltViewModel())
                 scalingLazyListState = listState
             )
         }
-    ) { paddingValues ->
+    ) {
         ScalingLazyColumn(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             state = listState,
-            contentPadding = paddingValues
         ) {
             item {
                 dimensionResource(id = R.dimen.cardview_compat_inset_shadow)
@@ -184,15 +183,15 @@ fun HomeScreen(context: Context, homeViewModel: HomeViewModel = hiltViewModel())
                 )
             }
 
-            items(homeScreenItems) { homeItem ->
-                homeViewModel.getLiveDataByType(homeItem).observeAsState().value.let {
-                    homeItem.View(it ?: "") {
-                        val intent = Intent(context, homeItem.getItemActivityClass())
-                        if (homeItem == HomeScreenItem.PPG_IR || homeItem == HomeScreenItem.PPG_RED) {
-                            intent.putExtra(MainActivity.PPG_BUNDLE_KEY, homeItem.name)
-                        }
-                        context.startActivity(intent)
+            items(count = homeScreenItems.size) { index ->
+                val homeItem = homeScreenItems[index]
+                val lastMeasure = homeViewModel.getLiveDataByType(homeItem).observeAsState().value ?: ""
+                homeItem.View(lastMeasure) {
+                    val intent = Intent(context, homeItem.getItemActivityClass())
+                    if (homeItem == HomeScreenItem.PPG_IR || homeItem == HomeScreenItem.PPG_RED) {
+                        intent.putExtra(MainActivity.PPG_BUNDLE_KEY, homeItem.name)
                     }
+                    context.startActivity(intent)
                 }
             }
 
