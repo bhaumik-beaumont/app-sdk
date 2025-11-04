@@ -19,10 +19,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
-import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Scaffold
 import androidx.wear.compose.material.Text
 import researchstack.R
+import researchstack.presentation.main.component.AlwaysVisiblePositionIndicator
 import researchstack.presentation.main.screen.HomeScreenItem
 import researchstack.presentation.theme.HealthWearableTheme
 import researchstack.presentation.theme.TextColor
@@ -87,7 +87,7 @@ class MedicalInfoActivity : ComponentActivity() {
 
         Scaffold(
             positionIndicator = {
-                PositionIndicator(scalingLazyListState = listState)
+                AlwaysVisiblePositionIndicator(scalingLazyListState = listState)
             }
         ) { innerPadding ->
             ScalingLazyColumn(

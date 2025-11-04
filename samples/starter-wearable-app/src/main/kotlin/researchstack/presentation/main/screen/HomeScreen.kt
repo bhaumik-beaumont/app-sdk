@@ -32,11 +32,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
-import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Scaffold
 import androidx.wear.compose.material.Text
 import researchstack.R
 import researchstack.presentation.main.MedicalInfoActivity
+import researchstack.presentation.main.component.AlwaysVisiblePositionIndicator
 import researchstack.presentation.main.viewmodel.HomeViewModel
 import researchstack.presentation.theme.HomeScreenItemBackground
 import researchstack.presentation.theme.SubTextColor
@@ -134,7 +134,7 @@ fun HomeScreen(context: Context, homeViewModel: HomeViewModel = hiltViewModel())
 
     Scaffold(
         positionIndicator = {
-            PositionIndicator(
+            AlwaysVisiblePositionIndicator(
                 scalingLazyListState = listState
             )
         }
