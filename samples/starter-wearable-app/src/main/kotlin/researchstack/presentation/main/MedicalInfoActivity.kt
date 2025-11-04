@@ -63,7 +63,7 @@ class MedicalInfoActivity : ComponentActivity() {
             Text(
                 text = stringResource(id = messageRes),
                 color = TextColor,
-                fontSize = 14.sp,
+                fontSize = 12.sp,
                 textAlign = TextAlign.Center
             )
         }
@@ -85,50 +85,46 @@ class MedicalInfoActivity : ComponentActivity() {
         val messageRes = selectedItem.messageRes()
         val listState = rememberScalingLazyListState()
 
-        Scaffold(
-            positionIndicator = {
-                AlwaysVisiblePositionIndicator(scalingLazyListState = listState)
+
+        ScalingLazyColumn(
+            state = listState,
+            modifier = Modifier.fillMaxSize()
+        ) {
+            item { Spacer(modifier = Modifier.height(16.dp)) }
+            item {
+                Text(
+                    text = stringResource(id = R.string.medical_info_title),
+                    color = TextColor,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    textAlign = TextAlign.Center
+                )
             }
-        ) { innerPadding ->
-            ScalingLazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                state = listState,
-            ) {
-                item { Spacer(modifier = Modifier.height(16.dp)) }
-                item {
-                    Text(
-                        text = stringResource(id = R.string.medical_info_title),
-                        color = TextColor,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        textAlign = TextAlign.Center
-                    )
-                }
-                item { Spacer(modifier = Modifier.height(12.dp)) }
-                item {
-                    Text(
-                        text = stringResource(id = R.string.medical_info_intro),
-                        color = TextColor,
-                        fontSize = 14.sp,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 12.dp)
-                    )
-                }
-                item { Spacer(modifier = Modifier.height(20.dp)) }
-                item {
-                    Section(
-                        titleRes = titleRes,
-                        messageRes = messageRes
-                    )
-                }
-                item { Spacer(modifier = Modifier.height(24.dp)) }
+            item { Spacer(modifier = Modifier.height(12.dp)) }
+            item {
+                Text(
+                    text = stringResource(id = R.string.medical_info_intro),
+                    color = TextColor,
+                    fontSize = 12.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp)
+                )
             }
+            item { Spacer(modifier = Modifier.height(20.dp)) }
+            item {
+                Section(
+                    titleRes = titleRes,
+                    messageRes = messageRes
+                )
+            }
+            item { Spacer(modifier = Modifier.height(24.dp)) }
         }
+        AlwaysVisiblePositionIndicator(
+            scalingLazyListState = listState,
+            initialVisibilityMillis = 9000L // Show for 3 seconds initially
+        )
     }
 
     private fun HomeScreenItem.titleRes(): Int {

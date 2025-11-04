@@ -81,7 +81,7 @@ object Versions {
         const val COMPILER = "1.5.13"
         const val UI = "1.6.8"
         const val ACTIVITY = "1.9.1"
-        const val WEARABLE = "1.3.1"
+        const val WEARABLE = "1.5.4"
         const val LIFECYCLE_VIEWMODEL_COMPOSE = "2.7.0"
     }
 
