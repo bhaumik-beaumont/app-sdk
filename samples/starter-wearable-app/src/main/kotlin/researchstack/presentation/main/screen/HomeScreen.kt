@@ -2,7 +2,6 @@ package researchstack.presentation.main.screen
 
 import android.content.Context
 import android.content.Intent
-import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -36,14 +35,10 @@ import androidx.wear.compose.material.ScalingLazyColumn
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.items
 import androidx.wear.compose.material.rememberScalingLazyListState
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
-import researchstack.BuildConfig
 import researchstack.R
 import researchstack.presentation.component.AppButton
 import researchstack.presentation.main.MainActivity
-import researchstack.presentation.main.NoteActivity
-import researchstack.presentation.main.SettingActivity
+import researchstack.presentation.main.MedicalInfoActivity
 import researchstack.presentation.main.viewmodel.HomeViewModel
 import researchstack.presentation.measurement.BiaActivity
 import researchstack.presentation.measurement.EcgActivity
@@ -52,7 +47,6 @@ import researchstack.presentation.measurement.SpO2Activity
 import researchstack.presentation.theme.HomeScreenItemBackground
 import researchstack.presentation.theme.SubTextColor
 import researchstack.presentation.theme.TextColor
-import researchstack.presentation.worker.SyncPrivDataWorker
 
 enum class HomeScreenItem {
     BLOOD_OXYGEN,
@@ -198,34 +192,43 @@ fun HomeScreen(context: Context, homeViewModel: HomeViewModel = hiltViewModel())
             item { Spacer(modifier = Modifier.height(16.dp)) }
 
             item {
-                AppButton(HomeScreenItemBackground, stringResource(id = R.string.note)) {
-                    context.startActivity(Intent(context, NoteActivity::class.java))
+                AppButton(
+                    HomeScreenItemBackground,
+                    stringResource(id = R.string.medical_info_button)
+                ) {
+                    context.startActivity(Intent(context, MedicalInfoActivity::class.java))
                 }
             }
 
-            item { Spacer(modifier = Modifier.height(8.dp)) }
-
-            item {
-                AppButton(HomeScreenItemBackground, stringResource(id = R.string.settings)) {
-                    context.startActivity(Intent(context, SettingActivity::class.java))
-                }
-            }
-
-            if (BuildConfig.ENABLE_INSTANT_SYNC_BUTTON) {
-                item { Spacer(modifier = Modifier.height(8.dp)) }
-                item {
-                    AppButton(HomeScreenItemBackground, stringResource(id = R.string.sync)) {
-                        WorkManager.getInstance(context).enqueue(
-                            OneTimeWorkRequestBuilder<SyncPrivDataWorker>().build()
-                        )
-                        Toast.makeText(
-                            context,
-                            context.resources.getString(R.string.synchronizing),
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                }
-            }
+//            item {
+//                AppButton(HomeScreenItemBackground, stringResource(id = R.string.note)) {
+//                    context.startActivity(Intent(context, NoteActivity::class.java))
+//                }
+//            }
+//
+//            item { Spacer(modifier = Modifier.height(8.dp)) }
+//
+//            item {
+//                AppButton(HomeScreenItemBackground, stringResource(id = R.string.settings)) {
+//                    context.startActivity(Intent(context, SettingActivity::class.java))
+//                }
+//            }
+//
+//            if (BuildConfig.ENABLE_INSTANT_SYNC_BUTTON) {
+//                item { Spacer(modifier = Modifier.height(8.dp)) }
+//                item {
+//                    AppButton(HomeScreenItemBackground, stringResource(id = R.string.sync)) {
+//                        WorkManager.getInstance(context).enqueue(
+//                            OneTimeWorkRequestBuilder<SyncPrivDataWorker>().build()
+//                        )
+//                        Toast.makeText(
+//                            context,
+//                            context.resources.getString(R.string.synchronizing),
+//                            Toast.LENGTH_SHORT
+//                        ).show()
+//                    }
+//                }
+//            }
 
             item { Spacer(modifier = Modifier.height(53.dp)) }
         }
