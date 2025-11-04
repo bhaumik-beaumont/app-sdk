@@ -15,9 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
@@ -32,7 +30,12 @@ import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.wear.compose.material.PositionIndicator
+import androidx.wear.compose.material.Scaffold
+import androidx.wear.compose.material.ScalingLazyColumn
 import androidx.wear.compose.material.Text
+import androidx.wear.compose.material.items
+import androidx.wear.compose.material.rememberScalingLazyListState
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import researchstack.BuildConfig
@@ -140,36 +143,50 @@ fun HomeScreenItem.View(hashLastMeasure: String, onClick: () -> Unit) {
 
 @Composable
 fun HomeScreen(context: Context, homeViewModel: HomeViewModel = hiltViewModel()) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        dimensionResource(id = R.dimen.cardview_compat_inset_shadow)
-        Spacer(modifier = Modifier.height(20.dp))
-        Text(
-            text = stringResource(R.string.app_name_wearable),
-            color = TextColor,
-            textAlign = TextAlign.Center,
-            fontSize = 16.sp
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = stringResource(R.string.app_message),
-            textAlign = TextAlign.Center,
-            color = TextColor,
-            fontSize = 16.sp
-        )
+    val listState = rememberScalingLazyListState()
+    val homeScreenItems = HomeScreenItem.values().filter {
+        homeViewModel.ecgMeasurementEnabled.observeAsState().value == true ||
+            (it != HomeScreenItem.ECG && it != HomeScreenItem.BODY_COMPOSITION)
+    }
 
-        val homeScreenItem = HomeScreenItem.values().filter {
-            homeViewModel.ecgMeasurementEnabled.observeAsState().value == true ||
-                (it != HomeScreenItem.ECG && it != HomeScreenItem.BODY_COMPOSITION)
+    Scaffold(
+        positionIndicator = {
+            PositionIndicator(
+                scalingLazyListState = listState
+            )
         }
+    ) {
+        ScalingLazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            state = listState,
+        ) {
+            item {
+                dimensionResource(id = R.dimen.cardview_compat_inset_shadow)
+                Spacer(modifier = Modifier.height(20.dp))
+            }
+            item {
+                Text(
+                    text = stringResource(R.string.app_name_wearable),
+                    color = TextColor,
+                    textAlign = TextAlign.Center,
+                    fontSize = 16.sp
+                )
+            }
+            item { Spacer(modifier = Modifier.height(16.dp)) }
+            item {
+                Text(
+                    text = stringResource(R.string.app_message),
+                    textAlign = TextAlign.Center,
+                    color = TextColor,
+                    fontSize = 16.sp
+                )
+            }
 
-        for (homeItem in homeScreenItem) {
-            homeViewModel.getLiveDataByType(homeItem).observeAsState().value.let {
-                homeItem.View(it ?: "") {
+            items(count = homeScreenItems.size) { index ->
+                val homeItem = homeScreenItems[index]
+                val lastMeasure = homeViewModel.getLiveDataByType(homeItem).observeAsState().value ?: ""
+                homeItem.View(lastMeasure) {
                     val intent = Intent(context, homeItem.getItemActivityClass())
                     if (homeItem == HomeScreenItem.PPG_IR || homeItem == HomeScreenItem.PPG_RED) {
                         intent.putExtra(MainActivity.PPG_BUNDLE_KEY, homeItem.name)
@@ -177,24 +194,40 @@ fun HomeScreen(context: Context, homeViewModel: HomeViewModel = hiltViewModel())
                     context.startActivity(intent)
                 }
             }
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-        AppButton(HomeScreenItemBackground, stringResource(id = R.string.note)) {
-            context.startActivity(Intent(context, NoteActivity::class.java))
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        AppButton(HomeScreenItemBackground, stringResource(id = R.string.settings)) {
-            context.startActivity(Intent(context, SettingActivity::class.java))
-        }
-        if (BuildConfig.ENABLE_INSTANT_SYNC_BUTTON) {
-            Spacer(modifier = Modifier.height(8.dp))
-            AppButton(HomeScreenItemBackground, stringResource(id = R.string.sync)) {
-                WorkManager.getInstance(context).enqueue(
-                    OneTimeWorkRequestBuilder<SyncPrivDataWorker>().build()
-                )
-                Toast.makeText(context, context.resources.getString(R.string.synchronizing), Toast.LENGTH_SHORT).show()
+
+            item { Spacer(modifier = Modifier.height(16.dp)) }
+
+            item {
+                AppButton(HomeScreenItemBackground, stringResource(id = R.string.note)) {
+                    context.startActivity(Intent(context, NoteActivity::class.java))
+                }
             }
+
+            item { Spacer(modifier = Modifier.height(8.dp)) }
+
+            item {
+                AppButton(HomeScreenItemBackground, stringResource(id = R.string.settings)) {
+                    context.startActivity(Intent(context, SettingActivity::class.java))
+                }
+            }
+
+            if (BuildConfig.ENABLE_INSTANT_SYNC_BUTTON) {
+                item { Spacer(modifier = Modifier.height(8.dp)) }
+                item {
+                    AppButton(HomeScreenItemBackground, stringResource(id = R.string.sync)) {
+                        WorkManager.getInstance(context).enqueue(
+                            OneTimeWorkRequestBuilder<SyncPrivDataWorker>().build()
+                        )
+                        Toast.makeText(
+                            context,
+                            context.resources.getString(R.string.synchronizing),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+            }
+
+            item { Spacer(modifier = Modifier.height(53.dp)) }
         }
-        Spacer(modifier = Modifier.height(53.dp))
     }
 }

@@ -47,7 +47,8 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             HealthWearableTheme {
-                var isHealthTrackerConnected by remember { mutableStateOf(PrivDataRequester.isConnected) }
+//                var isHealthTrackerConnected by remember { mutableStateOf(PrivDataRequester.isConnected) }
+                var isHealthTrackerConnected by remember { mutableStateOf(true) }
                 var permissionState by remember { mutableStateOf(PermissionState.Initial) }
                 requestScheduleExactAlarmPermission(context)
                 if (!isHealthTrackerConnected) {
@@ -63,8 +64,8 @@ class MainActivity : ComponentActivity() {
                     }
 
                     PermissionState.Granted -> {
-                        startForegroundServiceIfNecessary()
-                        registerCheckAlarmWorker()
+//                        startForegroundServiceIfNecessary()
+//                        registerCheckAlarmWorker()
                         HomeScreen(context = context)
                     }
 
@@ -99,7 +100,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        if (WearableDataForegroundService.isRunning.not()) PrivDataRequester.healthTrackingService.disconnectService()
+//        if (WearableDataForegroundService.isRunning.not()) PrivDataRequester.healthTrackingService.disconnectService()
     }
 
     private fun startForegroundServiceIfNecessary() {

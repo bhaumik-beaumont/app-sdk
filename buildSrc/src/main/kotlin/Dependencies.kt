@@ -1,8 +1,8 @@
 import org.gradle.api.artifacts.dsl.DependencyHandler
 
 object Versions {
-    const val APP_VERSION_NAME = "1.0.16"
-    const val APP_VERSION_CODE = 21
+    const val APP_VERSION_NAME = "1.0.31"
+    const val APP_VERSION_CODE = 36
 
     const val KOTLIN = "1.9.23"
 
@@ -200,7 +200,7 @@ object AppDependencies {
         "com.google.android.gms:play-services-location:${Versions.Google.PLAY_SERVICE_LOCATION}"
 
     // Auth
-    const val FIREBASE_BOM = "com.google.firebase:firebase-bom:${Versions.Google.FIREBASE_BOM}"
+    const val FIREBASE_BOM = "   .{Versions.Google.FIREBASE_BOM}"
     const val FIREBASE_AUTH = "com.google.firebase:firebase-auth-ktx"
     const val PLAYSERVICE_AUTH =
         "com.google.android.gms:play-services-auth:${Versions.Google.PLAY_SERVICE_AUTH}"

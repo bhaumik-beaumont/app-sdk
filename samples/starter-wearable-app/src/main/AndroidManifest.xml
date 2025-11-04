@@ -128,12 +128,12 @@
           </intent-filter>
       </receiver>
 
-    <service
-      android:foregroundServiceType="dataSync"
-      android:name=".presentation.service.WearableDataForegroundService"
-      android:enabled="true"
-      android:exported="false"
-      android:process=":fg_service" />
+<!--    <service-->
+<!--      android:foregroundServiceType="dataSync"-->
+<!--      android:name=".presentation.service.WearableDataForegroundService"-->
+<!--      android:enabled="true"-->
+<!--      android:exported="false"-->
+<!--      android:process=":fg_service" />-->
 
 
     <service
