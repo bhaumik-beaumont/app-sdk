@@ -45,6 +45,11 @@
       android:theme="@android:style/Theme.DeviceDefault" />
 
     <activity
+      android:name=".presentation.main.MedicalInfoActivity"
+      android:exported="false"
+      android:theme="@android:style/Theme.DeviceDefault" />
+
+    <activity
        android:name=".presentation.measurement.PpgActivity"
        android:exported="false"
        android:theme="@android:style/Theme.DeviceDefault"/>

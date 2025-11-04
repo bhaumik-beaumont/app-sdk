@@ -2,7 +2,6 @@ package researchstack.presentation.main.screen
 
 import android.content.Context
 import android.content.Intent
-import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -30,29 +29,18 @@ import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.wear.compose.material.PositionIndicator
+import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
+import androidx.wear.compose.foundation.lazy.items
+import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Scaffold
-import androidx.wear.compose.material.ScalingLazyColumn
 import androidx.wear.compose.material.Text
-import androidx.wear.compose.material.items
-import androidx.wear.compose.material.rememberScalingLazyListState
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
-import researchstack.BuildConfig
 import researchstack.R
-import researchstack.presentation.component.AppButton
-import researchstack.presentation.main.MainActivity
-import researchstack.presentation.main.NoteActivity
-import researchstack.presentation.main.SettingActivity
+import researchstack.presentation.main.MedicalInfoActivity
+import researchstack.presentation.main.component.AlwaysVisiblePositionIndicator
 import researchstack.presentation.main.viewmodel.HomeViewModel
-import researchstack.presentation.measurement.BiaActivity
-import researchstack.presentation.measurement.EcgActivity
-import researchstack.presentation.measurement.PpgActivity
-import researchstack.presentation.measurement.SpO2Activity
 import researchstack.presentation.theme.HomeScreenItemBackground
 import researchstack.presentation.theme.SubTextColor
 import researchstack.presentation.theme.TextColor
-import researchstack.presentation.worker.SyncPrivDataWorker
 
 enum class HomeScreenItem {
     BLOOD_OXYGEN,
@@ -95,12 +83,7 @@ fun HomeScreenItem.getItemIcon(): Int {
 }
 
 fun HomeScreenItem.getItemActivityClass(): Class<*> {
-    return when (this) {
-        HomeScreenItem.BLOOD_OXYGEN -> SpO2Activity::class.java
-        HomeScreenItem.ECG -> EcgActivity::class.java
-        HomeScreenItem.BODY_COMPOSITION -> BiaActivity::class.java
-        HomeScreenItem.PPG_RED, HomeScreenItem.PPG_IR -> PpgActivity::class.java
-    }
+    return MedicalInfoActivity::class.java
 }
 
 @Composable
@@ -151,7 +134,7 @@ fun HomeScreen(context: Context, homeViewModel: HomeViewModel = hiltViewModel())
 
     Scaffold(
         positionIndicator = {
-            PositionIndicator(
+            AlwaysVisiblePositionIndicator(
                 scalingLazyListState = listState
             )
         }
@@ -188,44 +171,42 @@ fun HomeScreen(context: Context, homeViewModel: HomeViewModel = hiltViewModel())
                 val lastMeasure = homeViewModel.getLiveDataByType(homeItem).observeAsState().value ?: ""
                 homeItem.View(lastMeasure) {
                     val intent = Intent(context, homeItem.getItemActivityClass())
-                    if (homeItem == HomeScreenItem.PPG_IR || homeItem == HomeScreenItem.PPG_RED) {
-                        intent.putExtra(MainActivity.PPG_BUNDLE_KEY, homeItem.name)
-                    }
+                        .putExtra(MedicalInfoActivity.EXTRA_HOME_ITEM, homeItem.name)
                     context.startActivity(intent)
                 }
             }
 
             item { Spacer(modifier = Modifier.height(16.dp)) }
 
-            item {
-                AppButton(HomeScreenItemBackground, stringResource(id = R.string.note)) {
-                    context.startActivity(Intent(context, NoteActivity::class.java))
-                }
-            }
-
-            item { Spacer(modifier = Modifier.height(8.dp)) }
-
-            item {
-                AppButton(HomeScreenItemBackground, stringResource(id = R.string.settings)) {
-                    context.startActivity(Intent(context, SettingActivity::class.java))
-                }
-            }
-
-            if (BuildConfig.ENABLE_INSTANT_SYNC_BUTTON) {
-                item { Spacer(modifier = Modifier.height(8.dp)) }
-                item {
-                    AppButton(HomeScreenItemBackground, stringResource(id = R.string.sync)) {
-                        WorkManager.getInstance(context).enqueue(
-                            OneTimeWorkRequestBuilder<SyncPrivDataWorker>().build()
-                        )
-                        Toast.makeText(
-                            context,
-                            context.resources.getString(R.string.synchronizing),
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                }
-            }
+//            item {
+//                AppButton(HomeScreenItemBackground, stringResource(id = R.string.note)) {
+//                    context.startActivity(Intent(context, NoteActivity::class.java))
+//                }
+//            }
+//
+//            item { Spacer(modifier = Modifier.height(8.dp)) }
+//
+//            item {
+//                AppButton(HomeScreenItemBackground, stringResource(id = R.string.settings)) {
+//                    context.startActivity(Intent(context, SettingActivity::class.java))
+//                }
+//            }
+//
+//            if (BuildConfig.ENABLE_INSTANT_SYNC_BUTTON) {
+//                item { Spacer(modifier = Modifier.height(8.dp)) }
+//                item {
+//                    AppButton(HomeScreenItemBackground, stringResource(id = R.string.sync)) {
+//                        WorkManager.getInstance(context).enqueue(
+//                            OneTimeWorkRequestBuilder<SyncPrivDataWorker>().build()
+//                        )
+//                        Toast.makeText(
+//                            context,
+//                            context.resources.getString(R.string.synchronizing),
+//                            Toast.LENGTH_SHORT
+//                        ).show()
+//                    }
+//                }
+//            }
 
             item { Spacer(modifier = Modifier.height(53.dp)) }
         }

@@ -60,6 +60,14 @@
     <string name="ppg">PPG</string>
     <string name="ppg_red">PPG Red</string>
     <string name="ppg_ir">PPG IR</string>
+    <string name="medical_info_button">Medical info</string>
+    <string name="medical_info_title">Measurement guide</string>
+    <string name="medical_info_intro">Learn what each study measurement tracks and how it supports your health research participation.</string>
+    <string name="medical_info_blood_oxygen">Blood oxygen saturation (SpO2) shows how efficiently your blood carries oxygen. Results between 95% and 100% are typical. Persistently low readings may indicate respiratory concerns that should be reviewed with a clinician.</string>
+    <string name="medical_info_ecg">The electrocardiogram (ECG) records the electrical activity of your heart. Regular readings help researchers study rhythm trends. If you experience chest pain or see irregular results, contact your healthcare provider immediately.</string>
+    <string name="medical_info_body_composition">Body composition analysis estimates fat, muscle, water, and metabolic rate using bioelectrical impedance. Measure with clean, dry skin and avoid use if you have implanted medical devices or are pregnant.</string>
+    <string name="medical_info_ppg_red">Red light photoplethysmography tracks changes in blood volume close to the skin. These measurements support research into heart rate, circulation, and vascular wellness.</string>
+    <string name="medical_info_ppg_ir">Infrared photoplethysmography reaches deeper vessels to study long-term circulatory trends and recovery. Use while resting to reduce motion artifacts.</string>
     <string name="note">Note</string>
     <string name="last_measure">Last measured</string>
     <string name="measure">Measure</string>
