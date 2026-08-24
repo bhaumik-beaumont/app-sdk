@@ -175,6 +175,19 @@ class HealthConnectDataSyncRepositoryImpl @Inject constructor(
                         uploadDataToServer(dataType, result)
                     }
                 }
+                val entries = generateWeeklyCompliance()
+                logDataSync("Weekly compliance generation produced ${entries.size} entries")
+                complianceEntryDao.clear()
+                logDataSync("Cleared compliance entries prior to insertion")
+                complianceEntryDao.insertAll(*entries.toTypedArray())
+                logDataSync("Inserted ${entries.size} compliance entries into database")
+                if (entries.isNotEmpty()) {
+                    logDataSync("Uploading compliance data entries to server")
+                    uploadDataToServer(SHealthDataType.USER_COMPLIANCE, entries)
+                } else {
+                    logDataSync("No compliance entries to upload to server")
+                }
+                logDataSync("Completed health data synchronization flow")
             } else {
                 logDataSync("Profile result returned null data")
             }
@@ -186,19 +199,6 @@ class HealthConnectDataSyncRepositoryImpl @Inject constructor(
             )
             Log.e(TAG, "fail to load profile", throwable)
         }
-        val entries = generateWeeklyCompliance()
-        logDataSync("Weekly compliance generation produced ${entries.size} entries")
-        complianceEntryDao.clear()
-        logDataSync("Cleared compliance entries prior to insertion")
-        complianceEntryDao.insertAll(*entries.toTypedArray())
-        logDataSync("Inserted ${entries.size} compliance entries into database")
-        if (entries.isNotEmpty()) {
-            logDataSync("Uploading compliance data entries to server")
-            uploadDataToServer(SHealthDataType.USER_COMPLIANCE, entries)
-        } else {
-            logDataSync("No compliance entries to upload to server")
-        }
-        logDataSync("Completed health data synchronization flow")
     }
 
     private suspend fun uploadDataToServer(

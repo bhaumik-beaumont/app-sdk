@@ -1,8 +1,8 @@
 import org.gradle.api.artifacts.dsl.DependencyHandler
 
 object Versions {
-    const val APP_VERSION_NAME = "1.0.31"
-    const val APP_VERSION_CODE = 36
+    const val APP_VERSION_NAME = "1.0.37"
+    const val APP_VERSION_CODE = 42
 
     const val KOTLIN = "1.9.23"
 

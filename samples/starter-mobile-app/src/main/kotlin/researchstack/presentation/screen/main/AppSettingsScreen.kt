@@ -271,7 +271,7 @@ private fun launchUrl(context: android.content.Context, url: String) {
 private fun sendEmail(context: android.content.Context) {
     val intent = Intent(Intent.ACTION_SENDTO).apply {
         data = Uri.parse("mailto:")
-        putExtra(Intent.EXTRA_EMAIL, arrayOf("alexa.skill.89@gmail.com"))
+        putExtra(Intent.EXTRA_EMAIL, arrayOf("rrawal1@mgh.harvard.edu"))
         putExtra(Intent.EXTRA_SUBJECT, "Test Subject")
     }
     try {
@@ -345,7 +345,7 @@ private fun shareDatabasesViaEmail(context: android.content.Context, exportFile:
 
     val intent = Intent(Intent.ACTION_SEND).apply {
         type = "application/zip"
-        putExtra(Intent.EXTRA_EMAIL, arrayOf("alexa.skill.89@gmail.com"))
+        putExtra(Intent.EXTRA_EMAIL, arrayOf("rrawal1@mgh.harvard.edu"))
         putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.database_export_email_subject))
         putExtra(Intent.EXTRA_TEXT, context.getString(R.string.database_export_email_body))
         putExtra(Intent.EXTRA_STREAM, uri)

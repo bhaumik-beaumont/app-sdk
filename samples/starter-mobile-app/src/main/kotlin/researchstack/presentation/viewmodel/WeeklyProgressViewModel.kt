@@ -166,13 +166,13 @@ class WeeklyProgressViewModel @Inject constructor(
                         .sortedBy { it.startTime }
                         .map { it.toDetailUi() }
 
-                    val totalMillis = activityList.sumOf { it.endTime - it.startTime }
+                    val totalMillis = activityList.sumOf { it.duration }
                     val minutes = TimeUnit.MILLISECONDS.toMinutes(totalMillis).toInt()
                     _activityMinutes.value = minutes
 
                     _activityCalories.value = activityList.sumOf { it.calorie.toInt() }
 
-                    val resistanceMillis = resistanceList.sumOf { it.endTime - it.startTime }
+                    val resistanceMillis = resistanceList.sumOf { it.duration }
                     val resistanceMinutes =
                         TimeUnit.MILLISECONDS.toMinutes(resistanceMillis).toInt()
                     _resistanceMinutes.value = resistanceMinutes
@@ -230,7 +230,7 @@ class WeeklyProgressViewModel @Inject constructor(
         val end = endInstant.toLocalTime().format(timeFormatter)
         val date = startInstant.toLocalDate().format(dateFormatter)
         val name = exerciseName
-        val duration = TimeUnit.MILLISECONDS.toMinutes(endTime - startTime).toInt()
+        val duration = TimeUnit.MILLISECONDS.toMinutes(this.duration).toInt()
         return ExerciseDetailUi(
             name = name,
             date = date,

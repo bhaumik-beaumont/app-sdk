@@ -168,11 +168,13 @@ fun HomeScreen(context: Context, homeViewModel: HomeViewModel = hiltViewModel())
 
             items(count = homeScreenItems.size) { index ->
                 val homeItem = homeScreenItems[index]
-                val lastMeasure = homeViewModel.getLiveDataByType(homeItem).observeAsState().value ?: ""
-                homeItem.View(lastMeasure) {
-                    val intent = Intent(context, homeItem.getItemActivityClass())
-                        .putExtra(MedicalInfoActivity.EXTRA_HOME_ITEM, homeItem.name)
-                    context.startActivity(intent)
+                if(homeItem == HomeScreenItem.BODY_COMPOSITION) {
+                    val lastMeasure = homeViewModel.getLiveDataByType(homeItem).observeAsState().value ?: ""
+                    homeItem.View(lastMeasure) {
+                        val intent = Intent(context, homeItem.getItemActivityClass())
+                            .putExtra(MedicalInfoActivity.EXTRA_HOME_ITEM, homeItem.name)
+                        context.startActivity(intent)
+                    }
                 }
             }
 

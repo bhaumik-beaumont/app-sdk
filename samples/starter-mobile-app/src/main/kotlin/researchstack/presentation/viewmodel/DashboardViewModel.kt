@@ -184,7 +184,7 @@ class DashboardViewModel @Inject constructor(
                             tag = logTag
                         )
 
-                        val totalMillis = exerciseList.sumOf { it.endTime - it.startTime }
+                        val totalMillis = exerciseList.sumOf { it.duration }
                         val minutes = TimeUnit.MILLISECONDS.toMinutes(totalMillis)
                         _totalDurationMinutes.value = minutes
                         val progress = ((minutes * 100f) / WEEKLY_ACTIVITY_GOAL_MINUTES).coerceAtMost(100f)
@@ -194,7 +194,7 @@ class DashboardViewModel @Inject constructor(
                             tag = logTag
                         )
 
-                        val resistanceMillis = resistanceList.sumOf { it.endTime - it.startTime }
+                        val resistanceMillis = resistanceList.sumOf { it.duration }
                         val resistanceMinutes = TimeUnit.MILLISECONDS.toMinutes(resistanceMillis)
                         _resistanceDurationMinutes.value = resistanceMinutes
                         val resistanceProgress = resistanceList.size * 100 / WEEKLY_RESISTANCE_SESSION_COUNT

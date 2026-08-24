@@ -82,7 +82,11 @@ object SAIdTokenRequester {
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
-            saService.unregisterCallback(registrationCode)
+            runCatching {
+                saService.unregisterCallback(registrationCode)
+            }.onFailure {
+                Log.w(TAG, "Failed to unregister callback on service disconnect - ${it.message}")
+            }
             registrationCode = null
             isBound = false
         }
